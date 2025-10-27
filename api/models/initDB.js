@@ -1,5 +1,5 @@
 import { dbPromise } from "../db.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 const init = async () => {
   const db = await dbPromise;
