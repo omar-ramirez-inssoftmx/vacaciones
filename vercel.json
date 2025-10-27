@@ -1,8 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "cd frontend && npm ci && chmod +x ./node_modules/.bin/vite && npm run build",
-  "installCommand": "cd frontend && npm ci",
-  "outputDirectory": "frontend/dist",
   "builds": [
     {
       "src": "api/server.js",
@@ -11,11 +8,24 @@
     {
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "frontend/dist" }
+      "config": {
+        "distDir": "frontend/dist"
+      }
     }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "/api/server.js" },
-    { "src": "/(.*)", "dest": "/frontend/dist/$1" }
-  ]
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/dist/$1"
+    }
+  ],
+  "env": {
+    "NODE_OPTIONS": "--openssl-legacy-provider"
+  },
+  "installCommand": "cd frontend && npm install --force",
+  "buildCommand": "cd frontend && npx vite build"
 }
