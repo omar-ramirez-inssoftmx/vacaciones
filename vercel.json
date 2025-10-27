@@ -6,11 +6,8 @@
       "use": "@vercel/node"
     },
     {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "frontend/dist"
-      }
+      "src": "frontend/dist/**/*",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -22,10 +19,5 @@
       "src": "/(.*)",
       "dest": "/frontend/dist/$1"
     }
-  ],
-  "env": {
-    "NODE_OPTIONS": "--openssl-legacy-provider"
-  },
-  "installCommand": "cd frontend && npm install --force",
-  "buildCommand": "cd frontend && npx vite build"
+  ]
 }
