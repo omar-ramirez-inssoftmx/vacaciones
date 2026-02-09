@@ -1,0 +1,667 @@
+:root{
+  --bg: #070A0F;
+  --surface: #0C111B;
+  --surface2: #101827;
+  --border: rgba(255,255,255,.10);
+
+  --text: #F8FAFF;
+  --muted: rgba(248,250,255,.70);
+
+  --primary: #2F81F7;   /* azul corporativo */
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --danger:  #EF4444;
+
+  --shadow: 0 14px 50px rgba(0,0,0,.65);
+  --radius: 16px;
+}
+
+body{
+  background:
+    radial-gradient(900px 500px at 10% 10%, rgba(47,129,247,.18), transparent 60%),
+    radial-gradient(900px 500px at 90% 20%, rgba(34,197,94,.10), transparent 60%),
+    radial-gradient(900px 500px at 50% 90%, rgba(245,158,11,.10), transparent 60%),
+    var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* Navbar */
+.navbar{
+  background: rgba(12,17,27,.80) !important;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+.navbar-brand, .navbar a, .navbar span{
+  color: var(--text) !important;
+  letter-spacing: .2px;
+}
+
+/* Cards */
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,.04), transparent), var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow);
+}
+
+/* Text */
+h1,h2,h3,h4,h5,h6, label, th{
+  color: var(--text) !important;
+}
+.text-muted, .muted, small{
+  color: var(--muted) !important;
+}
+
+/* Inputs */
+.form-control, .form-select{
+  background: var(--surface2) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+}
+.form-control::placeholder{
+  color: rgba(248,250,255,.45) !important;
+}
+.form-control:focus, .form-select:focus{
+  border-color: rgba(47,129,247,.60) !important;
+  box-shadow: 0 0 0 .2rem rgba(47,129,247,.20) !important;
+}
+
+/* Buttons */
+.btn{
+  border-radius: 12px !important;
+  font-weight: 600;
+  letter-spacing: .2px;
+}
+.btn-primary{
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+.btn-primary:hover{ filter: brightness(1.08); }
+
+.btn-outline-light{
+  color: var(--text) !important;
+  border-color: rgba(248,250,255,.25) !important;
+  background: transparent !important;
+}
+.btn-outline-light:hover{
+  background: rgba(248,250,255,.10) !important;
+}
+
+/* Table */
+.table{
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+.table thead th{
+  background: rgba(255,255,255,.06) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+.table tbody td{
+  background: rgba(16,24,39,.55) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+.table-hover tbody tr:hover td{
+  background: rgba(47,129,247,.10) !important;
+}
+
+/* Badges */
+.badge{
+  border-radius: 999px;
+  padding: .45em .7em;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+.bg-success{ background: rgba(34,197,94,.18) !important; color: #7CFFB2 !important; border: 1px solid rgba(34,197,94,.35); }
+.bg-danger{  background: rgba(239,68,68,.18) !important; color: #FF9B9B !important; border: 1px solid rgba(239,68,68,.35); }
+.bg-secondary{background: rgba(255,255,255,.12) !important; color: var(--text) !important; border: 1px solid rgba(255,255,255,.18); }
+.bg-dark{ background: rgba(0,0,0,.35) !important; color: var(--text) !important; border: 1px solid rgba(255,255,255,.15); }
+
+/* Alerts */
+.alert{
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: rgba(12,17,27,.85);
+  color: var(--text);
+  
+}
+.alert-success{ border-color: rgba(34,197,94,.35); }
+.alert-danger{  border-color: rgba(239,68,68,.35); }
+.alert-info{    border-color: rgba(47,129,247,.35); }
+
+/* ===== Login Layout ===== */
+.login-card{
+  width: 100%;
+  max-width: 420px;
+  margin: 7vh auto;
+  padding: 28px;
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(255,255,255,.05), transparent), var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.shadow-dark{
+  box-shadow: var(--shadow);
+}
+	
+/* ===== Bootstrap layout safety (NO descuadrar home) ===== */
+
+/* Evita que algún estilo global convierta el body en flex y rompa los containers */
+body{
+  display: block !important;
+}
+
+/* Asegura que el container siga comportándose como Bootstrap */
+.container, .container-fluid{
+  width: 100%;
+}
+
+/* Si algún estilo global afectó a .row */
+.row{
+  margin-left: calc(var(--bs-gutter-x) * -0.5);
+  margin-right: calc(var(--bs-gutter-x) * -0.5);
+}
+
+/* Solo para prevenir que cards/list-groups se estiren raro */
+.card, .list-group{
+  max-width: 100%;
+}
+
+/* ===== FIX: no romper layouts Bootstrap ===== */
+body{
+  display: block !important;
+  min-height: 100vh;
+}
+
+/* SOLO el login debe centrarse */
+body.page-login{
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+/* Evita que un estilo global toque el grid de Bootstrap */
+.container, .container-fluid{ max-width: var(--bs-container-width, 1320px); }
+.row{ margin-left: calc(var(--bs-gutter-x) * -0.5); margin-right: calc(var(--bs-gutter-x) * -0.5); }
+
+.logo-login{
+    width: 150px;     /* Tamaño grande */
+    max-width: 100%;
+    height: auto;
+}
+
+.login-card{
+    width: 400px;
+    margin: 80px auto;
+    padding: 40px;
+    border-radius: 20px;
+}
+
+/* Sombras suaves */
+.shadow-soft{
+  box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+  border-radius: 18px;
+}
+
+/* HERO */
+.home-hero{
+  background: linear-gradient(135deg, rgba(13,110,253,0.10), rgba(25,135,84,0.08));
+  border: 1px solid rgba(0,0,0,0.06);
+  padding: 18px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.home-hero__text{
+  flex: 1;
+}
+
+.home-hero__img{
+  width: 120px;
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.home-hero__img img{
+  width: 100%;
+  height: auto;
+  border-radius: 14px;
+  object-fit: cover;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+/* TARJETA DE OPCIONES */
+.home-card{
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.06);
+  padding: 18px;
+}
+
+.home-card__header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* LIST ITEMS MÁS “PRO” */
+.home-item{
+  padding: 14px 14px;
+  border: 0;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+.home-item:first-child{
+  border-top: 0;
+}
+
+.home-item:hover{
+  background: rgba(13,110,253,0.06);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+  border-radius: 14px;
+}
+
+.home-item__title{
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.home-item__arrow{
+  font-size: 22px;
+  opacity: 0.65;
+}
+
+/* Responsive */
+@media (max-width: 576px){
+  .home-hero{
+    flex-direction: column;
+    text-align: left;
+    align-items: stretch;
+  }
+  .home-hero__img{
+    width: 100%;
+  }
+}
+
+.home-card__header{
+  background: rgba(13,110,253,0.10);
+  color: #0d6efd;
+  padding: 14px 16px;
+  border-radius: 14px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(13,110,253,0.25);
+}
+
+
+/* ===== HOME (DARK MODE FIX) ===== */
+
+/* Hero en modo oscuro */
+.home-hero{
+  background: linear-gradient(135deg, rgba(47,129,247,.16), rgba(34,197,94,.10)),
+              var(--surface);
+  border: 1px solid var(--border);
+}
+
+/* Imagen con borde correcto en dark */
+.home-hero__img img{
+  border: 1px solid var(--border);
+}
+
+/* Card principal (antes estaba en #fff) */
+.home-card{
+  background: linear-gradient(180deg, rgba(255,255,255,.04), transparent),
+              var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+}
+
+/* Header con contraste real */
+.home-card__header{
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 14px 16px;
+  border-radius: 14px;
+  margin-bottom: 10px;
+}
+
+/* Fuerza el título del header a ser visible (por si hay overrides) */
+.home-card__header h5{
+  color: var(--text) !important;
+  font-weight: 800;
+}
+
+/* Items con borde y hover correctos en dark */
+.home-item{
+  background: transparent;
+  border-top: 1px solid var(--border);
+  color: var(--text);
+}
+
+.home-item:hover{
+  background: rgba(47,129,247,.12);
+  box-shadow: 0 10px 22px rgba(0,0,0,.35);
+}
+
+/* Flecha más visible */
+.home-item__arrow{
+  opacity: .9;
+}
+
+.home-card__header .badge.bg-primary{
+  background: rgba(47,129,247,.18) !important;
+  border: 1px solid rgba(47,129,247,.35) !important;
+  color: #BFD7FF !important;
+}
+
+/* ===== FIX SCROLL: evita el "blanco" al hacer scroll ===== */
+html, body{
+  background-color: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+/* Si la página es más alta que el viewport, el fondo detrás también debe ser oscuro */
+html{
+  min-height: 100%;
+  background: var(--bg) !important;
+}
+
+/* Evita el “bounce/overscroll” blanco en algunos navegadores */
+body{
+  background-attachment: fixed;
+}
+
+/* ===== Links y list-group en dark ===== */
+a{
+  color: var(--text);
+}
+
+a:hover{
+  color: #BFD7FF;
+}
+
+/* List group (Bootstrap) */
+.list-group{
+  background: transparent !important;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.list-group-item{
+  background: var(--surface2) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+.list-group-item-action:hover{
+  background: rgba(47,129,247,.12) !important;
+  color: var(--text) !important;
+}
+
+/* Por si algún texto muted se vuelve demasiado tenue */
+.text-muted{
+  color: rgba(248,250,255,.75) !important;
+}
+
+.btn-approve {
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+  border: none;
+  font-weight: 600;
+  color: #fff;
+}
+.btn-reject {
+  background: linear-gradient(90deg, #dc2626, #ef4444);
+  border: none;
+  font-weight: 600;
+  color: #fff;
+}
+.btn-ghost {
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  background: transparent;
+}
+.btn-ghost:hover {
+  background: #0b1220;
+  border-color: #38bdf8;
+  color: #fff;
+}
+.badge-pending {
+  background: #334155;
+}
+
+/* ===== Navbar logo ===== */
+.nav-logo{
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.04);
+}
+
+/* ===== Hero Admin ===== */
+.admin-hero{
+  background: linear-gradient(135deg, rgba(47,129,247,.16), rgba(34,197,94,.10)),
+              var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-hero__text h4{
+  margin: 0;
+}
+
+/* ===== Mejoras visuales en la sección ===== */
+.card .card-body h5{
+  font-weight: 800;
+}
+
+/* tabla responsive (opcional) */
+.table{
+  margin-bottom: 0;
+}
+
+/* Asegura que los input-group en dark se vean bien */
+.input-group .form-control{
+  border-right: 0 !important;
+}
+.input-group .btn{
+  border-left: 0 !important;
+}
+
+/* Ajusta botones outline para que se distingan más */
+.btn-outline-light{
+  border-color: rgba(248,250,255,.22) !important;
+}
+.btn-outline-light:hover{
+  background: rgba(248,250,255,.10) !important;
+}
+
+/* ===== Scroll / fondo: evita blancos raros ===== */
+html, body{
+  background-color: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+/* ===== FIX HINT TEXT VISIBILITY ===== */
+.hint{
+  margin-top: 6px;
+  font-size: .86rem;
+
+  /* Más contraste */
+  color: rgba(248,250,255,.88) !important;
+
+  /* Opcional: leve glow para legibilidad */
+  text-shadow: 0 0 1px rgba(0,0,0,.35);
+}
+
+/* Si algún hint usa small */
+.hint small{
+  color: inherit !important;
+}
+
+/* ===== SECTION HEAD DARK FIX ===== */
+.section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 12px;
+
+  padding: 14px 16px;
+  border-radius: var(--radius);
+
+  /* Fondo consistente con cards dark */
+  background:
+    linear-gradient(135deg,
+      rgba(47,129,247,.16),
+      rgba(34,197,94,.10)
+    ),
+    var(--surface);
+
+  border: 1px solid var(--border);
+
+  box-shadow: 0 10px 26px rgba(0,0,0,.35);
+}
+
+/* Título */
+.section-head__title{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  font-weight: 800;
+  letter-spacing: .3px;
+  color: var(--text);
+}
+
+/* Emoji alineado y contenido */
+.section-head__title .emoji{
+  font-size: 20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  width: 36px;
+  height: 36px;
+
+  border-radius: 10px;
+
+  background: rgba(255,255,255,.08);
+  border: 1px solid var(--border);
+}
+
+/* Badge visible en dark */
+.section-head .badge{
+  background: rgba(255,255,255,.10) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border);
+  font-weight: 700;
+}
+
+/* ===== DATE INPUTS EN BLANCO ===== */
+input[type="date"].form-control{
+
+  background: #ffffff !important;
+  color: #0b1220 !important;   /* texto oscuro */
+
+  border: 1px solid #ced4da !important;
+}
+
+/* Icono calendario (Chrome / Edge) */
+input[type="date"].form-control::-webkit-calendar-picker-indicator{
+  filter: invert(0);   /* negro normal */
+  opacity: 0.9;
+  cursor: pointer;
+}
+
+/* Focus */
+input[type="date"].form-control:focus{
+  border-color: #2F81F7 !important;
+  box-shadow: 0 0 0 .2rem rgba(47,129,247,.25) !important;
+}
+
+.input-group-text {
+  background: #0d6efd;
+  color: white;
+  border: none;
+}
+
+.input-group .form-control {
+  border-left: 0;
+}
+
+/* ===== MODAL ADMIN ===== */
+.admin-modal {
+  background: #1b1f24;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+.admin-modal-header {
+  background: linear-gradient(135deg, #202632, #1b1f24);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.admin-modal-body {
+  background: #1b1f24;
+}
+
+.admin-modal-footer {
+  background: #1b1f24;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+/* Inputs */
+.admin-modal .form-control,
+.admin-modal .form-select {
+  background-color: #12161c;
+  color: #eaeaea;
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.admin-modal .form-control:focus,
+.admin-modal .form-select:focus {
+  background-color: #12161c;
+  color: #fff;
+  border-color: #5b9dff;
+  box-shadow: 0 0 0 .15rem rgba(91,157,255,.25);
+}
+
+/* Labels */
+.admin-modal label,
+.admin-modal .form-check-label {
+  color: #cfd3da;
+  font-weight: 500;
+}
+
+/* Checkbox */
+.admin-modal .form-check-input {
+  background-color: #12161c;
+  border-color: rgba(255,255,255,.3);
+}
+
+.admin-modal .form-check-input:checked {
+  background-color: #5b9dff;
+  border-color: #5b9dff;
+}
+

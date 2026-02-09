@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Nueva Solicitud de Vacaciones</title>
+
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/theme.css">
+
+  <!-- Icons -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+  <!-- Flatpickr -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-dark">
+  <div class="container-fluid d-flex justify-content-between">
+    <a class="navbar-brand" href="/home">Sistema de Vacaciones</a>
+
+    <form method="post" action="/logout">
+      <button class="btn btn-outline-light btn-sm">Salir</button>
+    </form>
+  </div>
+</nav>
+
+<div class="container mt-4">
+
+  <!-- HERO -->
+  <div class="admin-hero shadow-soft mb-3">
+    <div>
+      <h4>Nueva Solicitud de Vacaciones</h4>
+      <div class="muted">
+        Selecciona el rango de fechas y revisa los días solicitados.
+      </div>
+    </div>
+
+    <a class="btn btn-outline-light" href="/home">Volver</a>
+  </div>
+
+  <!-- MENSAJES BACKEND -->
+  <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+  <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+  <!-- CARD -->
+  <div class="card">
+    <div class="card-body">
+
+      <!-- SALDO -->
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+
+        <div class="alert alert-secondary mb-0 flex-grow-1">
+          Días disponibles:
+          <b th:text="${availableDays}">0</b>
+        </div>
+
+        <div id="remainingBox"
+             class="alert alert-success mb-0"
+             style="display:none;">
+          Te quedarían:
+          <b id="remaining">0</b> días
+        </div>
+
+      </div>
+
+      <!-- Hidden para JS -->
+      <input type="hidden"
+             id="availableDays"
+             th:value="${availableDays}"
+             value="0">
+
+      <form method="post" action="/vacations/request">
+
+        <div class="row g-3">
+
+          <!-- Inicio -->
+          <div class="col-md-6">
+            <label class="form-label">Fecha Inicio</label>
+
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="bi bi-calendar-event"></i>
+              </span>
+
+              <input id="startDate"
+                     name="startDate"
+                     type="date"
+                     class="form-control"
+					 placeholder="Selecciona el primer día de tus vacaciones."
+                     required>
+            </div>
+          </div>
+
+          <!-- Fin -->
+          <div class="col-md-6">
+            <label class="form-label">Fecha Fin</label>
+
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="bi bi-calendar-event"></i>
+              </span>
+
+              <input id="endDate"
+                     name="endDate"
+                     type="date"
+                     class="form-control"
+					 placeholder="Selecciona el último día de tus vacaciones." 
+                     required>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Días -->
+        <div id="daysBox"
+             class="alert alert-info mt-3"
+             style="display:none;">
+          Días solicitados:
+          <b id="days">0</b>
+        </div>
+
+        <!-- Error fechas -->
+        <div id="dateError"
+             class="alert alert-danger mt-3"
+             style="display:none;">
+          La fecha fin no puede ser menor que la fecha inicio.
+        </div>
+
+        <button id="submitBtn"
+                class="btn btn-primary mt-3">
+          Enviar Solicitud
+        </button>
+
+      </form>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- JS -->
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  const start = document.getElementById("startDate");
+  const end = document.getElementById("endDate");
+  const daysBox = document.getElementById("daysBox");
+  const daysEl = document.getElementById("days");
+  const dateError = document.getElementById("dateError");
+  const submitBtn = document.getElementById("submitBtn");
+
+  const remainingBox = document.getElementById("remainingBox");
+  const remainingEl = document.getElementById("remaining");
+  const available = () => parseInt(document.getElementById("availableDays").value || "0", 10);
+
+  // Error dinámico
+  const weekendError = document.createElement("div");
+  weekendError.className = "alert alert-danger mt-2";
+  weekendError.style.display = "none";
+  dateError.parentNode.insertBefore(weekendError, dateError.nextSibling);
+
+  function setError(msg){
+    weekendError.textContent = msg;
+    weekendError.style.display = "block";
+    submitBtn.disabled = true;
+  }
+
+  function clearErrors(){
+    dateError.style.display = "none";
+    weekendError.style.display = "none";
+    submitBtn.disabled = false;
+  }
+
+  function toUTCDate(ymd){
+    return new Date(ymd + "T00:00:00Z");
+  }
+
+  function isWeekend(ymd){
+    const d = toUTCDate(ymd);
+    const day = d.getUTCDay();
+    return day === 0 || day === 6;
+  }
+
+  function getMexicanHolidays(year){
+
+    function getNthMonday(month,nth){
+      const firstDay = new Date(year, month, 1);
+      const firstMonday = 1 + ((8 - firstDay.getDay()) % 7);
+      return firstMonday + (nth - 1) * 7;
+    }
+
+    return [
+      `${year}-01-01`,
+      `${year}-05-01`,
+      `${year}-09-16`,
+      `${year}-12-25`,
+      `${year}-02-${String(getNthMonday(1,1)).padStart(2,"0")}`,
+      `${year}-03-${String(getNthMonday(2,3)).padStart(2,"0")}`,
+      `${year}-11-${String(getNthMonday(10,3)).padStart(2,"0")}`
+    ];
+  }
+
+  function isHoliday(dateStr){
+    const year = dateStr.substring(0,4);
+    return getMexicanHolidays(year).includes(dateStr);
+  }
+
+  function countBusinessDaysInclusive(d1,d2){
+    const a = toUTCDate(d1);
+    const b = toUTCDate(d2);
+    let count = 0;
+
+    for(let d=new Date(a); d<=b; d.setUTCDate(d.getUTCDate()+1)){
+      const ymd = d.toISOString().slice(0,10);
+      const day = d.getUTCDay();
+      if(day!==0 && day!==6 && !isHoliday(ymd)) count++;
+    }
+    return count;
+  }
+
+  function refreshUI(){
+
+    clearErrors();
+    daysBox.style.display="none";
+    remainingBox.style.display="none";
+
+    if(!start.value || !end.value) return;
+
+    const a = toUTCDate(start.value);
+    const b = toUTCDate(end.value);
+
+    if(b<a){
+      dateError.style.display="block";
+      submitBtn.disabled=true;
+      return;
+    }
+
+    if(isWeekend(start.value) || isWeekend(end.value) ||
+       isHoliday(start.value) || isHoliday(end.value)){
+      setError("No puedes seleccionar fines de semana ni días festivos.");
+      return;
+    }
+
+    const days = countBusinessDaysInclusive(start.value,end.value);
+
+    daysEl.textContent = days;
+    daysBox.style.display="block";
+
+    const remaining = available() - days;
+    remainingEl.textContent = remaining;
+    remainingBox.style.display="block";
+
+    if(remaining<0){
+      setError("No tienes días suficientes disponibles.");
+    }
+  }
+
+  const disableWeekends = d=>d.getDay()===0||d.getDay()===6;
+
+  const disableHolidays = function(date){
+    const ymd = flatpickr.formatDate(date,"Y-m-d");
+    return getMexicanHolidays(date.getFullYear()).includes(ymd);
+  };
+
+  flatpickr("#startDate",{
+    dateFormat:"Y-m-d",
+    allowInput:false,
+    minDate:"today",
+    disable:[disableWeekends,disableHolidays],
+    onChange:refreshUI
+  });
+
+  flatpickr("#endDate",{
+    dateFormat:"Y-m-d",
+    allowInput:false,
+    minDate:"today",
+    disable:[disableWeekends,disableHolidays],
+    onChange:refreshUI
+  });
+
+});
+</script>
+
+</body>
+</html>

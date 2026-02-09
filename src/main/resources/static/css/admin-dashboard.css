@@ -1,0 +1,110 @@
+:root{
+  --bg-card: #1b1f24;
+  --bg-input: #12161c;
+  --border-soft: rgba(255,255,255,.08);
+}
+
+/* Card base */
+.admin-card{
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-soft);
+}
+
+/* Hero */
+.admin-hero{
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-soft);
+}
+
+.admin-hero__text h4{
+  color: #fff;
+  font-weight: 700;
+}
+
+.muted{ opacity: .8; }
+
+/* KPI */
+.kpi-card .kpi-value{
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #fff;
+}
+
+.kpi-card .kpi-title{
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+/* Section header */
+.section-header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Tables scroll + sticky header */
+.admin-table-scroll{
+  max-height: 360px;
+  overflow-y: auto;
+  border-radius: 14px;
+}
+
+.admin-table-wrap{
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-radius: 14px;
+}
+
+.admin-table{
+  min-width: 520px;
+}
+
+.admin-table thead th{
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.admin-table tbody tr:hover{
+  background: rgba(255,255,255,.03);
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px){
+  .admin-hero{
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .admin-table-scroll{
+    max-height: 300px;
+  }
+  .admin-table{
+    min-width: 480px;
+  }
+}
+
+/* Botón Volver más discreto */
+.admin-hero a.btn{
+  width: auto;
+  padding: .375rem .75rem;   /* mismo tamaño que btn-sm */
+  font-size: .875rem;
+  align-self: center;
+}
+
+/* En móvil que no se estire */
+@media (max-width: 768px){
+  .admin-hero a.btn{
+    width: fit-content;
+  }
+}

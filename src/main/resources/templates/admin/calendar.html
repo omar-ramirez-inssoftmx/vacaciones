@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Calendario de Ausencias</title>
+
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/theme.css">
+
+  <!-- FullCalendar -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css">
+
+  <style>
+    #calendar {
+      max-width: 100%;
+      margin: auto;
+    }
+  </style>
+  
+  <style>
+  /* =========================
+     FIX VISTA LIST (listMonth)
+     ========================= */
+
+  /* Barra de fecha (6 de febrero...) */
+  .fc .fc-list-day-cushion {
+    background: #f8f9fa !important;
+    color: #212529 !important;
+    border-top: 1px solid #dee2e6 !important;
+    border-bottom: 1px solid #dee2e6 !important;
+  }
+
+  /* Texto izquierda: "6 de febrero de 2026" */
+  .fc .fc-list-day-text,
+  .fc .fc-list-day-text a {
+    color: #212529 !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+  }
+
+  /* Texto derecha: "viernes" */
+  .fc .fc-list-day-side-text,
+  .fc .fc-list-day-side-text a {
+    color: #212529 !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+  }
+
+  /* Filas del listado */
+  .fc .fc-list-event {
+    background: #ffffff !important;
+  }
+
+  .fc .fc-list-event:hover td {
+    background: #f8f9fa !important;
+  }
+
+  /* Tiempo "all-day" y título del evento */
+  .fc .fc-list-event-time,
+  .fc .fc-list-event-title {
+    color: #212529 !important;
+    font-weight: 600 !important;
+  }
+
+  /* =========================
+     MEJOR CONTRASTE EN EVENTOS
+     ========================= */
+
+  /* En tu screenshot el texto sobre verde se ve oscuro.
+     Forzamos texto blanco dentro de eventos. */
+  .fc .fc-event,
+  .fc .fc-event .fc-event-main,
+  .fc .fc-event .fc-event-title,
+  .fc .fc-event .fc-event-time {
+    color: #ffffff !important;
+  }
+
+  /* Evita que links internos vuelvan a negro */
+  .fc .fc-event a {
+    color: #ffffff !important;
+  }
+
+  /* =========================
+     HEADER GENERAL (por si tu tema lo pisa)
+     ========================= */
+  .fc .fc-toolbar-title { color: #212529 !important; }
+  .fc .fc-col-header-cell-cushion { color: #212529 !important; }
+  </style>
+  <style>
+  /* =========================
+     FIX TEXTOS EN VISTA LIST
+     ========================= */
+
+  /* Asegura que la tabla del list tenga texto visible */
+  .fc .fc-list,
+  .fc .fc-list-table,
+  .fc .fc-list-table td,
+  .fc .fc-list-table a {
+    color: #212529 !important;
+    opacity: 1 !important;
+  }
+
+  /* Título del evento (lo que no se ve en tu screenshot) */
+  .fc .fc-list-event-title,
+  .fc .fc-list-event-title a {
+    color: #212529 !important;
+    opacity: 1 !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+  }
+
+  /* Columna del tiempo (all-day) */
+  .fc .fc-list-event-time {
+    color: #212529 !important;
+    opacity: 1 !important;
+    font-weight: 600 !important;
+  }
+
+  /* Quita estilos heredados raros */
+  .fc .fc-list-event td {
+    background: #ffffff !important;
+  }
+
+  /* Hover */
+  .fc .fc-list-event:hover td {
+    background: #f8f9fa !important;
+  }
+
+  /* Mantén el dot visible */
+  .fc .fc-list-event-dot {
+    border-color: #198754 !important;
+  }
+
+  /* IMPORTANTE:
+     Si tienes esto en tu CSS:
+     .fc .fc-event { color: #fff !important; }
+     NO afecta list, pero por si tu tema pisa anchors, esto lo corrige arriba.
+  */
+  </style>
+
+  <style>
+  /* ===== FIX: que se vea el título del mes ===== */
+  .fc .fc-header-toolbar,
+  .fc .fc-toolbar.fc-header-toolbar {
+    opacity: 1 !important;
+  }
+
+  .fc .fc-toolbar-title {
+    color: #ffffff !important;     /* blanco */
+    opacity: 1 !important;
+    font-weight: 800 !important;
+    text-shadow: 0 2px 10px rgba(0,0,0,.6) !important;
+  }
+
+  /* Si tu tema pone color a todos los h1/h2/h3/h4 */
+  .fc .fc-toolbar-title,
+  .fc .fc-toolbar-title * {
+    color: #ffffff !important;
+  }
+
+  /* Por si tu theme oscurece links/textos del toolbar */
+  .fc .fc-toolbar,
+  .fc .fc-toolbar * {
+    opacity: 1 !important;
+  }
+  </style>
+  <style>
+  .fc .fc-header-toolbar {
+    background: rgba(17,24,39,.65) !important; /* dark glass */
+    border: 1px solid rgba(255,255,255,.08) !important;
+    border-radius: 14px !important;
+    padding: 10px 12px !important;
+  }
+  </style>
+  <style>
+  /* ===== Columna izquierda (time axis) ===== */
+  .fc .fc-timegrid-axis-cushion,
+  .fc .fc-timegrid-slot-label-cushion,
+  .fc .fc-timegrid-slot-label {
+    color: #ffffff !important;
+    opacity: 1 !important;
+    font-weight: 600 !important;
+  }
+
+  /* Texto de "Todo el día" (all-day) */
+  .fc .fc-timegrid-axis-frame,
+  .fc .fc-timegrid-axis,
+  .fc .fc-timegrid-axis .fc-timegrid-axis-cushion {
+    color: #ffffff !important;
+    opacity: 1 !important;
+  }
+
+  /* Fondo de esa columna para contraste */
+  .fc .fc-timegrid-axis,
+  .fc .fc-timegrid-axis-frame,
+  .fc .fc-timegrid-slot-label {
+    background: rgba(17,24,39,.55) !important;
+  }
+  </style>
+
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-dark">
+  <div class="container-fluid d-flex justify-content-between">
+
+    <a class="navbar-brand" href="/home">
+      Sistema de Vacaciones
+    </a>
+
+    <div class="d-flex gap-2">
+      <form method="post" action="/logout">
+        <button class="btn btn-outline-light btn-sm">
+          Salir
+        </button>
+      </form>
+    </div>
+
+  </div>
+</nav>
+
+<div class="container mt-4">
+
+  <!-- HERO -->
+  <div class="admin-hero shadow-soft mb-3">
+    <div>
+      <h4>Calendario de Ausencias</h4>
+      <div class="muted">
+        Visualiza vacaciones aprobadas y pendientes.
+      </div>
+    </div>
+	<a class="btn btn-outline-light" href="/home">Volver</a>
+
+  </div>
+
+  <!-- LEYENDA -->
+  <div class="d-flex gap-3 flex-wrap mb-3">
+
+    <div class="badge bg-success">
+      APROBADA
+    </div>
+
+    <div class="badge bg-warning text-dark">
+      PENDIENTE
+    </div>
+
+  </div>
+
+  <!-- CARD -->
+  <div class="card">
+    <div class="card-body">
+
+      <div id="calendar"></div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- JS -->
+<script src="/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/locales-all.global.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+  const calendarEl = document.getElementById('calendar');
+
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+
+    initialView: 'dayGridMonth',
+    height: 'auto',
+	allDayText: false,
+	allDayText: 'Todo el día',
+    locale: 'es',
+    firstDay: 1,
+    nowIndicator: true,
+    navLinks: true,
+
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,listMonth'
+    },
+
+
+	buttonText: {
+	  today: 'Hoy',
+	  month: 'Mes',
+	  week: 'Semana',
+	  day: 'Día',
+	  list: 'Lista'
+	},
+
+
+    // 🔥 ENDPOINT ADMIN
+    events: {
+      url: '/admin/calendar/events',
+
+      failure: function() {
+        alert('No se pudieron cargar los eventos.');
+      }
+    },
+
+    // Tooltip / click detalle
+    eventClick: function(info) {
+
+      const e = info.event;
+
+      const username = e.extendedProps.username || 'N/D';
+      const status   = e.extendedProps.status || 'N/D';
+      const days     = e.extendedProps.days ?? 'N/D';
+
+      alert(
+        "Empleado: " + username + "\n" +
+        "Inicio: " + e.startStr + "\n" +
+        "Fin: " + e.endStr + "\n" +
+        "Días: " + days + "\n" +
+        "Estatus: " + status
+      );
+    },
+
+    // Estilo dinámico extra (opcional)
+    eventDidMount: function(info) {
+
+      const status = (info.event.extendedProps.status || "").toUpperCase();
+
+      if (status.includes("APPRO")) {
+        info.el.style.backgroundColor = "#198754";
+        info.el.style.borderColor = "#198754";
+      }
+
+      if (status.includes("PEND")) {
+        info.el.style.backgroundColor = "#ffc107";
+        info.el.style.borderColor = "#ffc107";
+        info.el.style.color = "#000";
+      }
+    },
+	customButtons: {
+	  exportPdf: {
+	    text: 'Exportar PDF',
+	    click: function () {
+	      const view = calendar.view;
+
+	      // FullCalendar maneja end exclusivo, por eso restamos 1 día
+	      const from = view.currentStart.toISOString().slice(0,10);
+	      const toDate = new Date(view.currentEnd);
+	      toDate.setDate(toDate.getDate() - 1);
+	      const to = toDate.toISOString().slice(0,10);
+
+	      window.open(`/admin/calendar/export.pdf?from=${from}&to=${to}`, '_blank');
+	    }
+	  }
+	},
+	headerToolbar: {
+	  left: 'prev,next today exportPdf',
+	  center: 'title',
+	  right: 'dayGridMonth,timeGridWeek,listMonth'
+	},
+
+  });
+
+  calendar.render();
+
+});
+</script>
+
+</body>
+</html>

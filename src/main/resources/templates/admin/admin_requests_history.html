@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Historial de Solicitudes</title>
+
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+
+<body>
+
+<nav class="navbar navbar-dark">
+  <div class="container-fluid d-flex align-items-center justify-content-between">
+
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/home">
+      <span>Sistema de Vacaciones</span>
+    </a>
+
+    <form method="post" action="/logout">
+      <button class="btn btn-outline-light btn-sm">Salir</button>
+    </form>
+  </div>
+</nav>
+
+<div class="container mt-4">
+
+  <div class="admin-hero shadow-soft mb-3">
+    <div class="admin-hero__text">
+      <h4 class="mb-1">Historial de Solicitudes</h4>
+      <div class="muted">Solicitudes ya resueltas (Aprobadas / Rechazadas).</div>
+    </div>
+
+    <a class="btn btn-outline-light" href="/home">Volver</a>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="card mb-3">
+    <div class="card-body">
+
+      <form method="get" action="/admin/requests/history" class="row g-2 align-items-end">
+
+        <div class="col-md-3">
+          <label class="form-label">Estatus</label>
+          <select class="form-select" name="status">
+            <option value="" th:selected="${status == null || status == ''}">TODAS</option>
+            <option value="APPROVED" th:selected="${status == 'APPROVED'}">APROBADAS</option>
+            <option value="REJECTED" th:selected="${status == 'REJECTED'}">RECHAZADAS</option>
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Buscar (usuario/email)</label>
+          <input class="form-control" name="q" placeholder="Ej: juan / correo@..." th:value="${q}">
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Desde</label>
+          <input class="form-control" type="date" name="from" th:value="${from}">
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Hasta</label>
+          <input class="form-control" type="date" name="to" th:value="${to}">
+        </div>
+
+        <div class="col-md-2">
+          <button class="btn btn-primary w-100">Filtrar</button>
+        </div>
+
+        <div class="col-md-2">
+          <a class="btn btn-outline-light w-100" href="/admin/requests/history">Limpiar</a>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- TABLA -->
+  <div class="card">
+    <div class="card-body">
+
+      <h5 class="mb-3">Resultados</h5>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Colaborador</th>
+              <th>Rango</th>
+              <th>Días</th>
+              <th>Estatus</th>
+              <th>Resuelto por</th>
+              <th>Fecha decisión</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr th:if="${#lists.isEmpty(requests)}">
+              <td colspan="7" class="text-muted">No hay solicitudes con esos filtros.</td>
+            </tr>
+
+            <tr th:each="r : ${requests}">
+              <td th:text="${r.id}"></td>
+
+              <!-- Ajusta según tu modelo -->
+              <td>
+                <div class="fw-bold" th:text="${r.user.username}"></div>
+                <small class="text-muted" th:text="${r.user.email}"></small>
+              </td>
+
+              <td>
+                <span th:text="${r.startDate}"></span>
+                <span class="text-muted">→</span>
+                <span th:text="${r.endDate}"></span>
+              </td>
+
+			  <td th:text="${T(java.time.temporal.ChronoUnit).DAYS.between(r.startDate, r.endDate) + 1}"></td>
+
+              <td>
+                <span class="badge bg-success" th:if="${r.status == 'APPROVED'}">APROBADA</span>
+                <span class="badge bg-danger"  th:if="${r.status == 'REJECTED'}">RECHAZADA</span>
+              </td>
+
+			  <td th:text="${r.decidedBy != null ? r.decidedBy : '—'}"></td>
+			  <td th:text="${r.decidedAt != null ? r.decidedAt : '—'}"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard Admin</title>
+
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/admin-dashboard.css">
+</head>
+
+<body>
+
+<nav class="navbar navbar-dark">
+  <div class="container-fluid d-flex align-items-center justify-content-between">
+    <a class="navbar-brand" href="/home">Sistema de Vacaciones</a>
+
+    <form method="post" action="/logout">
+      <button class="btn btn-outline-light btn-sm">Salir</button>
+    </form>
+  </div>
+</nav>
+
+<div class="container mt-4">
+
+  <!-- HERO -->
+  <div class="admin-hero shadow-soft mb-3">
+    <div class="admin-hero__text">
+      <h4 class="mb-1">Dashboard (Admin)</h4>
+      <div class="muted">
+        Resumen al día:
+        <b th:text="${#temporals.format(today,'dd/MM/yyyy')}">07/02/2026</b>
+      </div>
+    </div>
+	<a class="btn btn-outline-light btn-sm admin-back-btn" href="/home">Volver</a>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3">
+      <div class="card admin-card shadow-soft kpi-card">
+        <div class="card-body">
+          <div class="muted">Ausentes hoy</div>
+          <div class="kpi-value" th:text="${outTodayCount}">0</div>
+          <div class="small muted">Aprobados que cubren hoy</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+      <div class="card admin-card shadow-soft kpi-card">
+        <div class="card-body">
+          <div class="muted">Pendientes</div>
+          <div class="kpi-value" th:text="${pendingCount}">0</div>
+          <div class="small muted">Solicitudes por revisar</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+      <div class="card admin-card shadow-soft kpi-card">
+        <div class="card-body">
+          <div class="muted">Días aprobados este mes</div>
+          <div class="kpi-value" th:text="${approvedDaysThisMonth}">0</div>
+          <div class="small muted">Suma de días (aprobados)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+      <div class="card admin-card shadow-soft kpi-card">
+        <div class="card-body">
+          <div class="muted">Top usuario del mes</div>
+          <div class="kpi-title"
+               th:text="${#lists.isEmpty(topUsers) ? '—' : topUsers[0].username()}">—</div>
+          <div class="small muted"
+               th:text="${#lists.isEmpty(topUsers) ? '' : (topUsers[0].days() + ' días')}"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+
+    <!-- Ausentes hoy -->
+    <div class="col-lg-7">
+      <div class="card admin-card shadow-soft">
+        <div class="card-body">
+          <div class="section-header">
+            <h5 class="mb-0">Ausentes hoy</h5>
+            <span class="badge bg-secondary" th:text="${outTodayCount}">0</span>
+          </div>
+
+          <div th:if="${#lists.isEmpty(outToday)}" class="muted mt-3">
+            No hay ausencias aprobadas para hoy.
+          </div>
+
+          <div th:if="${!#lists.isEmpty(outToday)}" class="admin-table-scroll mt-3">
+            <div class="table-responsive admin-table-wrap">
+              <table class="table table-hover table-sm align-middle admin-table">
+                <thead>
+                  <tr>
+                    <th>Usuario</th>
+                    <th>Inicio</th>
+                    <th>Fin</th>
+                    <th>Días</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:each="vr : ${outToday}">
+                    <td th:text="${vr.username}">user</td>
+                    <td th:text="${#temporals.format(vr.startDate,'dd/MM/yyyy')}">01/02/2026</td>
+                    <td th:text="${#temporals.format(vr.endDate,'dd/MM/yyyy')}">03/02/2026</td>
+                    <td th:text="${vr.days}">2</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Top del mes -->
+    <div class="col-lg-5">
+      <div class="card admin-card shadow-soft">
+        <div class="card-body">
+          <div class="section-header">
+            <h5 class="mb-0">Top 5 (días aprobados este mes)</h5>
+            <span class="badge bg-secondary" th:text="${#lists.size(topUsers)}">0</span>
+          </div>
+
+          <div th:if="${#lists.isEmpty(topUsers)}" class="muted mt-3">
+            Sin datos todavía.
+          </div>
+
+          <div th:if="${!#lists.isEmpty(topUsers)}" class="admin-table-scroll mt-3">
+            <div class="table-responsive admin-table-wrap">
+              <table class="table table-hover table-sm align-middle admin-table">
+                <thead>
+                  <tr>
+                    <th>Usuario</th>
+                    <th class="text-end">Días</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:each="t : ${topUsers}">
+                    <td th:text="${t.username()}">user</td>
+                    <td class="text-end" th:text="${t.days()}">0</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="small muted mt-2">
+            Nota: se cuentan solicitudes <b>APPROVED</b> que traslapan el mes.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+/* =========================
+   Admin Users - Styles
+   ========================= */
+
+:root{
+  --bg-card: #1b1f24;
+  --bg-input: #12161c;
+  --border-soft: rgba(255,255,255,.08);
+  --border-input: rgba(255,255,255,.12);
+  --text-soft: #cfd3da;
+  --primary-focus: #5b9dff;
+}
+
+/* ===== Base cards ===== */
+.admin-card{
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-soft);
+}
+
+/* ===== HERO ===== */
+.admin-hero{
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-soft);
+}
+
+.admin-hero__text h4{
+  color: #fff;
+  font-weight: 700;
+}
+
+.muted{ opacity: .8; }
+
+.admin-hero__actions{
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* ===== Toolbar ===== */
+.admin-users-toolbar{
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.admin-users-toolbar .form-control{
+  max-width: 420px;
+}
+
+/* ===== Tabla (scroll vertical + horizontal) ===== */
+.admin-table-scroll{
+  max-height: 420px;
+  overflow-y: auto;
+  border-radius: 14px;
+}
+
+.admin-table-wrap{
+  border-radius: 14px;
+  overflow-x: auto;      /* horizontal */
+  overflow-y: hidden;
+}
+
+/* Asegura ancho mínimo para no aplastar columnas */
+.admin-users-table{
+  min-width: 720px;
+}
+
+/* Que no se partan las celdas */
+.admin-users-table th,
+.admin-users-table td{
+  white-space: nowrap;
+}
+
+/* Header sticky */
+.admin-users-table thead th{
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+/* Hover sutil */
+.admin-users-table tbody tr:hover{
+  background: rgba(255,255,255,.03);
+}
+
+/* ===== Modal ===== */
+.admin-modal{
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-soft);
+}
+
+.admin-modal-header{
+  background: linear-gradient(135deg, #202632, var(--bg-card));
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.admin-modal-body,
+.admin-modal-footer{
+  background: var(--bg-card);
+}
+
+.admin-modal-footer{
+  border-top: 1px solid var(--border-soft);
+}
+
+/* Inputs en modal (oscuro) */
+.admin-modal .form-control,
+.admin-modal .form-select{
+  background: var(--bg-input);
+  color: #eaeaea;
+  border: 1px solid var(--border-input);
+}
+
+.admin-modal .form-control:focus,
+.admin-modal .form-select:focus{
+  border-color: var(--primary-focus);
+  box-shadow: 0 0 0 .15rem rgba(91,157,255,.25);
+}
+
+.admin-modal label,
+.admin-modal .form-check-label{
+  color: var(--text-soft);
+  font-weight: 500;
+}
+
+/* Checkbox */
+.admin-modal .form-check-input{
+  background-color: var(--bg-input);
+  border-color: rgba(255,255,255,.3);
+}
+.admin-modal .form-check-input:checked{
+  background-color: var(--primary-focus);
+  border-color: var(--primary-focus);
+}
+
+/* ===== Responsive ===== */
+@media (min-width: 1200px){
+  .admin-table-scroll{ max-height: 520px; }
+}
+
+@media (max-width: 768px){
+  .admin-hero{
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-hero__actions{
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-users-toolbar{
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-users-toolbar .form-control{
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 576px){
+  .admin-table-scroll{ max-height: 320px; }
+}

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Revisar Solicitudes</title>
+
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/admin-requests.css">
+</head>
+
+<body>
+
+<nav class="navbar navbar-dark">
+  <div class="container-fluid d-flex align-items-center justify-content-between">
+    <a class="navbar-brand" href="/home">Sistema de Vacaciones</a>
+    <form method="post" action="/logout">
+      <button class="btn btn-outline-light btn-sm">Salir</button>
+    </form>
+  </div>
+</nav>
+
+<div class="container mt-4">
+
+  <!-- HERO HEADER -->
+  <div class="admin-hero shadow-soft mb-3">
+    <div class="admin-hero__text">
+      <h4 class="mb-1">Revisar Solicitudes</h4>
+      <div class="muted">
+        Solo se muestran solicitudes <b>PENDIENTES</b>.
+      </div>
+    </div>
+	<a class="btn btn-outline-light btn-sm admin-back-btn" href="/home">Volver</a>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div id="emptyState" class="alert alert-info" th:if="${#lists.isEmpty(requests)}">
+    No hay solicitudes pendientes por revisar.
+  </div>
+
+  <!-- TABLE -->
+  <div th:if="${!#lists.isEmpty(requests)}" class="card admin-card">
+    <div class="card-body">
+
+      <div class="admin-toolbar mb-2">
+        <h5 class="mb-0">Pendientes</h5>
+        <input id="reqSearch" class="form-control" placeholder="Buscar por ID, usuario o mail...">
+      </div>
+
+      <div class="admin-table-scroll">
+        <div class="table-responsive admin-table-wrap">
+          <table class="table table-hover table-sm align-middle admin-requests-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Mail</th>
+                <th>Inicio</th>
+                <th>Fin</th>
+                <th>Días</th>
+                <th>Estatus</th>
+                <th style="width: 240px;">Acciones</th>
+              </tr>
+            </thead>
+
+            <tbody id="reqTbody">
+              <tr th:each="r : ${requests}" th:attr="data-row-id=${r.id}">
+                <td th:text="${r.id}"></td>
+                <td th:text="${r.user != null ? r.user.username : 'N/A'}"></td>
+                <td th:text="${r.user != null ? r.user.email : 'N/A'}"></td>
+                <td th:text="${r.startDate}"></td>
+                <td th:text="${r.endDate}"></td>
+                <td th:text="${r.days}"></td>
+                <td>
+                  <span class="badge badge-pending" th:text="${r.status}"></span>
+                </td>
+
+                <td>
+                  <div class="d-flex gap-2">
+                    <button type="button"
+                            class="btn btn-approve btn-sm w-100"
+                            th:attr="data-id=${r.id}"
+                            onclick="approveRequest(this)">
+                      Aprobar
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-reject btn-sm w-100"
+                            th:attr="data-id=${r.id}"
+                            onclick="rejectRequest(this)">
+                      Rechazar
+                    </button>
+                  </div>
+                </td>
+
+              </tr>
+            </tbody>
+
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // ===== Buscador (cliente)
+  document.getElementById('reqSearch')?.addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase().trim();
+    document.querySelectorAll('.admin-requests-table tbody tr').forEach(tr => {
+      tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+
+  // ===== Acciones con loading y anti doble clic
+  async function approveRequest(btn) {
+    const id = btn.getAttribute("data-id");
+    if (!confirm("¿Aprobar solicitud #" + id + "?")) return;
+
+    setRowLoading(id, true);
+
+    try {
+      const res = await fetch(`/admin/requests/${id}/approve`, {
+        method: "POST",
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+      });
+
+      if (res.ok) {
+        removeRow(id);
+      } else {
+        setRowLoading(id, false);
+        alert("Error al aprobar. Revisa servidor.");
+      }
+    } catch (e) {
+      setRowLoading(id, false);
+      alert("Error de red. Revisa conexión/servidor.");
+    }
+  }
+
+  async function rejectRequest(btn) {
+    const id = btn.getAttribute("data-id");
+    if (!confirm("¿Rechazar solicitud #" + id + "?")) return;
+
+    setRowLoading(id, true);
+
+    try {
+      const res = await fetch(`/admin/requests/${id}/reject`, {
+        method: "POST",
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+      });
+
+      if (res.ok) {
+        removeRow(id);
+      } else {
+        setRowLoading(id, false);
+        alert("Error al rechazar. Revisa servidor.");
+      }
+    } catch (e) {
+      setRowLoading(id, false);
+      alert("Error de red. Revisa conexión/servidor.");
+    }
+  }
+
+  function setRowLoading(id, isLoading) {
+    const row = document.querySelector(`tr[data-row-id="${id}"]`);
+    if (!row) return;
+
+    const buttons = row.querySelectorAll('button');
+    buttons.forEach(b => b.disabled = isLoading);
+
+    if (isLoading) {
+      row.classList.add('row-loading');
+      buttons.forEach(b => b.dataset.originalText = b.innerHTML);
+      buttons[0].innerHTML = 'Procesando...';
+      buttons[1].innerHTML = 'Procesando...';
+    } else {
+      row.classList.remove('row-loading');
+      buttons.forEach(b => b.innerHTML = b.dataset.originalText || b.innerHTML);
+    }
+  }
+
+  function removeRow(id) {
+    const row = document.querySelector(`tr[data-row-id="${id}"]`);
+    if (row) row.remove();
+
+    // Si ya no hay filas visibles, muestra empty
+    const remaining = document.querySelectorAll('#reqTbody tr').length;
+    if (remaining === 0) {
+      const empty = document.getElementById('emptyState');
+      if (empty) empty.style.display = '';
+      else {
+        const div = document.createElement('div');
+        div.id = 'emptyState';
+        div.className = 'alert alert-info';
+        div.textContent = 'No hay solicitudes pendientes por revisar.';
+        document.querySelector('.container.mt-4').appendChild(div);
+      }
+    }
+  }
+</script>
+
+</body>
+</html>

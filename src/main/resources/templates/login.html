@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login - Sistema de Vacaciones</title>
+
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/theme.css">
+
+  <!-- Solo para login -->
+  <link rel="stylesheet" href="/css/login.css">
+</head>
+
+<body>
+
+<div class="login-page">
+  <div class="login-card shadow-dark">
+
+    <!-- ===== LOGO ===== -->
+    <div class="text-center mb-4">
+      <img src="/images/sg7t68nrdnkdvoop4iak.avif" class="logo-login" alt="Logo">
+    </div>
+
+    <h4 class="text-center mb-3 text-white">Sistema de Vacaciones</h4>
+
+    <!-- ===== ALERTS ===== -->
+    <div th:if="${param.logout}" class="alert alert-success alert-dismissible fade show text-center" role="alert">
+      Sesión cerrada correctamente
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+
+    <!-- Si sigues usando param.error de Spring -->
+    <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show text-center" role="alert">
+      Usuario o contraseña incorrectos
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+
+    <!-- Tu manejo nuevo con códigos -->
+    <div th:if="${param.err}" class="alert alert-danger alert-dismissible fade show text-center" role="alert">
+      <span th:if="${param.err[0] == 'INACTIVO'}">
+        Tu usuario está inactivo. Contacta al administrador.
+      </span>
+      <span th:unless="${param.err[0] == 'INACTIVO'}">
+        Usuario o contraseña incorrectos.
+      </span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+
+    <!-- ===== FORM LOGIN ===== -->
+    <form method="post" action="/login" id="loginForm">
+
+      <div class="mb-3">
+        <label class="form-label text-white">Usuario</label>
+        <input type="text"
+               name="username"
+               class="form-control"
+               placeholder="Ingresa tu usuario"
+               autocomplete="username"
+               required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label text-white">Contraseña</label>
+        <input type="password"
+               name="password"
+               class="form-control"
+               placeholder="••••••••"
+               autocomplete="current-password"
+               required>
+      </div>
+
+      <button class="btn btn-primary w-100 mt-2" type="submit" id="btnLogin">
+        Entrar
+      </button>
+
+    </form>
+
+  </div>
+</div>
+
+<script src="/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Auto cerrar alerts
+  setTimeout(() => {
+    document.querySelectorAll('.alert').forEach(a => {
+      const alert = bootstrap.Alert.getOrCreateInstance(a);
+      alert.close();
+    });
+  }, 4500);
+
+  // Anti doble click
+  document.getElementById('loginForm')?.addEventListener('submit', () => {
+    const btn = document.getElementById('btnLogin');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = 'Entrando...';
+    }
+  });
+</script>
+
+</body>
+</html>

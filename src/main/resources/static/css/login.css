@@ -1,0 +1,53 @@
+/* ===== Login layout responsivo ===== */
+.login-page{
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+/* Card */
+.login-card{
+  width: 100%;
+  max-width: 420px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: #1b1f24;
+  padding: 22px;
+}
+
+/* Logo */
+.logo-login{
+  width: 110px;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.10);
+}
+
+/* Inputs estilo oscuro consistente con tu theme */
+.login-card .form-control{
+  background-color: #12161c;
+  color: #eaeaea;
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.login-card .form-control:focus{
+  background-color: #12161c;
+  color: #fff;
+  border-color: #5b9dff;
+  box-shadow: 0 0 0 .15rem rgba(91,157,255,.25);
+}
+
+/* Alerts */
+.login-card .alert{
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+/* Responsive tweaks */
+@media (max-width: 420px){
+  .login-page{ padding: 16px; }
+  .login-card{ padding: 18px; border-radius: 14px; }
+  .logo-login{ width: 96px; height: 96px; }
+}
