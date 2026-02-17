@@ -72,32 +72,49 @@ public class AdminVacationController {
 
 	// 3) Rechazar
 	@PostMapping("/requests/{id}/reject")
-	public String reject(@PathVariable Long id) {
-		VacationRequest r = vacationRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+	public String reject(@PathVariable Long id, Authentication auth) {
+	    VacationRequest r = vacationRepository.findById(id)
+	            .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
-		r.setStatus("REJECTED");
-		VacationRequest saved = vacationRepository.save(r);
+	    r.setStatus("REJECTED");
+	    r.setDecidedBy(auth.getName());
+	    r.setDecidedAt(LocalDateTime.now()); // 👈 CLAVE
 
-		emailService.notifyUserDecision(saved);
+	    VacationRequest saved = vacationRepository.save(r);
+	    emailService.notifyUserDecision(saved);
 
-		return "redirect:/admin/requests";
+	    return "redirect:/admin/requests";
 	}
 
 	@GetMapping("/requests/history")
-	public String history(@RequestParam(required = false) String status, @RequestParam(required = false) String q,
-			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to, Model model) {
-		List<VacationRequest> requests = vacationRepository
-				.findByStatusInOrderByIdDesc(List.of("APPROVED", "REJECTED"));
+	public String history(
+	        @RequestParam(required = false) String status,
+	        @RequestParam(required = false) String q,
+	        @RequestParam(required = false)
+	        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+	        @RequestParam(required = false)
+	        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+	        Model model
+	) {
 
-		model.addAttribute("requests", requests);
-		model.addAttribute("status", status);
-		model.addAttribute("q", q);
-		model.addAttribute("from", from);
-		model.addAttribute("to", to);
-		return "admin/admin_requests_history";
+	    List<VacationRequest> requests =
+	            vacationRepository.findHistoryFiltered(
+	                    status,
+	                    q,
+	                    from,
+	                    to
+	            );
+
+	    model.addAttribute("requests", requests);
+	    model.addAttribute("status", status);
+	    model.addAttribute("q", q);
+	    model.addAttribute("from", from);
+	    model.addAttribute("to", to);
+
+	    return "admin/admin_requests_history";
 	}
+	
+	//Arriba cambie el getmaping e de filtro
 
 	@GetMapping("/calendar")
 	public String calendarView() {
