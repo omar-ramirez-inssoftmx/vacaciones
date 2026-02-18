@@ -2,7 +2,7 @@ package com.mx.vacaciones.repository;
 
 import java.time.LocalDate;
 import java.util.List;
-
+import java.time.LocalDateTime;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -78,15 +78,26 @@ public interface VacationRepository extends JpaRepository<VacationRequest, Long>
 			@Param("endOfMonth") LocalDate endOfMonth);
 
 	@Query("""
-			  select vr.username, coalesce(sum(vr.days), 0)
-			  from VacationRequest vr
-			  where vr.status = 'APPROVED'
-			    and vr.startDate <= :endOfMonth
-			    and vr.endDate >= :startOfMonth
-			  group by vr.username
-			  order by coalesce(sum(vr.days), 0) desc
-			""")
-	List<Object[]> topUsersApprovedDaysOverlappingMonth(@Param("startOfMonth") LocalDate startOfMonth,
-			@Param("endOfMonth") LocalDate endOfMonth);
-
+		    SELECT r
+		    FROM VacationRequest r
+		    WHERE r.status IN ('APPROVED','REJECTED')
+		      AND (
+		            :status IS NULL OR :status = '' OR
+		            UPPER(r.status) = UPPER(:status)
+		          )
+		      AND (
+		            :q IS NULL OR :q = '' OR
+		            LOWER(r.user.username) LIKE LOWER(CONCAT('%', :q, '%')) OR
+		            LOWER(r.user.email) LIKE LOWER(CONCAT('%', :q, '%'))
+		          )
+		      AND (:from IS NULL OR r.startDate >= :from)
+		      AND (:to IS NULL OR r.endDate <= :to)
+		    ORDER BY r.id DESC
+		""")
+		List<VacationRequest> findHistoryFiltered(
+		        @Param("status") String status,
+		        @Param("q") String q,
+		        @Param("from") LocalDate from,
+		        @Param("to") LocalDate to
+		);
 }
