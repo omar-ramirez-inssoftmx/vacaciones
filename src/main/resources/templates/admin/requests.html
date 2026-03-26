@@ -8,6 +8,10 @@
   <link rel="stylesheet" href="/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/theme.css">
   <link rel="stylesheet" href="/css/admin-requests.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+ 
 </head>
 
 <body>
@@ -23,156 +27,152 @@
 
 <div class="container mt-4">
 
-  <!-- HERO HEADER -->
+  <!-- HERO -->
   <div class="admin-hero shadow-soft mb-3">
-    <div class="admin-hero__text">
+    <div>
+      <div class="hero-label">Panel Admin</div>
       <h4 class="mb-1">Revisar Solicitudes</h4>
-      <div class="muted">
-        Solo se muestran solicitudes <b>PENDIENTES</b>.
-      </div>
+      <div class="muted">Solo se muestran solicitudes <b>PENDIENTES</b>.</div>
     </div>
-	<a class="btn btn-outline-light btn-sm admin-back-btn" href="/home">Volver</a>
+    <a class="btn-back" href="/home">← Volver</a>
   </div>
 
   <!-- EMPTY STATE -->
-  <div id="emptyState" class="alert alert-info" th:if="${#lists.isEmpty(requests)}">
-    No hay solicitudes pendientes por revisar.
+  <div id="emptyState" th:if="${#lists.isEmpty(requests)}" class="empty-state">
+    <div class="empty-icon">📭</div>
+    <div class="empty-title">No hay solicitudes pendientes</div>
+    <div class="empty-sub">Todas las solicitudes han sido atendidas.</div>
   </div>
 
   <!-- TABLE -->
-  <div th:if="${!#lists.isEmpty(requests)}" class="card admin-card">
-    <div class="card-body">
+  <div th:if="${!#lists.isEmpty(requests)}" class="requests-card">
 
-      <div class="admin-toolbar mb-2">
-        <h5 class="mb-0">Pendientes</h5>
-        <input id="reqSearch" class="form-control" placeholder="Buscar por ID, usuario o mail...">
+    <div class="req-toolbar">
+      <div class="req-toolbar-left">
+        <span class="req-toolbar-title">Pendientes</span>
+        <span class="pending-count" id="pendingCount"
+              th:text="${#lists.size(requests)}">0</span>
       </div>
-
-      <div class="admin-table-scroll">
-        <div class="table-responsive admin-table-wrap">
-          <table class="table table-hover table-sm align-middle admin-requests-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Usuario</th>
-                <th>Mail</th>
-                <th>Inicio</th>
-                <th>Fin</th>
-                <th>Días</th>
-                <th>Estatus</th>
-                <th style="width: 240px;">Acciones</th>
-              </tr>
-            </thead>
-
-            <tbody id="reqTbody">
-              <tr th:each="r : ${requests}" th:attr="data-row-id=${r.id}">
-                <td th:text="${r.id}"></td>
-                <td th:text="${r.user != null ? r.user.username : 'N/A'}"></td>
-                <td th:text="${r.user != null ? r.user.email : 'N/A'}"></td>
-                <td th:text="${r.startDate}"></td>
-                <td th:text="${r.endDate}"></td>
-                <td th:text="${r.days}"></td>
-                <td>
-                  <span class="badge badge-pending" th:text="${r.status}"></span>
-                </td>
-
-                <td>
-                  <div class="d-flex gap-2">
-                    <button type="button"
-                            class="btn btn-approve btn-sm w-100"
-                            th:attr="data-id=${r.id}"
-                            onclick="approveRequest(this)">
-                      Aprobar
-                    </button>
-
-                    <button type="button"
-                            class="btn btn-reject btn-sm w-100"
-                            th:attr="data-id=${r.id}"
-                            onclick="rejectRequest(this)">
-                      Rechazar
-                    </button>
-                  </div>
-                </td>
-
-              </tr>
-            </tbody>
-
-          </table>
-        </div>
-      </div>
-
+      <input id="reqSearch" class="req-search" placeholder="🔍  Buscar usuario, mail o ID...">
     </div>
+
+    <div class="table-responsive">
+      <table class="req-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Colaborador</th>
+            <th>Rango de fechas</th>
+            <th>Días</th>
+            <th>Estatus</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="reqTbody">
+          <tr th:each="r : ${requests}" th:attr="data-row-id=${r.id}">
+
+            <td style="color:#484f58; font-size:0.78rem;" th:text="'#' + ${r.id}"></td>
+
+            <td>
+              <div class="user-cell">
+                <span class="user-name" th:text="${r.user != null ? r.user.username : 'N/A'}"></span>
+                <span class="user-email" th:text="${r.user != null ? r.user.email : ''}"></span>
+              </div>
+            </td>
+
+            <td>
+              <div class="date-range">
+                <span th:text="${#temporals.format(r.startDate,'dd/MM/yyyy')}"></span>
+                <span class="arrow">→</span>
+                <span th:text="${#temporals.format(r.endDate,'dd/MM/yyyy')}"></span>
+              </div>
+            </td>
+
+            <td>
+              <span class="days-badge" th:text="${r.days}"></span>
+            </td>
+
+            <td>
+              <span class="badge-pending">PENDIENTE</span>
+            </td>
+
+            <td>
+              <div class="d-flex gap-2">
+                <button type="button"
+                        class="btn-approve"
+                        th:attr="data-id=${r.id}"
+                        onclick="approveRequest(this)">
+                  ✓ Aprobar
+                </button>
+                <button type="button"
+                        class="btn-reject"
+                        th:attr="data-id=${r.id}"
+                        onclick="rejectRequest(this)">
+                  ✕ Rechazar
+                </button>
+              </div>
+            </td>
+
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
   </div>
 
 </div>
 
 <script src="/js/bootstrap.bundle.min.js"></script>
-
 <script>
-  // ===== Buscador (cliente)
+  // ===== Buscador
   document.getElementById('reqSearch')?.addEventListener('input', (e) => {
     const q = e.target.value.toLowerCase().trim();
-    document.querySelectorAll('.admin-requests-table tbody tr').forEach(tr => {
+    document.querySelectorAll('.req-table tbody tr').forEach(tr => {
       tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
     });
   });
 
-  // ===== Acciones con loading y anti doble clic
+  // ===== Aprobar
   async function approveRequest(btn) {
     const id = btn.getAttribute("data-id");
     if (!confirm("¿Aprobar solicitud #" + id + "?")) return;
-
     setRowLoading(id, true);
-
     try {
       const res = await fetch(`/admin/requests/${id}/approve`, {
         method: "POST",
         headers: { "X-Requested-With": "XMLHttpRequest" }
       });
-
-      if (res.ok) {
-        removeRow(id);
-      } else {
-        setRowLoading(id, false);
-        alert("Error al aprobar. Revisa servidor.");
-      }
+      if (res.ok) removeRow(id);
+      else { setRowLoading(id, false); alert("Error al aprobar."); }
     } catch (e) {
       setRowLoading(id, false);
-      alert("Error de red. Revisa conexión/servidor.");
+      alert("Error de red.");
     }
   }
 
+  // ===== Rechazar
   async function rejectRequest(btn) {
     const id = btn.getAttribute("data-id");
     if (!confirm("¿Rechazar solicitud #" + id + "?")) return;
-
     setRowLoading(id, true);
-
     try {
       const res = await fetch(`/admin/requests/${id}/reject`, {
         method: "POST",
         headers: { "X-Requested-With": "XMLHttpRequest" }
       });
-
-      if (res.ok) {
-        removeRow(id);
-      } else {
-        setRowLoading(id, false);
-        alert("Error al rechazar. Revisa servidor.");
-      }
+      if (res.ok) removeRow(id);
+      else { setRowLoading(id, false); alert("Error al rechazar."); }
     } catch (e) {
       setRowLoading(id, false);
-      alert("Error de red. Revisa conexión/servidor.");
+      alert("Error de red.");
     }
   }
 
   function setRowLoading(id, isLoading) {
     const row = document.querySelector(`tr[data-row-id="${id}"]`);
     if (!row) return;
-
     const buttons = row.querySelectorAll('button');
     buttons.forEach(b => b.disabled = isLoading);
-
     if (isLoading) {
       row.classList.add('row-loading');
       buttons.forEach(b => b.dataset.originalText = b.innerHTML);
@@ -188,17 +188,19 @@
     const row = document.querySelector(`tr[data-row-id="${id}"]`);
     if (row) row.remove();
 
-    // Si ya no hay filas visibles, muestra empty
     const remaining = document.querySelectorAll('#reqTbody tr').length;
+    const countEl = document.getElementById('pendingCount');
+    if (countEl) countEl.textContent = remaining;
+
     if (remaining === 0) {
-      const empty = document.getElementById('emptyState');
-      if (empty) empty.style.display = '';
-      else {
+      document.querySelector('.requests-card')?.remove();
+      const wrap = document.querySelector('.container.mt-4');
+      if (wrap) {
         const div = document.createElement('div');
         div.id = 'emptyState';
-        div.className = 'alert alert-info';
-        div.textContent = 'No hay solicitudes pendientes por revisar.';
-        document.querySelector('.container.mt-4').appendChild(div);
+        div.className = 'empty-state';
+        div.innerHTML = '<div class="empty-icon">📭</div><div class="empty-title">No hay solicitudes pendientes</div><div class="empty-sub">Todas las solicitudes han sido atendidas.</div>';
+        wrap.appendChild(div);
       }
     }
   }

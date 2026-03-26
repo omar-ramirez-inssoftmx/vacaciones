@@ -8,6 +8,237 @@
   <link rel="stylesheet" href="/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/theme.css">
   <link rel="stylesheet" href="/css/admin-dashboard.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    /* ── HERO ── */
+    .admin-hero {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-radius: 16px;
+      padding: 1.75rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .admin-hero::before {
+      content: '';
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 260px; height: 260px;
+      background: radial-gradient(circle, rgba(56,139,253,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-label {
+      font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: #388bfd; margin-bottom: 0.3rem;
+    }
+    .admin-hero h4 { font-size: 1.4rem; font-weight: 700; margin: 0 0 0.25rem; }
+    .hero-date { font-size: 0.82rem; color: #6e7681; }
+    .hero-date b { color: #8b949e; font-weight: 600; }
+    .btn-back {
+      font-size: 0.78rem; font-weight: 600;
+      color: #8b949e; border: 1px solid rgba(255,255,255,0.1);
+      background: transparent; padding: 0.4rem 1rem;
+      border-radius: 8px; text-decoration: none;
+      transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
+    }
+    .btn-back:hover { color: #e6edf3; border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.05); }
+
+    /* ── KPI CARDS ── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.85rem; margin-bottom: 1.25rem; }
+    @media (max-width: 992px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 576px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .kpi-card {
+      background: #161b22;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      padding: 1.35rem 1.4rem 1.2rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0,0,0,0.35); }
+    .kpi-card .glow {
+      position: absolute;
+      bottom: -30px; right: -30px;
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      opacity: 0.12;
+      pointer-events: none;
+    }
+
+    .kpi-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1rem; }
+    .kpi-icon {
+      width: 42px; height: 42px; border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.15rem; flex-shrink: 0;
+    }
+    .kpi-trend {
+      font-size: 0.7rem; font-weight: 700;
+      padding: 0.2rem 0.5rem; border-radius: 6px;
+      letter-spacing: 0.04em;
+    }
+
+    .kpi-icon.blue   { background: rgba(56,139,253,0.15); }
+    .kpi-icon.orange { background: rgba(210,153,34,0.15); }
+    .kpi-icon.green  { background: rgba(63,185,80,0.15); }
+    .kpi-icon.purple { background: rgba(163,113,247,0.15); }
+    .glow.blue   { background: #388bfd; }
+    .glow.orange { background: #d29922; }
+    .glow.green  { background: #3fb950; }
+    .glow.purple { background: #a371f7; }
+    .trend-blue   { background: rgba(56,139,253,0.12); color: #388bfd; }
+    .trend-orange { background: rgba(210,153,34,0.12); color: #d29922; }
+    .trend-green  { background: rgba(63,185,80,0.12);  color: #3fb950; }
+    .trend-purple { background: rgba(163,113,247,0.12);color: #a371f7; }
+
+    .kpi-number {
+      font-size: 2.6rem; font-weight: 800; line-height: 1;
+      margin-bottom: 0.25rem; font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+    }
+    .kpi-number.blue   { color: #58a6ff; }
+    .kpi-number.orange { color: #d29922; }
+    .kpi-number.green  { color: #3fb950; }
+    .kpi-number.purple { color: #a371f7; }
+
+    .kpi-title-text {
+      font-size: 1.05rem; font-weight: 700;
+      color: #e6edf3; margin-bottom: 0.2rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .kpi-label { font-size: 0.72rem; font-weight: 600; color: #6e7681; letter-spacing: 0.04em; }
+
+    /* Micro sparkline bar */
+    .kpi-bar-wrap {
+      margin-top: 0.9rem;
+      height: 3px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden;
+    }
+    .kpi-bar { height: 100%; border-radius: 4px; }
+    .kpi-bar.blue   { background: linear-gradient(90deg, #388bfd, #58a6ff); width: 72%; }
+    .kpi-bar.orange { background: linear-gradient(90deg, #d29922, #e8b940); }
+    .kpi-bar.green  { background: linear-gradient(90deg, #3fb950, #56d364); width: 60%; }
+    .kpi-bar.purple { background: linear-gradient(90deg, #a371f7, #c09cf8); width: 85%; }
+
+    /* ── BOTTOM SECTION ── */
+    .section-card {
+      background: #161b22;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .section-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.1rem 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .section-head-left { display: flex; align-items: center; gap: 0.6rem; }
+    .section-title {
+      font-size: 0.75rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; color: #484f58;
+    }
+    .count-pill {
+      font-size: 0.68rem; font-weight: 700;
+      padding: 0.15rem 0.55rem; border-radius: 20px;
+    }
+    .pill-blue   { background: rgba(56,139,253,0.12); border: 1px solid rgba(56,139,253,0.2);  color: #388bfd; }
+    .pill-purple { background: rgba(163,113,247,0.12); border: 1px solid rgba(163,113,247,0.2); color: #a371f7; }
+
+    /* ── INNER TABLE ── */
+    .inner-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+    .inner-table thead tr { border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .inner-table thead th {
+      font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: #30363d; padding: 0.6rem 1.5rem; white-space: nowrap;
+    }
+    .inner-table tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      transition: background 0.15s;
+    }
+    .inner-table tbody tr:last-child { border-bottom: none; }
+    .inner-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+    .inner-table tbody td { padding: 0.75rem 1.5rem; color: #c9d1d9; vertical-align: middle; }
+
+    /* Avatar */
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 800;
+      color: #fff; flex-shrink: 0; text-transform: uppercase;
+    }
+    .av-blue   { background: linear-gradient(135deg, #388bfd, #1f6feb); }
+    .av-teal   { background: linear-gradient(135deg, #38bdf8, #0284c7); }
+    .av-green  { background: linear-gradient(135deg, #3fb950, #2da44e); }
+    .av-purple { background: linear-gradient(135deg, #a371f7, #7c3aed); }
+    .av-orange { background: linear-gradient(135deg, #d29922, #b78105); }
+    .av-colors  { --colors: #388bfd,#38bdf8,#3fb950,#a371f7,#d29922,#f85149; }
+
+    .user-row { display: flex; align-items: center; gap: 0.65rem; }
+    .user-name-cell { font-weight: 600; color: #e6edf3; font-size: 0.85rem; }
+
+    .date-tag { font-size: 0.78rem; color: #8b949e; white-space: nowrap; }
+
+    .days-chip {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: rgba(56,139,253,0.1); color: #388bfd;
+      font-size: 0.75rem; font-weight: 700;
+      padding: 0.18rem 0.55rem; border-radius: 6px; min-width: 30px;
+    }
+
+    /* Rank */
+    .rank-badge {
+      width: 24px; height: 24px; border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.68rem; font-weight: 800; flex-shrink: 0;
+    }
+    .rank-1 { background: linear-gradient(135deg,#d29922,#9a6f00); color: #fff; }
+    .rank-2 { background: rgba(139,148,158,0.15); color: #8b949e; }
+    .rank-3 { background: rgba(180,100,60,0.2); color: #c07742; }
+    .rank-n { background: rgba(255,255,255,0.05); color: #30363d; }
+
+    /* Progress bar per top user */
+    .bar-row { display: flex; align-items: center; gap: 0.65rem; }
+    .bar-bg { flex: 1; height: 5px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; }
+    .bar-fg { height: 100%; border-radius: 4px; background: linear-gradient(90deg,#388bfd,#58a6ff); transition: width 0.9s cubic-bezier(.4,0,.2,1); }
+
+    /* Empty */
+    .empty-state { text-align: center; padding: 2.5rem 1rem; }
+    .empty-icon  { font-size: 2rem; opacity: 0.3; margin-bottom: 0.5rem; }
+    .empty-txt   { font-size: 0.82rem; color: #484f58; }
+
+    /* Chart wrapper */
+    .chart-wrap { padding: 1rem 1.5rem 1.25rem; }
+
+    /* Note */
+    .foot-note {
+      padding: 0.65rem 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.04);
+      font-size: 0.72rem; color: #30363d;
+    }
+    .foot-note b { color: #3fb950; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .admin-hero            { animation: fadeUp 0.3s ease both; }
+    .kpi-card:nth-child(1) { animation: fadeUp 0.35s 0.05s ease both; }
+    .kpi-card:nth-child(2) { animation: fadeUp 0.35s 0.10s ease both; }
+    .kpi-card:nth-child(3) { animation: fadeUp 0.35s 0.15s ease both; }
+    .kpi-card:nth-child(4) { animation: fadeUp 0.35s 0.20s ease both; }
+    .section-card          { animation: fadeUp 0.35s 0.22s ease both; }
+  </style>
 </head>
 
 <body>
@@ -15,7 +246,6 @@
 <nav class="navbar navbar-dark">
   <div class="container-fluid d-flex align-items-center justify-content-between">
     <a class="navbar-brand" href="/home">Sistema de Vacaciones</a>
-
     <form method="post" action="/logout">
       <button class="btn btn-outline-light btn-sm">Salir</button>
     </form>
@@ -25,140 +255,203 @@
 <div class="container mt-4">
 
   <!-- HERO -->
-  <div class="admin-hero shadow-soft mb-3">
-    <div class="admin-hero__text">
-      <h4 class="mb-1">Dashboard (Admin)</h4>
-      <div class="muted">
+  <div class="admin-hero shadow-soft mb-4">
+    <div>
+      <div class="hero-label">Panel Admin</div>
+      <h4 class="mb-1">Dashboard KPI</h4>
+      <div class="hero-date">
         Resumen al día:
         <b th:text="${#temporals.format(today,'dd/MM/yyyy')}">07/02/2026</b>
       </div>
     </div>
-	<a class="btn btn-outline-light btn-sm admin-back-btn" href="/home">Volver</a>
+    <a class="btn-back" href="/home">← Volver</a>
   </div>
 
   <!-- KPI CARDS -->
-  <div class="row g-3 mb-3">
-    <div class="col-6 col-lg-3">
-      <div class="card admin-card shadow-soft kpi-card">
-        <div class="card-body">
-          <div class="muted">Ausentes hoy</div>
-          <div class="kpi-value" th:text="${outTodayCount}">0</div>
-          <div class="small muted">Aprobados que cubren hoy</div>
+  <div class="kpi-grid mb-4">
+
+    <!-- Ausentes hoy -->
+    <div class="kpi-card">
+      <div class="glow blue"></div>
+      <div class="kpi-top">
+        <div class="kpi-icon blue">🏃</div>
+        <span class="kpi-trend trend-blue">HOY</span>
+      </div>
+      <div class="kpi-number blue" th:text="${outTodayCount}">0</div>
+      <div class="kpi-label">Ausentes hoy</div>
+      <div class="kpi-bar-wrap"><div class="kpi-bar blue"></div></div>
+    </div>
+
+    <!-- Pendientes -->
+    <div class="kpi-card">
+      <div class="glow orange"></div>
+      <div class="kpi-top">
+        <div class="kpi-icon orange">⏳</div>
+        <span class="kpi-trend trend-orange">PENDIENTE</span>
+      </div>
+      <div class="kpi-number orange" th:text="${pendingCount}">0</div>
+      <div class="kpi-label">Por revisar</div>
+      <div class="kpi-bar-wrap">
+        <div class="kpi-bar orange"
+             th:style="'width:' + (${pendingCount} > 0 ? '100' : '0') + '%'">
         </div>
       </div>
     </div>
 
-    <div class="col-6 col-lg-3">
-      <div class="card admin-card shadow-soft kpi-card">
-        <div class="card-body">
-          <div class="muted">Pendientes</div>
-          <div class="kpi-value" th:text="${pendingCount}">0</div>
-          <div class="small muted">Solicitudes por revisar</div>
-        </div>
+    <!-- Días aprobados -->
+    <div class="kpi-card">
+      <div class="glow green"></div>
+      <div class="kpi-top">
+        <div class="kpi-icon green">✅</div>
+        <span class="kpi-trend trend-green">ESTE MES</span>
       </div>
+      <div class="kpi-number green" th:text="${approvedDaysThisMonth}">0</div>
+      <div class="kpi-label">Días aprobados</div>
+      <div class="kpi-bar-wrap"><div class="kpi-bar green"></div></div>
     </div>
 
-    <div class="col-6 col-lg-3">
-      <div class="card admin-card shadow-soft kpi-card">
-        <div class="card-body">
-          <div class="muted">Días aprobados este mes</div>
-          <div class="kpi-value" th:text="${approvedDaysThisMonth}">0</div>
-          <div class="small muted">Suma de días (aprobados)</div>
-        </div>
+    <!-- Top usuario -->
+    <div class="kpi-card">
+      <div class="glow purple"></div>
+      <div class="kpi-top">
+        <div class="kpi-icon purple">🏆</div>
+        <span class="kpi-trend trend-purple">TOP</span>
       </div>
+      <div class="kpi-title-text"
+           th:text="${#lists.isEmpty(topUsers) ? '—' : topUsers[0].username()}">—</div>
+      <div class="kpi-label"
+           th:text="${#lists.isEmpty(topUsers) ? 'Sin datos' : topUsers[0].days() + ' días tomados este mes'}">
+      </div>
+      <div class="kpi-bar-wrap"><div class="kpi-bar purple"></div></div>
     </div>
 
-    <div class="col-6 col-lg-3">
-      <div class="card admin-card shadow-soft kpi-card">
-        <div class="card-body">
-          <div class="muted">Top usuario del mes</div>
-          <div class="kpi-title"
-               th:text="${#lists.isEmpty(topUsers) ? '—' : topUsers[0].username()}">—</div>
-          <div class="small muted"
-               th:text="${#lists.isEmpty(topUsers) ? '' : (topUsers[0].days() + ' días')}"></div>
-        </div>
-      </div>
-    </div>
   </div>
 
+  <!-- BOTTOM ROW -->
   <div class="row g-3">
 
     <!-- Ausentes hoy -->
     <div class="col-lg-7">
-      <div class="card admin-card shadow-soft">
-        <div class="card-body">
-          <div class="section-header">
-            <h5 class="mb-0">Ausentes hoy</h5>
-            <span class="badge bg-secondary" th:text="${outTodayCount}">0</span>
+      <div class="section-card">
+        <div class="section-head">
+          <div class="section-head-left">
+            <span class="section-title">Ausentes hoy</span>
+            <span class="count-pill pill-blue" th:text="${outTodayCount}">0</span>
           </div>
-
-          <div th:if="${#lists.isEmpty(outToday)}" class="muted mt-3">
-            No hay ausencias aprobadas para hoy.
-          </div>
-
-          <div th:if="${!#lists.isEmpty(outToday)}" class="admin-table-scroll mt-3">
-            <div class="table-responsive admin-table-wrap">
-              <table class="table table-hover table-sm align-middle admin-table">
-                <thead>
-                  <tr>
-                    <th>Usuario</th>
-                    <th>Inicio</th>
-                    <th>Fin</th>
-                    <th>Días</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr th:each="vr : ${outToday}">
-                    <td th:text="${vr.username}">user</td>
-                    <td th:text="${#temporals.format(vr.startDate,'dd/MM/yyyy')}">01/02/2026</td>
-                    <td th:text="${#temporals.format(vr.endDate,'dd/MM/yyyy')}">03/02/2026</td>
-                    <td th:text="${vr.days}">2</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
         </div>
+
+        <!-- Empty -->
+        <div th:if="${#lists.isEmpty(outToday)}" class="empty-state">
+          <div class="empty-icon">🌴</div>
+          <div class="empty-txt">No hay ausencias aprobadas para hoy.</div>
+        </div>
+
+        <!-- Table -->
+        <div th:if="${!#lists.isEmpty(outToday)}">
+          <table class="inner-table">
+            <thead>
+              <tr>
+                <th>Colaborador</th>
+                <th>Inicio</th>
+                <th>Fin</th>
+                <th>Días</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="vr, stat : ${outToday}">
+                <td>
+                  <div class="user-row">
+                    <div class="avatar"
+                         th:classappend="${stat.index % 5 == 0 ? 'av-blue' :
+                                         (stat.index % 5 == 1 ? 'av-teal' :
+                                         (stat.index % 5 == 2 ? 'av-green' :
+                                         (stat.index % 5 == 3 ? 'av-purple' : 'av-orange')))}"
+                         th:text="${#strings.length(vr.username) >= 2 ?
+                                   #strings.toUpperCase(#strings.substring(vr.username,0,2)) : '??'}">
+                    </div>
+                    <span class="user-name-cell" th:text="${vr.username}">usuario</span>
+                  </div>
+                </td>
+                <td><span class="date-tag" th:text="${#temporals.format(vr.startDate,'dd/MM/yyyy')}"></span></td>
+                <td><span class="date-tag" th:text="${#temporals.format(vr.endDate,'dd/MM/yyyy')}"></span></td>
+                <td><span class="days-chip" th:text="${vr.days}">0</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
       </div>
     </div>
 
-    <!-- Top del mes -->
+    <!-- Top 5 -->
     <div class="col-lg-5">
-      <div class="card admin-card shadow-soft">
-        <div class="card-body">
-          <div class="section-header">
-            <h5 class="mb-0">Top 5 (días aprobados este mes)</h5>
-            <span class="badge bg-secondary" th:text="${#lists.size(topUsers)}">0</span>
-          </div>
-
-          <div th:if="${#lists.isEmpty(topUsers)}" class="muted mt-3">
-            Sin datos todavía.
-          </div>
-
-          <div th:if="${!#lists.isEmpty(topUsers)}" class="admin-table-scroll mt-3">
-            <div class="table-responsive admin-table-wrap">
-              <table class="table table-hover table-sm align-middle admin-table">
-                <thead>
-                  <tr>
-                    <th>Usuario</th>
-                    <th class="text-end">Días</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr th:each="t : ${topUsers}">
-                    <td th:text="${t.username()}">user</td>
-                    <td class="text-end" th:text="${t.days()}">0</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="small muted mt-2">
-            Nota: se cuentan solicitudes <b>APPROVED</b> que traslapan el mes.
+      <div class="section-card">
+        <div class="section-head">
+          <div class="section-head-left">
+            <span class="section-title">Top 5 del mes</span>
+            <span class="count-pill pill-purple" th:text="${#lists.size(topUsers)}">0</span>
           </div>
         </div>
+
+        <!-- Empty -->
+        <div th:if="${#lists.isEmpty(topUsers)}" class="empty-state">
+          <div class="empty-icon">📊</div>
+          <div class="empty-txt">Sin datos este mes.</div>
+        </div>
+
+        <!-- Rows con barra -->
+        <div th:if="${!#lists.isEmpty(topUsers)}">
+          <table class="inner-table">
+            <thead>
+              <tr>
+                <th style="width:32px;">#</th>
+                <th>Colaborador</th>
+                <th>Progreso</th>
+                <th class="text-end">Días</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Guardamos el máximo en JS para las barras -->
+              <tr th:each="t, stat : ${topUsers}">
+                <td>
+                  <div th:class="${stat.index == 0 ? 'rank-badge rank-1' :
+                                  (stat.index == 1 ? 'rank-badge rank-2' :
+                                  (stat.index == 2 ? 'rank-badge rank-3' : 'rank-badge rank-n'))}"
+                       th:text="${stat.index + 1}">1</div>
+                </td>
+                <td>
+                  <div class="user-row">
+                    <div class="avatar"
+                         th:classappend="${stat.index % 5 == 0 ? 'av-purple' :
+                                         (stat.index % 5 == 1 ? 'av-blue' :
+                                         (stat.index % 5 == 2 ? 'av-teal' :
+                                         (stat.index % 5 == 3 ? 'av-orange' : 'av-green')))}"
+                         th:text="${#strings.length(t.username()) >= 2 ?
+                                   #strings.toUpperCase(#strings.substring(t.username(),0,2)) : '??'}">
+                    </div>
+                    <span class="user-name-cell" th:text="${t.username()}">usuario</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="bar-bg">
+                    <div class="bar-fg"
+                         th:attr="data-days=${t.days()}"
+                         style="width:0%">
+                    </div>
+                  </div>
+                </td>
+                <td class="text-end">
+                  <span class="days-chip" th:text="${t.days()}">0</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="foot-note">
+            Se cuentan solicitudes <b>APPROVED</b> que traslapan el mes actual.
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -167,5 +460,24 @@
 </div>
 
 <script src="/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Animar barras del Top 5 al cargar
+  document.addEventListener('DOMContentLoaded', () => {
+    const fills = document.querySelectorAll('.bar-fg[data-days]');
+    if (!fills.length) return;
+
+    // Máximo para escalar
+    const max = Math.max(...[...fills].map(f => parseFloat(f.dataset.days) || 0));
+    if (max === 0) return;
+
+    setTimeout(() => {
+      fills.forEach(f => {
+        const pct = ((parseFloat(f.dataset.days) / max) * 100).toFixed(1);
+        f.style.width = pct + '%';
+      });
+    }, 350);
+  });
+</script>
+
 </body>
 </html>

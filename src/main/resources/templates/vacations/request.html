@@ -4,26 +4,21 @@
   <meta charset="UTF-8">
   <title>Nueva Solicitud de Vacaciones</title>
 
-  <!-- Bootstrap -->
   <link rel="stylesheet" href="/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Icons -->
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-
-  <!-- Flatpickr -->
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  
 </head>
 
 <body>
 
-<!-- NAVBAR -->
 <nav class="navbar navbar-dark">
   <div class="container-fluid d-flex justify-content-between">
     <a class="navbar-brand" href="/home">Sistema de Vacaciones</a>
-
     <form method="post" action="/logout">
       <button class="btn btn-outline-light btn-sm">Salir</button>
     </form>
@@ -35,106 +30,102 @@
   <!-- HERO -->
   <div class="admin-hero shadow-soft mb-3">
     <div>
+      <div class="hero-label">Colaborador</div>
       <h4>Nueva Solicitud de Vacaciones</h4>
-      <div class="muted">
-        Selecciona el rango de fechas y revisa los días solicitados.
-      </div>
+      <div class="muted">Selecciona el rango de fechas y revisa los días solicitados.</div>
     </div>
-
-    <a class="btn btn-outline-light" href="/home">Volver</a>
+    <a class="btn-back" href="/home">← Volver</a>
   </div>
 
   <!-- MENSAJES BACKEND -->
-  <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-  <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+  <div th:if="${success}" class="alert-success-custom" th:text="${success}"></div>
+  <div th:if="${error}"   class="alert-danger-custom"  th:text="${error}"></div>
 
-  <!-- CARD -->
-  <div class="card">
-    <div class="card-body">
+  <!-- MAIN CARD -->
+  <div class="form-card">
+    <div class="form-card-header">📋 Detalle de solicitud</div>
+    <div class="form-card-body">
 
-      <!-- SALDO -->
-      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+      <!-- BALANCE ROW -->
+      <div class="balance-row">
 
-        <div class="alert alert-secondary mb-0 flex-grow-1">
-          Días disponibles:
-          <b th:text="${availableDays}">0</b>
+        <div class="balance-chip bc-available">
+          <span class="chip-label">Días disponibles</span>
+          <span class="chip-value" th:text="${availableDays}">0</span>
+          <span class="chip-sub">Saldo actual</span>
         </div>
 
-        <div id="remainingBox"
-             class="alert alert-success mb-0"
-             style="display:none;">
-          Te quedarían:
-          <b id="remaining">0</b> días
+        <div class="balance-chip bc-requested" id="requestedChip">
+          <span class="chip-label">Días solicitados</span>
+          <span class="chip-value" id="days">0</span>
+          <span class="chip-sub">Días hábiles</span>
+        </div>
+
+        <div class="balance-chip bc-remaining" id="remainingChip">
+          <span class="chip-label">Te quedarían</span>
+          <span class="chip-value" id="remaining">0</span>
+          <span class="chip-sub">Días después de esta solicitud</span>
         </div>
 
       </div>
 
-      <!-- Hidden para JS -->
-      <input type="hidden"
-             id="availableDays"
-             th:value="${availableDays}"
-             value="0">
+      <!-- HIDDEN para JS -->
+      <input type="hidden" id="availableDays" th:value="${availableDays}" value="0">
 
       <form method="post" action="/vacations/request">
 
         <div class="row g-3">
 
-          <!-- Inicio -->
+          <!-- Fecha Inicio -->
           <div class="col-md-6">
             <label class="form-label">Fecha Inicio</label>
-
-            <div class="input-group">
-              <span class="input-group-text">
-                <i class="bi bi-calendar-event"></i>
-              </span>
-
-              <input id="startDate"
-                     name="startDate"
-                     type="date"
+            <div class="date-input-wrap">
+              <i class="bi bi-calendar-event date-icon"></i>
+              <input id="startDate" name="startDate" type="text"
                      class="form-control"
-					 placeholder="Selecciona el primer día de tus vacaciones."
-                     required>
+                     placeholder="Selecciona el primer día"
+                     readonly required>
             </div>
           </div>
 
-          <!-- Fin -->
+          <!-- Fecha Fin -->
           <div class="col-md-6">
             <label class="form-label">Fecha Fin</label>
-
-            <div class="input-group">
-              <span class="input-group-text">
-                <i class="bi bi-calendar-event"></i>
-              </span>
-
-              <input id="endDate"
-                     name="endDate"
-                     type="date"
+            <div class="date-input-wrap">
+              <i class="bi bi-calendar-event date-icon"></i>
+              <input id="endDate" name="endDate" type="text"
                      class="form-control"
-					 placeholder="Selecciona el último día de tus vacaciones." 
-                     required>
+                     placeholder="Selecciona el último día"
+                     readonly required>
             </div>
           </div>
 
         </div>
 
-        <!-- Días -->
-        <div id="daysBox"
-             class="alert alert-info mt-3"
-             style="display:none;">
-          Días solicitados:
-          <b id="days">0</b>
+        <!-- Summary box -->
+        <div class="summary-box" id="summaryBox">
+          <div class="sum-row">
+            <span>Días hábiles solicitados</span>
+            <b id="daysLabel">0</b>
+          </div>
+          <div class="summary-range" id="rangeLabel">
+            <span id="startLabel">—</span>
+            <span class="arr">→</span>
+            <span id="endLabel">—</span>
+          </div>
         </div>
 
-        <!-- Error fechas -->
-        <div id="dateError"
-             class="alert alert-danger mt-3"
-             style="display:none;">
+        <!-- Error messages -->
+        <div class="inline-msg danger" id="dateError">
+          <i class="bi bi-exclamation-circle"></i>
           La fecha fin no puede ser menor que la fecha inicio.
         </div>
+        <div class="inline-msg danger" id="weekendError">
+          <i class="bi bi-exclamation-circle"></i>
+        </div>
 
-        <button id="submitBtn"
-                class="btn btn-primary mt-3">
-          Enviar Solicitud
+        <button id="submitBtn" class="btn-submit" type="submit">
+          ✓ Enviar Solicitud
         </button>
 
       </form>
@@ -144,147 +135,140 @@
 
 </div>
 
-<!-- JS -->
 <script src="/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
-  const start = document.getElementById("startDate");
-  const end = document.getElementById("endDate");
-  const daysBox = document.getElementById("daysBox");
-  const daysEl = document.getElementById("days");
-  const dateError = document.getElementById("dateError");
-  const submitBtn = document.getElementById("submitBtn");
-
-  const remainingBox = document.getElementById("remainingBox");
+  const start       = document.getElementById("startDate");
+  const end         = document.getElementById("endDate");
+  const daysEl      = document.getElementById("days");
+  const daysLabel   = document.getElementById("daysLabel");
+  const dateError   = document.getElementById("dateError");
+  const weekendError= document.getElementById("weekendError");
+  const submitBtn   = document.getElementById("submitBtn");
   const remainingEl = document.getElementById("remaining");
+  const summaryBox  = document.getElementById("summaryBox");
+  const reqChip     = document.getElementById("requestedChip");
+  const remChip     = document.getElementById("remainingChip");
+  const startLabel  = document.getElementById("startLabel");
+  const endLabel    = document.getElementById("endLabel");
+
   const available = () => parseInt(document.getElementById("availableDays").value || "0", 10);
 
-  // Error dinámico
-  const weekendError = document.createElement("div");
-  weekendError.className = "alert alert-danger mt-2";
-  weekendError.style.display = "none";
-  dateError.parentNode.insertBefore(weekendError, dateError.nextSibling);
-
-  function setError(msg){
-    weekendError.textContent = msg;
-    weekendError.style.display = "block";
+  function setError(msg) {
+    weekendError.textContent = "⚠ " + msg;
+    weekendError.style.display = "flex";
     submitBtn.disabled = true;
   }
-
-  function clearErrors(){
+  function clearErrors() {
     dateError.style.display = "none";
     weekendError.style.display = "none";
     submitBtn.disabled = false;
   }
+  function toUTCDate(ymd) { return new Date(ymd + "T00:00:00Z"); }
+  function isWeekend(ymd) { const d = toUTCDate(ymd); const day = d.getUTCDay(); return day === 0 || day === 6; }
 
-  function toUTCDate(ymd){
-    return new Date(ymd + "T00:00:00Z");
-  }
-
-  function isWeekend(ymd){
-    const d = toUTCDate(ymd);
-    const day = d.getUTCDay();
-    return day === 0 || day === 6;
-  }
-
-  function getMexicanHolidays(year){
-
-    function getNthMonday(month,nth){
+  function getMexicanHolidays(year) {
+    function getNthMonday(month, nth) {
       const firstDay = new Date(year, month, 1);
       const firstMonday = 1 + ((8 - firstDay.getDay()) % 7);
       return firstMonday + (nth - 1) * 7;
     }
-
     return [
-      `${year}-01-01`,
-      `${year}-05-01`,
-      `${year}-09-16`,
-      `${year}-12-25`,
+      `${year}-01-01`, `${year}-05-01`, `${year}-09-16`, `${year}-12-25`,
       `${year}-02-${String(getNthMonday(1,1)).padStart(2,"0")}`,
       `${year}-03-${String(getNthMonday(2,3)).padStart(2,"0")}`,
       `${year}-11-${String(getNthMonday(10,3)).padStart(2,"0")}`
     ];
   }
-
-  function isHoliday(dateStr){
+  function isHoliday(dateStr) {
     const year = dateStr.substring(0,4);
     return getMexicanHolidays(year).includes(dateStr);
   }
-
-  function countBusinessDaysInclusive(d1,d2){
-    const a = toUTCDate(d1);
-    const b = toUTCDate(d2);
+  function countBusinessDaysInclusive(d1, d2) {
+    const a = toUTCDate(d1), b = toUTCDate(d2);
     let count = 0;
-
-    for(let d=new Date(a); d<=b; d.setUTCDate(d.getUTCDate()+1)){
+    for (let d = new Date(a); d <= b; d.setUTCDate(d.getUTCDate() + 1)) {
       const ymd = d.toISOString().slice(0,10);
       const day = d.getUTCDay();
-      if(day!==0 && day!==6 && !isHoliday(ymd)) count++;
+      if (day !== 0 && day !== 6 && !isHoliday(ymd)) count++;
     }
     return count;
   }
 
-  function refreshUI(){
+  function fmtDate(ymd) {
+    if (!ymd) return "—";
+    const [y,m,d] = ymd.split("-");
+    return `${d}/${m}/${y}`;
+  }
 
+  function refreshUI() {
     clearErrors();
-    daysBox.style.display="none";
-    remainingBox.style.display="none";
+    summaryBox.style.display = "none";
+    reqChip.style.display = "none";
+    remChip.style.display = "none";
 
-    if(!start.value || !end.value) return;
+    if (!start.value || !end.value) return;
 
-    const a = toUTCDate(start.value);
-    const b = toUTCDate(end.value);
+    const a = toUTCDate(start.value), b = toUTCDate(end.value);
 
-    if(b<a){
-      dateError.style.display="block";
-      submitBtn.disabled=true;
+    if (b < a) {
+      dateError.style.display = "flex";
+      submitBtn.disabled = true;
       return;
     }
 
-    if(isWeekend(start.value) || isWeekend(end.value) ||
-       isHoliday(start.value) || isHoliday(end.value)){
+    if (isWeekend(start.value) || isWeekend(end.value) ||
+        isHoliday(start.value) || isHoliday(end.value)) {
       setError("No puedes seleccionar fines de semana ni días festivos.");
       return;
     }
 
-    const days = countBusinessDaysInclusive(start.value,end.value);
+    const days = countBusinessDaysInclusive(start.value, end.value);
+    const remaining = available() - days;
 
     daysEl.textContent = days;
-    daysBox.style.display="block";
-
-    const remaining = available() - days;
+    daysLabel.textContent = days;
     remainingEl.textContent = remaining;
-    remainingBox.style.display="block";
+    startLabel.textContent = fmtDate(start.value);
+    endLabel.textContent   = fmtDate(end.value);
 
-    if(remaining<0){
+    summaryBox.style.display = "block";
+    reqChip.style.display = "flex";
+    remChip.style.display = "flex";
+
+    if (remaining < 0) {
+      remChip.classList.add("danger");
       setError("No tienes días suficientes disponibles.");
+    } else {
+      remChip.classList.remove("danger");
     }
   }
 
-  const disableWeekends = d=>d.getDay()===0||d.getDay()===6;
-
-  const disableHolidays = function(date){
-    const ymd = flatpickr.formatDate(date,"Y-m-d");
+  const disableWeekends = d => d.getDay() === 0 || d.getDay() === 6;
+  const disableHolidays = date => {
+    const ymd = flatpickr.formatDate(date, "Y-m-d");
     return getMexicanHolidays(date.getFullYear()).includes(ymd);
   };
 
-  flatpickr("#startDate",{
-    dateFormat:"Y-m-d",
-    allowInput:false,
-    minDate:"today",
-    disable:[disableWeekends,disableHolidays],
-    onChange:refreshUI
+  flatpickr("#startDate", {
+    dateFormat: "Y-m-d",
+    allowInput: false,
+    minDate: "today",
+    disable: [disableWeekends, disableHolidays],
+    onChange: refreshUI,
+    locale: { firstDayOfWeek: 1 }
   });
 
-  flatpickr("#endDate",{
-    dateFormat:"Y-m-d",
-    allowInput:false,
-    minDate:"today",
-    disable:[disableWeekends,disableHolidays],
-    onChange:refreshUI
+  flatpickr("#endDate", {
+    dateFormat: "Y-m-d",
+    allowInput: false,
+    minDate: "today",
+    disable: [disableWeekends, disableHolidays],
+    onChange: refreshUI,
+    locale: { firstDayOfWeek: 1 }
   });
 
 });

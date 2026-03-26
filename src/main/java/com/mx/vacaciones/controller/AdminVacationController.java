@@ -49,7 +49,8 @@ public class AdminVacationController {
 	// 1) Ver solicitudes pendientes
 	@GetMapping("/requests")
 	public String viewRequests(Model model) {
-		List<VacationRequest> pending = vacationRepository.findByStatusOrderByIdDesc("PENDIENTE");
+		//CAMBIO EN LA PALABRA PENDIENTE YA QEU NO LEE UN PENDIENTE PERO SI PENDING 
+		List<VacationRequest> pending = vacationRepository.findByStatusOrderByIdDesc("PENDING");
 		model.addAttribute("requests", pending);
 		return "admin/requests";
 	}
@@ -91,9 +92,9 @@ public class AdminVacationController {
 	        @RequestParam(required = false) String status,
 	        @RequestParam(required = false) String q,
 	        @RequestParam(required = false)
-	        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+	        @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate from, 
 	        @RequestParam(required = false)
-	        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+	        @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate to, 
 	        Model model
 	) {
 
@@ -126,6 +127,7 @@ public class AdminVacationController {
 	public List<Map<String, Object>> calendarEvents() {
 
 		// Decide qué mostrar: normalmente APPROVED y PENDING
+		//BORRADO DE OPCIONES EN ESPANOL YA QUE GENERA CONFLICTOS
 		List<String> statuses = List.of("APPROVED", "PENDING");
 
 		List<VacationRequest> list = vacationRepository.findForCalendar(statuses);
@@ -160,7 +162,7 @@ public class AdminVacationController {
 			@RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
 			HttpServletResponse response) throws Exception {
 
-		List<String> statuses = List.of("PENDING", "APPROVED", "PENDIENTE", "APROBADA");
+		List<String> statuses = List.of("PENDING", "APPROVED");
 		List<VacationRequest> list = vacationRepository.findForCalendarRange(statuses, from, to);
 
 		response.setContentType("application/pdf");
