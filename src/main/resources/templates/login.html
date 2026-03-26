@@ -5,54 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Login - Sistema de Vacaciones</title>
 
-  <!-- Bootstrap -->
   <link rel="stylesheet" href="/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/theme.css">
-
-  <!-- Solo para login -->
   <link rel="stylesheet" href="/css/login.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 </head>
 
 <body>
 
 <div class="login-page">
-  <div class="login-card shadow-dark">
+  <div class="login-card">
 
-    <!-- ===== LOGO ===== -->
-    <div class="text-center mb-4">
+    <!-- LOGO -->
+    <div class="login-logo-wrap">
       <img src="/images/sg7t68nrdnkdvoop4iak.avif" class="logo-login" alt="Logo">
+      <h4 class="login-title">Sistema de Vacaciones</h4>
+      <span class="login-subtitle">Ingresa tus credenciales para continuar</span>
     </div>
 
-    <h4 class="text-center mb-3 text-white">Sistema de Vacaciones</h4>
-
-    <!-- ===== ALERTS ===== -->
-    <div th:if="${param.logout}" class="alert alert-success alert-dismissible fade show text-center" role="alert">
-      Sesión cerrada correctamente
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    <!-- ALERTS -->
+    <div th:if="${param.logout}" class="alert alert-success alert-dismissible fade show" role="alert">
+      ✓ Sesión cerrada correctamente
+      <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert" aria-label="Cerrar"></button>
     </div>
 
-    <!-- Si sigues usando param.error de Spring -->
-    <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show text-center" role="alert">
-      Usuario o contraseña incorrectos
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+      ✕ Usuario o contraseña incorrectos
+      <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert" aria-label="Cerrar"></button>
     </div>
 
-    <!-- Tu manejo nuevo con códigos -->
-    <div th:if="${param.err}" class="alert alert-danger alert-dismissible fade show text-center" role="alert">
+    <div th:if="${param.err}" class="alert alert-danger alert-dismissible fade show" role="alert">
       <span th:if="${param.err[0] == 'INACTIVO'}">
-        Tu usuario está inactivo. Contacta al administrador.
+        ✕ Tu usuario está inactivo. Contacta al administrador.
       </span>
       <span th:unless="${param.err[0] == 'INACTIVO'}">
-        Usuario o contraseña incorrectos.
+        ✕ Usuario o contraseña incorrectos.
       </span>
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+      <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert" aria-label="Cerrar"></button>
     </div>
 
-    <!-- ===== FORM LOGIN ===== -->
+    <!-- FORM -->
     <form method="post" action="/login" id="loginForm">
 
       <div class="mb-3">
-        <label class="form-label text-white">Usuario</label>
+        <label class="form-label">Usuario</label>
         <input type="text"
                name="username"
                class="form-control"
@@ -62,7 +60,7 @@
       </div>
 
       <div class="mb-3">
-        <label class="form-label text-white">Contraseña</label>
+        <label class="form-label">Contraseña</label>
         <input type="password"
                name="password"
                class="form-control"
@@ -71,17 +69,18 @@
                required>
       </div>
 
-      <button class="btn btn-primary w-100 mt-2" type="submit" id="btnLogin">
+      <button class="btn-login" type="submit" id="btnLogin">
         Entrar
       </button>
 
     </form>
 
+    <div class="login-divider"><span>Inssoft © 2026</span></div>
+
   </div>
 </div>
 
 <script src="/js/bootstrap.bundle.min.js"></script>
-
 <script>
   // Auto cerrar alerts
   setTimeout(() => {
@@ -89,7 +88,7 @@
       const alert = bootstrap.Alert.getOrCreateInstance(a);
       alert.close();
     });
-  }, 4500);
+  }, 5000);
 
   // Anti doble click
   document.getElementById('loginForm')?.addEventListener('submit', () => {

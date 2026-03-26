@@ -49,7 +49,8 @@ public class VacationRequest {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        status = "PENDIENTE";
+        // CAMBIO EN PLAABRAS YA QUE HAY CONFUSON ENTRE PALABRS ALGUNAS EN ESPANOL Y OTRAS EN INGLES 
+        status = "PENDING";
     }
     
 }

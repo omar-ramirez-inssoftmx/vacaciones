@@ -1,0 +1,233 @@
+/* ============================================
+   status.css — Estatus de Vacaciones
+   Independiente de theme.css
+   ============================================ */
+
+/* ── BASE ── */
+html, body {
+  background-color: #0d1117 !important;
+  color: #e6edf3 !important;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* ── NAVBAR ── */
+.navbar {
+  background: rgba(13,17,23,0.85) !important;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  padding: 0.75rem 1.5rem;
+  position: sticky; top: 0; z-index: 100;
+}
+.navbar-brand { font-weight: 700; font-size: 1rem; color: #e6edf3 !important; text-decoration: none; }
+.btn-outline-light {
+  font-size: 0.78rem; font-weight: 600;
+  color: #8b949e !important; border-color: rgba(255,255,255,0.15) !important;
+  background: transparent !important; transition: all 0.2s;
+}
+.btn-outline-light:hover {
+  color: #e6edf3 !important;
+  border-color: rgba(255,255,255,0.3) !important;
+  background: rgba(255,255,255,0.06) !important;
+}
+
+/* ── HERO ── */
+.status-hero {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem;
+  background: linear-gradient(135deg, #161b22 0%, #1a2332 100%);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  padding: 1.75rem 2rem;
+  margin: 1.5rem 0 1.25rem;
+  position: relative; overflow: hidden;
+}
+.status-hero::before {
+  content: ''; position: absolute; top: -60px; right: -60px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(63,185,80,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-label {
+  font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: #3fb950; margin-bottom: 0.3rem;
+}
+.status-hero h4 { font-size: 1.4rem; font-weight: 700; margin: 0 0 0.25rem; color: #e6edf3; }
+.hero-user { font-size: 0.82rem; color: #6e7681; }
+.hero-user b { color: #8b949e; font-weight: 600; }
+
+/* ── BOTONES HERO ── */
+.btn-hero-new {
+  font-size: 0.8rem; font-weight: 700;
+  background: #238636; color: #fff !important;
+  border: none; padding: 0.45rem 1.1rem;
+  border-radius: 8px; text-decoration: none;
+  transition: background 0.2s, transform 0.15s;
+  white-space: nowrap; flex-shrink: 0;
+}
+.btn-hero-new:hover { background: #2ea043; transform: translateY(-1px); }
+.btn-hero-back {
+  font-size: 0.78rem; font-weight: 600;
+  color: #8b949e; border: 1px solid rgba(255,255,255,0.1);
+  background: transparent; padding: 0.4rem 1rem;
+  border-radius: 8px; text-decoration: none;
+  transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
+}
+.btn-hero-back:hover { color: #e6edf3; border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.05); }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center;
+  background: #161b22;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  padding: 3.5rem 2rem;
+  margin-bottom: 1.5rem;
+}
+.empty-icon  { font-size: 2.5rem; opacity: 0.35; margin-bottom: 0.75rem; }
+.empty-title { font-size: 1rem; font-weight: 600; color: #8b949e; margin-bottom: 0.25rem; }
+.empty-sub   { font-size: 0.8rem; color: #484f58; }
+
+/* ── TABLE CARD ── */
+.table-card {
+  background: #161b22;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.table-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.1rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; color: #484f58;
+}
+.req-count {
+  background: rgba(63,185,80,0.12);
+  border: 1px solid rgba(63,185,80,0.2);
+  color: #3fb950;
+  font-size: 0.7rem; font-weight: 700;
+  padding: 0.15rem 0.55rem; border-radius: 20px;
+}
+
+/* ── TABLE ── */
+.status-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.status-table thead tr { border-bottom: 1px solid rgba(255,255,255,0.06); }
+.status-table thead th {
+  font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: #484f58; padding: 0.75rem 1.25rem; white-space: nowrap;
+  background: transparent;
+}
+.status-table tbody tr {
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.15s;
+}
+.status-table tbody tr:last-child { border-bottom: none; }
+.status-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+.status-table tbody td {
+  padding: 0.85rem 1.25rem; color: #c9d1d9;
+  vertical-align: middle; background: transparent !important;
+}
+
+.id-cell   { color: #484f58 !important; font-size: 0.78rem; }
+.date-cell { font-size: 0.82rem; color: #8b949e; white-space: nowrap; }
+.date-range { display: flex; align-items: center; gap: 0.4rem; }
+.arr { color: #30363d; font-size: 0.7rem; }
+
+.days-chip {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(56,139,253,0.1); color: #388bfd;
+  font-size: 0.75rem; font-weight: 700;
+  padding: 0.18rem 0.55rem; border-radius: 6px; min-width: 30px;
+}
+
+.comment-cell { font-size: 0.78rem; color: #6e7681; }
+
+/* ── STATUS BADGES ── */
+.badge-pending {
+  background: rgba(210,153,34,0.15); border: 1px solid rgba(210,153,34,0.3);
+  color: #d29922; font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.06em; padding: 0.22rem 0.65rem; border-radius: 20px;
+  white-space: nowrap;
+}
+.badge-approved {
+  background: rgba(63,185,80,0.12); border: 1px solid rgba(63,185,80,0.25);
+  color: #3fb950; font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.06em; padding: 0.22rem 0.65rem; border-radius: 20px;
+  white-space: nowrap;
+}
+.badge-rejected {
+  background: rgba(248,81,73,0.1); border: 1px solid rgba(248,81,73,0.22);
+  color: #f85149; font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.06em; padding: 0.22rem 0.65rem; border-radius: 20px;
+  white-space: nowrap;
+}
+.badge-other {
+  background: rgba(139,148,158,0.1); border: 1px solid rgba(139,148,158,0.2);
+  color: #6e7681; font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.06em; padding: 0.22rem 0.65rem; border-radius: 20px;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.status-hero { animation: fadeUp 0.3s ease both; }
+.table-card  { animation: fadeUp 0.3s 0.08s ease both; }
+.empty-state { animation: fadeUp 0.3s 0.08s ease both; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+
+  /* Hero */
+  .status-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.25rem;
+    margin: 1rem 0 1rem;
+  }
+  .status-hero::before { display: none; }
+  .status-hero h4 { font-size: 1.1rem; }
+
+  .status-hero .d-flex {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    width: 100%;
+  }
+  .btn-hero-new,
+  .btn-hero-back {
+    flex: 1;
+    text-align: center;
+  }
+
+  /* Tabla */
+  .status-table thead th,
+  .status-table tbody td {
+    padding: 0.65rem 0.85rem;
+  }
+
+  /* Ocultar columna comentario */
+  .status-table th:nth-child(5),
+  .status-table td:nth-child(5) { display: none; }
+}
+
+@media (max-width: 480px) {
+
+  /* Ocultar ID */
+  .status-table th:nth-child(1),
+  .status-table td:nth-child(1) { display: none; }
+
+  /* Fechas en columna */
+  .date-range {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+  }
+  .arr { display: none; }
+
+  .empty-state { padding: 2rem 1rem; }
+  .table-card-header { padding: 0.85rem 1rem; }
+}

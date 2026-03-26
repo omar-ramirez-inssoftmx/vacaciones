@@ -8,15 +8,16 @@
   <link rel="stylesheet" href="/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/theme.css">
   <link rel="stylesheet" href="/css/admin-users.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 </head>
 
 <body>
 
-<!-- ===== NAVBAR ===== -->
 <nav class="navbar navbar-dark">
   <div class="container-fluid d-flex align-items-center justify-content-between">
     <a class="navbar-brand" href="/home">Sistema de Vacaciones</a>
-
     <form method="post" action="/logout">
       <button class="btn btn-outline-light btn-sm">Salir</button>
     </form>
@@ -25,85 +26,68 @@
 
 <div class="container mt-4">
 
-  <!-- ===== HERO ===== -->
+  <!-- HERO -->
   <div class="admin-hero shadow-soft mb-3">
-    <div class="admin-hero__text">
+    <div>
+      <div class="hero-label">Panel Admin</div>
       <h4 class="mb-1">Administración de Usuarios</h4>
-      <div class="muted">
-        Crear, editar, activar/desactivar y resetear contraseña.
-      </div>
+      <div class="muted">Crear, editar, activar/desactivar y resetear contraseña.</div>
     </div>
-
-    <div class="admin-hero__actions">
-      <form method="post"
-            action="/admin/users/vacations/recalc"
+    <div class="hero-actions">
+      <form method="post" action="/admin/users/vacations/recalc"
             onsubmit="return confirm('¿Recalcular vacaciones por antigüedad para TODOS los usuarios?');">
-        <button class="btn btn-outline-light btn-sm w-100">
-          Recalcular vacaciones
-        </button>
+        <button class="btn-hero" type="submit">⟳ Recalcular vacaciones</button>
       </form>
-
-      <a href="/home" class="btn btn-outline-light btn-sm w-100">
-        Volver
-      </a>
+      <a href="/home" class="btn-hero">← Volver</a>
     </div>
   </div>
 
-  <!-- ===== ALERTS ===== -->
-  <div th:if="${param.ok}" class="alert alert-success alert-dismissible fade show">
+  <!-- ALERTS -->
+  <div th:if="${param.ok}" class="alert alert-success alert-dismissible fade show mb-3">
     <span th:text="${param.ok[0]}"></span>
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
   </div>
-
-  <div th:if="${param.err}" class="alert alert-danger alert-dismissible fade show">
+  <div th:if="${param.err}" class="alert alert-danger alert-dismissible fade show mb-3">
     <span th:if="${param.err[0] == 'EMAIL_DUPLICADO'}">Ese correo ya está registrado.</span>
     <span th:if="${param.err[0] == 'USERNAME_DUPLICADO'}">Ese username ya está registrado.</span>
     <span th:if="${param.err[0] == 'ERROR_AL_CREAR'}">No se pudo guardar el usuario.</span>
-    <span th:unless="${param.err[0] == 'EMAIL_DUPLICADO'
-                     or param.err[0] == 'USERNAME_DUPLICADO'
-                     or param.err[0] == 'ERROR_AL_CREAR'}"
+    <span th:unless="${param.err[0] == 'EMAIL_DUPLICADO' or param.err[0] == 'USERNAME_DUPLICADO' or param.err[0] == 'ERROR_AL_CREAR'}"
           th:text="${param.err[0]}"></span>
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
   </div>
 
-  <!-- ===== CREAR USUARIO ===== -->
-  <div class="card admin-card mb-4">
-    <div class="card-body">
-      <h5 class="mb-3">Crear usuario</h5>
-
+  <!-- CREAR USUARIO -->
+  <div class="section-card">
+    <div class="section-header">
+      <span class="section-title">➕ Crear usuario</span>
+    </div>
+    <div class="section-body">
       <form method="post" action="/admin/users/create" class="row g-3">
 
         <div class="col-md-4">
           <label class="form-label">Nombre</label>
-          <input class="form-control" name="name" required>
+          <input class="form-control" name="name" placeholder="Nombre completo" required>
         </div>
-
         <div class="col-md-4">
           <label class="form-label">Username</label>
-          <input class="form-control" name="username" required>
+          <input class="form-control" name="username" placeholder="usuario.apellido" required>
         </div>
-
         <div class="col-md-4">
           <label class="form-label">Password</label>
-          <input type="password" class="form-control" name="password" required>
+          <input type="password" class="form-control" name="password" placeholder="••••••••" required>
         </div>
-
         <div class="col-md-4">
           <label class="form-label">Email</label>
-          <input type="email" class="form-control" name="email" required>
+          <input type="email" class="form-control" name="email" placeholder="correo@empresa.com" required>
         </div>
-
         <div class="col-md-3">
           <label class="form-label">Días disponibles</label>
-          <input type="number" min="0" class="form-control"
-                 name="vacationDaysAvailable" value="12" required>
+          <input type="number" min="0" class="form-control" name="vacationDaysAvailable" value="12" required>
         </div>
-
         <div class="col-md-3">
           <label class="form-label">Fecha de ingreso</label>
           <input type="date" class="form-control" name="hireDate" required>
         </div>
-
         <div class="col-md-2">
           <label class="form-label">Rol</label>
           <select class="form-select" name="role">
@@ -111,109 +95,101 @@
             <option value="ROLE_ADMIN">ADMIN</option>
           </select>
         </div>
-
         <div class="col-md-2 d-flex align-items-end">
-          <button class="btn btn-primary w-100">Crear</button>
+          <button class="btn-create" type="submit">Crear usuario</button>
         </div>
 
       </form>
     </div>
   </div>
 
-  <!-- ===== LISTA USUARIOS ===== -->
-  <div class="card admin-card">
-    <div class="card-body">
+  <!-- LISTA USUARIOS -->
+  <div class="section-card">
 
-      <div class="admin-users-toolbar mb-2">
-        <h5 class="mb-0">Usuarios</h5>
-        <input id="userSearch" class="form-control"
-               placeholder="Buscar por nombre, username o email">
+    <div class="users-toolbar">
+      <div class="users-toolbar-left">
+        <span class="toolbar-title">Usuarios</span>
+        <span class="user-count" th:text="${#lists.size(users)}">0</span>
       </div>
-
-      <div class="admin-table-scroll">
-        <div class="table-responsive admin-table-wrap">
-          <table class="table table-hover table-sm align-middle admin-users-table">
-
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Activo</th>
-                <th class="actions">Acciones</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr th:each="u : ${users}">
-                <td th:text="${u.id}"></td>
-                <td th:text="${u.name}"></td>
-                <td th:text="${u.username}"></td>
-                <td th:text="${u.email}"></td>
-
-                <td>
-                  <span class="badge bg-success" th:if="${u.enabled}">ACTIVO</span>
-                  <span class="badge bg-secondary" th:if="${!u.enabled}">INACTIVO</span>
-                </td>
-
-                <td class="text-nowrap actions">
-                  <button class="btn btn-outline-light btn-sm"
-                          data-bs-toggle="modal"
-                          data-bs-target="#editUserModal"
-                          th:attr="data-id=${u.id},
-                                   data-name=${u.name},
-                                   data-username=${u.username},
-                                   data-email=${u.email},
-                                   data-role=${u.role.name()},
-                                   data-days=${u.vacationDaysAvailable},
-                                   data-hiredate=${u.hireDate},
-                                   data-enabled=${u.enabled}">
-                    Editar
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-
-          </table>
-        </div>
-      </div>
-
+      <input id="userSearch" class="user-search" placeholder="🔍  Buscar nombre, username o email...">
     </div>
+
+    <div class="table-responsive">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Colaborador</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="u : ${users}">
+            <td style="color:#484f58; font-size:0.78rem;" th:text="'#' + ${u.id}"></td>
+            <td>
+              <div class="user-cell">
+                <span class="user-name" th:text="${u.name}"></span>
+              </div>
+            </td>
+            <td><span class="user-sub" th:text="${u.username}"></span></td>
+            <td><span class="user-sub" th:text="${u.email}"></span></td>
+            <td>
+              <span class="badge-active"  th:if="${u.enabled}">● ACTIVO</span>
+              <span class="badge-inactive" th:if="${!u.enabled}">● INACTIVO</span>
+            </td>
+            <td>
+              <button class="btn-edit"
+                      data-bs-toggle="modal"
+                      data-bs-target="#editUserModal"
+                      th:attr="data-id=${u.id},
+                               data-name=${u.name},
+                               data-username=${u.username},
+                               data-email=${u.email},
+                               data-role=${u.role.name()},
+                               data-days=${u.vacationDaysAvailable},
+                               data-hiredate=${u.hireDate},
+                               data-enabled=${u.enabled}">
+                ✎ Editar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
   </div>
 
 </div>
 
-<!-- ===== MODAL EDITAR USUARIO ===== -->
+<!-- MODAL EDITAR -->
 <div class="modal fade" id="editUserModal" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content admin-modal shadow-soft">
+    <div class="modal-content">
 
-      <div class="modal-header admin-modal-header">
+      <div class="modal-header">
         <h5 class="modal-title" id="editUserTitle">Editar usuario</h5>
-        <button type="button" class="btn-close btn-close-white"
-                data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
 
       <form method="post" id="editUserForm">
-        <div class="modal-body admin-modal-body">
+        <div class="modal-body">
           <div class="row g-3">
 
             <div class="col-md-6">
               <label class="form-label">Nombre</label>
               <input class="form-control" name="name" id="editName" required>
             </div>
-
             <div class="col-md-6">
               <label class="form-label">Username</label>
               <input class="form-control" name="username" id="editUsername" required>
             </div>
-
             <div class="col-md-6">
               <label class="form-label">Email</label>
               <input type="email" class="form-control" name="email" id="editEmail" required>
             </div>
-
             <div class="col-md-6">
               <label class="form-label">Rol</label>
               <select class="form-select" name="role" id="editRole">
@@ -221,23 +197,18 @@
                 <option value="ROLE_ADMIN">ADMIN</option>
               </select>
             </div>
-
             <div class="col-md-3">
               <label class="form-label">Días</label>
-              <input type="number" class="form-control"
-                     name="vacationDaysAvailable" id="editDays">
+              <input type="number" class="form-control" name="vacationDaysAvailable" id="editDays">
             </div>
-
             <div class="col-md-3">
               <label class="form-label">Ingreso</label>
               <input type="date" class="form-control" name="hireDate" id="editHireDate">
             </div>
-
             <div class="col-12">
               <div class="form-check mt-2">
-                <input class="form-check-input" type="checkbox"
-                       id="editEnabled" name="enabled" value="true">
-                <label class="form-check-label" for="editEnabled">Activo</label>
+                <input class="form-check-input" type="checkbox" id="editEnabled" name="enabled" value="true">
+                <label class="form-check-label" for="editEnabled">Usuario activo</label>
               </div>
               <input type="hidden" name="enabled" value="false">
             </div>
@@ -246,32 +217,22 @@
 
           <hr class="my-3">
 
-          <!-- RESET PASSWORD -->
           <div class="row g-3">
-            <div class="col-md-6">
+            <div class="col-md-7">
               <label class="form-label">Resetear password</label>
               <div class="input-group">
-                <input type="password"
-                       class="form-control"
-                       id="resetPasswordInput"
-                       placeholder="Nuevo password">
-                <button type="button"
-                        class="btn btn-outline-warning"
-                        id="btnResetPassword">
-                  Reset
-                </button>
+                <input type="password" class="form-control" id="resetPasswordInput" placeholder="Nuevo password">
+                <button type="button" class="btn-reset" id="btnResetPassword">Resetear</button>
               </div>
-              <div class="form-text">
-                El usuario deberá usar este password en su próximo inicio de sesión.
-              </div>
+              <div class="form-text mt-1">El usuario usará este password en su próximo inicio de sesión.</div>
             </div>
           </div>
 
         </div>
 
-        <div class="modal-footer admin-modal-footer">
-          <button class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
-          <button class="btn btn-primary">Guardar</button>
+        <div class="modal-footer">
+          <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn-modal-save">Guardar cambios</button>
         </div>
       </form>
 
@@ -280,24 +241,20 @@
 </div>
 
 <script src="/js/bootstrap.bundle.min.js"></script>
-
 <script>
-  // Auto cerrar alerts
   setTimeout(() => {
     document.querySelectorAll('.alert').forEach(a => {
       bootstrap.Alert.getOrCreateInstance(a).close();
     });
   }, 4500);
 
-  // Buscador
   document.getElementById('userSearch')?.addEventListener('input', e => {
     const q = e.target.value.toLowerCase();
-    document.querySelectorAll('.admin-users-table tbody tr').forEach(tr => {
+    document.querySelectorAll('.users-table tbody tr').forEach(tr => {
       tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
     });
   });
 
-  // Modal logic
   const modalEl = document.getElementById('editUserModal');
   const formEl  = document.getElementById('editUserForm');
   let currentUserId = null;
@@ -305,44 +262,30 @@
   modalEl.addEventListener('show.bs.modal', e => {
     const b = e.relatedTarget;
     currentUserId = b.dataset.id;
-
     formEl.action = `/admin/users/${currentUserId}/update`;
-
-    editName.value = b.dataset.name || '';
+    editName.value     = b.dataset.name     || '';
     editUsername.value = b.dataset.username || '';
-    editEmail.value = b.dataset.email || '';
-    editRole.value = b.dataset.role || 'ROLE_COLABORADOR';
-    editDays.value = b.dataset.days || 0;
+    editEmail.value    = b.dataset.email    || '';
+    editRole.value     = b.dataset.role     || 'ROLE_COLABORADOR';
+    editDays.value     = b.dataset.days     || 0;
     editHireDate.value = b.dataset.hiredate || '';
     editEnabled.checked = (b.dataset.enabled === 'true');
-
-    editUserTitle.textContent =
-      `Editar usuario: ${b.dataset.name || b.dataset.username}`;
-
+    editUserTitle.textContent = `Editar: ${b.dataset.name || b.dataset.username}`;
     resetPasswordInput.value = '';
   });
 
-  // Reset password
   document.getElementById('btnResetPassword').addEventListener('click', async () => {
     const pwd = resetPasswordInput.value.trim();
     if (!pwd || !currentUserId) return alert('Ingresa un password válido.');
-
     if (!confirm('¿Resetear el password de este usuario?')) return;
-
     const res = await fetch(`/admin/users/${currentUserId}/reset-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ password: pwd })
     });
-
-    if (res.redirected) {
-      window.location.href = res.url;
-    } else if (!res.ok) {
-      alert('No se pudo resetear el password.');
-    } else {
-      alert('Password reseteado correctamente.');
-      resetPasswordInput.value = '';
-    }
+    if (res.redirected) window.location.href = res.url;
+    else if (!res.ok) alert('No se pudo resetear el password.');
+    else { alert('Password reseteado correctamente.'); resetPasswordInput.value = ''; }
   });
 </script>
 

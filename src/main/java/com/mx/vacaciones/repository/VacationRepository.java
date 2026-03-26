@@ -64,7 +64,7 @@ public interface VacationRepository extends JpaRepository<VacationRequest, Long>
 
 	@Query("""
 			  select count(vr) from VacationRequest vr
-			  where vr.status = 'PENDIENTE'
+			  where vr.status = 'PENDING'
 			""")
 	long countPending();
 
@@ -100,4 +100,16 @@ public interface VacationRepository extends JpaRepository<VacationRequest, Long>
 		        @Param("from") LocalDate from,
 		        @Param("to") LocalDate to
 		);
+	@Query("""
+		    SELECT vr.user.username, COALESCE(SUM(vr.days), 0)
+		    FROM VacationRequest vr
+		    WHERE vr.status = 'APPROVED'
+		      AND vr.startDate <= :endOfMonth
+		      AND vr.endDate >= :startOfMonth
+		    GROUP BY vr.user.username
+		    ORDER BY SUM(vr.days) DESC
+		""")
+		List<Object[]> topUsersApprovedDaysOverlappingMonth(
+		        @Param("startOfMonth") LocalDate startOfMonth,
+		        @Param("endOfMonth") LocalDate endOfMonth);
 }
