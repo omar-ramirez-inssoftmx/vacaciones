@@ -8,10 +8,52 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+import com.mx.vacaciones.security.CustomAuthenticationSuccessHandler;
+
+import lombok.RequiredArgsConstructor;
+
+/**
+ * Configuración de seguridad de la aplicación.
+ *
+ * <p>
+ * Define:
+ * </p>
+ * <ul>
+ *     <li>Rutas públicas</li>
+ *     <li>Rutas protegidas por rol</li>
+ *     <li>Login personalizado</li>
+ *     <li>Logout</li>
+ *     <li>Codificador de contraseñas</li>
+ * </ul>
+ *
+ * <p>
+ * Se agregó un {@link CustomAuthenticationSuccessHandler} para redirigir
+ * al usuario a la pantalla de cambio de contraseña cuando su contraseña
+ * esté marcada como temporal.
+ * </p>
+ */
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
+    /**
+     * Manejador personalizado de login exitoso.
+     *
+     * <p>
+     * Valida si el usuario tiene contraseña temporal y, en ese caso,
+     * lo redirige a la pantalla de cambio de contraseña.
+     * </p>
+     */
+    private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+
+    /**
+     * Configura la cadena de filtros de seguridad.
+     *
+     * @param http objeto de configuración de seguridad
+     * @return cadena de filtros configurada
+     * @throws Exception en caso de error de configuración
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -20,6 +62,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/login",
+                    "/change-password",
                     "/css/**",
                     "/js/**",
                     "/images/**"
@@ -37,7 +80,7 @@ public class SecurityConfig {
                         response.sendRedirect("/login?err=LOGIN");
                     }
                 })
-                .defaultSuccessUrl("/home", true)
+                .successHandler(customAuthenticationSuccessHandler)
                 .permitAll()
             )
             .logout(logout -> logout
@@ -47,7 +90,12 @@ public class SecurityConfig {
 
         return http.build();
     }
-    
+
+    /**
+     * Bean para encriptar contraseñas usando BCrypt.
+     *
+     * @return codificador de contraseñas
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

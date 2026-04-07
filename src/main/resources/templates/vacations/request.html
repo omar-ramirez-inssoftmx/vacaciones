@@ -30,7 +30,6 @@
 
 <div class="container mt-4">
 
-  <!-- HERO -->
   <div class="admin-hero shadow-soft mb-3">
     <div>
       <div class="hero-label">Colaborador</div>
@@ -40,16 +39,13 @@
     <a class="btn-back" th:href="@{/home}">← Volver</a>
   </div>
 
-  <!-- MENSAJES -->
   <div th:if="${success}" class="alert-success-custom" th:text="${success}"></div>
   <div th:if="${error}" class="alert-danger-custom" th:text="${error}"></div>
 
-  <!-- CARD -->
   <div class="form-card">
     <div class="form-card-header">📋 Detalle de solicitud</div>
     <div class="form-card-body">
 
-      <!-- BALANCE -->
       <div class="balance-row">
 
         <div class="balance-chip bc-available">
@@ -74,7 +70,6 @@
 
       <input type="hidden" id="availableDays" th:value="${availableDays ?: 0}">
 
-      <!-- FORM -->
       <form method="post"
             th:action="@{/vacations/request}"
             th:object="${vacationRequest}">
@@ -87,18 +82,22 @@
 
           <div class="col-md-6">
             <label class="form-label">Fecha Inicio</label>
-            <input id="startDate" name="startDate"
+            <input id="startDate"
+                   name="startDate"
                    type="text"
                    class="form-control"
-                   readonly required>
+                   readonly
+                   required>
           </div>
 
           <div class="col-md-6">
             <label class="form-label">Fecha Fin</label>
-            <input id="endDate" name="endDate"
+            <input id="endDate"
+                   name="endDate"
                    type="text"
                    class="form-control"
-                   readonly required>
+                   readonly
+                   required>
           </div>
 
         </div>
@@ -108,7 +107,7 @@
         </div>
 
         <div class="inline-msg danger" id="dateError" style="display:none">
-          La fecha fin no puede ser menor
+          La fecha fin no puede ser menor que la fecha inicio.
         </div>
 
         <div class="inline-msg danger" id="weekendError" style="display:none"></div>
@@ -126,10 +125,141 @@
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-<script>
+<script th:inline="javascript">
 document.addEventListener("DOMContentLoaded", () => {
-  flatpickr("#startDate", { dateFormat: "Y-m-d", minDate: "today" });
-  flatpickr("#endDate", { dateFormat: "Y-m-d", minDate: "today" });
+
+  const availableDays = parseInt(document.getElementById("availableDays")?.value || "0", 10);
+
+  const requestedChip = document.getElementById("requestedChip");
+  const remainingChip = document.getElementById("remainingChip");
+  const summaryBox = document.getElementById("summaryBox");
+  const daysEl = document.getElementById("days");
+  const daysLabelEl = document.getElementById("daysLabel");
+  const remainingEl = document.getElementById("remaining");
+  const dateError = document.getElementById("dateError");
+  const weekendError = document.getElementById("weekendError");
+  const submitBtn = document.getElementById("submitBtn");
+
+  // Lista de festivos enviada desde backend
+  const holidayDates = /*[[${holidayDates}]]*/ [];
+  const holidaySet = new Set((holidayDates || []).map(String));
+
+  function formatDate(date) {
+    return date.getFullYear() + "-" +
+      String(date.getMonth() + 1).padStart(2, "0") + "-" +
+      String(date.getDate()).padStart(2, "0");
+  }
+
+  function isWeekend(date) {
+    const day = date.getDay();
+    return day === 0 || day === 6;
+  }
+
+  function isHoliday(date) {
+    return holidaySet.has(formatDate(date));
+  }
+
+  function isBlockedDate(date) {
+    return isWeekend(date) || isHoliday(date);
+  }
+
+  function countBusinessDays(start, end) {
+    let count = 0;
+    const current = new Date(start);
+    current.setHours(0, 0, 0, 0);
+
+    const last = new Date(end);
+    last.setHours(0, 0, 0, 0);
+
+    while (current <= last) {
+      if (!isBlockedDate(current)) {
+        count++;
+      }
+      current.setDate(current.getDate() + 1);
+    }
+
+    return count;
+  }
+
+  function updateSummary() {
+    const startValue = document.getElementById("startDate").value;
+    const endValue = document.getElementById("endDate").value;
+
+    requestedChip.style.display = "none";
+    remainingChip.style.display = "none";
+    summaryBox.style.display = "none";
+    dateError.style.display = "none";
+    weekendError.style.display = "none";
+    submitBtn.disabled = false;
+
+    if (!startValue || !endValue) {
+      return;
+    }
+
+    const start = new Date(startValue + "T00:00:00");
+    const end = new Date(endValue + "T00:00:00");
+
+    if (end < start) {
+      dateError.style.display = "block";
+      submitBtn.disabled = true;
+      return;
+    }
+
+    if (isBlockedDate(start)) {
+      weekendError.textContent = "La fecha de inicio no puede ser sábado, domingo o día festivo.";
+      weekendError.style.display = "block";
+      submitBtn.disabled = true;
+      return;
+    }
+
+    if (isBlockedDate(end)) {
+      weekendError.textContent = "La fecha de fin no puede ser sábado, domingo o día festivo.";
+      weekendError.style.display = "block";
+      submitBtn.disabled = true;
+      return;
+    }
+
+    const businessDays = countBusinessDays(start, end);
+    const remainingDays = availableDays - businessDays;
+
+    requestedChip.style.display = "block";
+    remainingChip.style.display = "block";
+    summaryBox.style.display = "block";
+
+    daysEl.textContent = businessDays;
+    daysLabelEl.textContent = businessDays;
+    remainingEl.textContent = remainingDays;
+  }
+
+  const commonConfig = {
+    dateFormat: "Y-m-d",
+    disable: [
+      function(date) {
+        return isBlockedDate(date);
+      }
+    ],
+    onChange: function() {
+      updateSummary();
+    }
+  };
+
+  const startPicker = flatpickr("#startDate", {
+    ...commonConfig,
+    onChange: function(selectedDates, dateStr) {
+      if (dateStr) {
+        endPicker.set("minDate", dateStr);
+      } else {
+        endPicker.set("minDate", null);
+      }
+      updateSummary();
+    }
+  });
+
+  const endPicker = flatpickr("#endDate", {
+    ...commonConfig
+  });
+
+  updateSummary();
 });
 </script>
 

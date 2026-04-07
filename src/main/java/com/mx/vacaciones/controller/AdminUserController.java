@@ -3,6 +3,7 @@ package com.mx.vacaciones.controller;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,89 +20,109 @@ import com.mx.vacaciones.service.VacationPolicyService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Controlador de administración de usuarios.
+ */
 @Controller
 @RequestMapping("/admin/users")
 @RequiredArgsConstructor
 public class AdminUserController {
 
-	private final UserService userService;
-	private final UserRepository userRepository;
-	private final VacationPolicyService policy;
+    private final UserService userService;
+    private final UserRepository userRepository;
+    private final VacationPolicyService policy;
 
-	@GetMapping
-	public String usersList(Model model, @RequestParam(required = false) String ok,
-			@RequestParam(required = false) String err) {
-		model.addAttribute("users", userService.findAll());
-		model.addAttribute("ok", ok);
-		model.addAttribute("err", err);
-		return "admin/users";
-	}
+    @GetMapping
+    public String usersList(
+            Model model,
+            @RequestParam(required = false) String ok,
+            @RequestParam(required = false) String err) {
 
-	@PostMapping("/create")
-	public String createUser(@RequestParam String name, @RequestParam String username, @RequestParam String email, @RequestParam String password,
-			@RequestParam int vacationDaysAvailable, @RequestParam String role, @RequestParam LocalDate hireDate) {
+        model.addAttribute("users", userService.findAll());
+        model.addAttribute("ok", ok);
+        model.addAttribute("err", err);
+        return "admin/users";
+    }
 
-		// (opcional) normalizar
-		email = email.trim().toLowerCase();
+    @PostMapping("/create")
+    public String createUser(
+            @RequestParam String name,
+            @RequestParam String username,
+            @RequestParam String email,
+            @RequestParam int vacationDaysAvailable,
+            @RequestParam String role,
+            @RequestParam LocalDate hireDate) {
 
-		try {
-			userService.createUser(name, username, email, password, vacationDaysAvailable, role, hireDate);
-			return "redirect:/admin/users?ok=Usuario%20creado";
-		} catch (org.springframework.dao.DataIntegrityViolationException e) {
-			// Mensaje corto y seguro (sin acentos si quieres evitar TODO)
-			return "redirect:/admin/users?err=EMAIL_DUPLICADO";
+        email = email.trim().toLowerCase();
 
-		} catch (Exception e) {
-			return "redirect:/admin/users?err=ERROR_AL_CREAR";
-		}
-	}
+        try {
+            userService.createUser(name, username, email, vacationDaysAvailable, role, hireDate);
+            return "redirect:/admin/users?ok=Usuario%20creado";
 
-	@PostMapping("/{id}/update")
-	public String updateUser(@PathVariable Long id, @RequestParam String name, @RequestParam String email, @RequestParam String role,
-			@RequestParam Integer vacationDaysAvailable, @RequestParam(defaultValue = "false") boolean enabled) {
-		try {
-			System.out.println("ENABLED RECIBIDO = " + enabled);
+        } catch (DataIntegrityViolationException e) {
+            return "redirect:/admin/users?err=EMAIL_DUPLICADO";
 
-			userService.updateUser(id, name, email, role, vacationDaysAvailable, enabled);
-			return "redirect:/admin/users?ok=Usuario%20actualizado";
-		} catch (Exception e) {
-			return "redirect:/admin/users?err=" + encode(e.getMessage());
-		}
-	}
+        } catch (RuntimeException e) {
+            if ("USERNAME_DUPLICADO".equals(e.getMessage())) {
+                return "redirect:/admin/users?err=USERNAME_DUPLICADO";
+            }
+            return "redirect:/admin/users?err=ERROR_AL_CREAR";
 
-	@PostMapping("/{id}/reset-password")
-	public String resetPassword(@PathVariable Long id, @RequestParam String password) {
-		try {
-			userService.resetPassword(id, password);
-			return "redirect:/admin/users?ok=Password%20actualizado";
-		} catch (Exception e) {
-			return "redirect:/admin/users?err=" + encode(e.getMessage());
-		}
-	}
+        } catch (Exception e) {
+            return "redirect:/admin/users?err=ERROR_AL_CREAR";
+        }
+    }
 
-	private String encode(String s) {
-		return s == null ? "" : s.replace(" ", "%20");
-	}
+    @PostMapping("/{id}/update")
+    public String updateUser(
+            @PathVariable Long id,
+            @RequestParam String name,
+            @RequestParam String email,
+            @RequestParam String role,
+            @RequestParam Integer vacationDaysAvailable,
+            @RequestParam(defaultValue = "false") boolean enabled) {
 
-	@PostMapping("/vacations/recalc")
-	@Transactional
-	public String recalcAllUsers() {
-		LocalDate today = LocalDate.now();
-		List<User> users = userRepository.findAll();
+        try {
+            userService.updateUser(id, name, email, role, vacationDaysAvailable, enabled);
+            return "redirect:/admin/users?ok=Usuario%20actualizado";
+        } catch (Exception e) {
+            return "redirect:/admin/users?err=" + encode(e.getMessage());
+        }
+    }
 
-		for (User u : users) {
-			if (u.getHireDate() == null)
-				continue;
+    @PostMapping("/{id}/reset-password")
+    public String resetPassword(@PathVariable Long id) {
+        try {
+            userService.resetPassword(id);
+            return "redirect:/admin/users?ok=Password%20temporal%20enviado";
+        } catch (Exception e) {
+            return "redirect:/admin/users?err=" + encode(e.getMessage());
+        }
+    }
 
-			int years = policy.yearsOfService(u.getHireDate(), today);
-			int entitled = policy.entitledDaysByYears(years);
+    private String encode(String s) {
+        return s == null ? "" : s.replace(" ", "%20");
+    }
 
-			u.setVacationDaysEntitled(entitled);
-			u.setVacationDaysAvailable(entitled); // política 1
-			userRepository.save(u);
-		}
-		return "redirect:/admin/users?ok=Recálculo realizado";
+    @PostMapping("/vacations/recalc")
+    @Transactional
+    public String recalcAllUsers() {
+        LocalDate today = LocalDate.now();
+        List<User> users = userRepository.findAll();
 
-	}
+        for (User u : users) {
+            if (u.getHireDate() == null) {
+                continue;
+            }
 
+            int years = policy.yearsOfService(u.getHireDate(), today);
+            int entitled = policy.entitledDaysByYears(years);
+
+            u.setVacationDaysEntitled(entitled);
+            u.setVacationDaysAvailable(entitled);
+            userRepository.save(u);
+        }
+
+        return "redirect:/admin/users?ok=Recálculo realizado";
+    }
 }

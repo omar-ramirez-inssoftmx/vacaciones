@@ -399,3 +399,90 @@
 
     .section-header { flex-direction: column; align-items: flex-start; }
   }
+  
+  #resetPasswordModal .modal-content {
+    background: #161b22;
+    color: #e6edf3;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.20);
+  }
+
+  #resetPasswordModal .modal-header,
+  #resetPasswordModal .modal-footer {
+    background: #0d1117;
+    border-color: rgba(255,255,255,0.08);
+  }
+
+  #resetPasswordModal .btn-close {
+    filter: invert(1) opacity(0.7);
+  }
+
+  #resetPasswordModal .reset-user-box {
+    background: rgba(56,139,253,0.10);
+    border: 1px solid rgba(56,139,253,0.25);
+    border-left: 4px solid #388bfd;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 1rem;
+  }
+
+  #resetPasswordModal .reset-user-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #8b949e;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  #resetPasswordModal .reset-user-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #e6edf3;
+  }
+
+  #resetPasswordModal .reset-helper {
+    color: #c9d1d9;
+    font-size: 0.92rem;
+    margin-bottom: 0.25rem;
+  }
+
+  #resetPasswordModal .reset-helper-small {
+    color: #8b949e;
+    font-size: 0.82rem;
+  }
+
+  #resetPasswordModal .btn-secondary {
+    background: #30363d;
+    border-color: #30363d;
+    color: #fff;
+  }
+
+  #resetPasswordModal .btn-secondary:hover {
+    background: #3d444d;
+    border-color: #3d444d;
+  }
+
+  #resetPasswordModal .btn-warning {
+    font-weight: 600;
+  }
+
+  #resetPasswordModal .alert {
+    border-radius: 10px;
+    font-size: 0.88rem;
+    margin-bottom: 1rem;
+  }
+
+  #resetPasswordModal .alert-success {
+    background: rgba(63,185,80,0.12);
+    color: #3fb950;
+    border: 1px solid rgba(63,185,80,0.25);
+  }
+
+  #resetPasswordModal .alert-danger {
+    background: rgba(248,81,73,0.12);
+    color: #f85149;
+    border: 1px solid rgba(248,81,73,0.25);
+  }

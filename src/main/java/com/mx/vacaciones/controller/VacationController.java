@@ -2,6 +2,7 @@ package com.mx.vacaciones.controller;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -21,6 +22,18 @@ import com.mx.vacaciones.service.VacationCalculator;
 
 import jakarta.transaction.Transactional;
 
+/**
+ * Controlador encargado del flujo de solicitudes de vacaciones del colaborador.
+ *
+ * <p>
+ * Permite:
+ * </p>
+ * <ul>
+ *     <li>Mostrar formulario de solicitud</li>
+ *     <li>Registrar una nueva solicitud</li>
+ *     <li>Consultar el estatus de solicitudes realizadas</li>
+ * </ul>
+ */
 @Controller
 @RequestMapping("/vacations")
 public class VacationController {
@@ -42,9 +55,13 @@ public class VacationController {
         this.vacationCalculator = vacationCalculator;
     }
 
-    // ==========================
-    // MOSTRAR FORMULARIO
-    // ==========================
+    /**
+     * Muestra el formulario para registrar una solicitud de vacaciones.
+     *
+     * @param model modelo para la vista
+     * @param authentication usuario autenticado
+     * @return vista del formulario o redirección a login
+     */
     @GetMapping("/request")
     public String showRequestForm(Model model, Authentication authentication) {
 
@@ -54,20 +71,45 @@ public class VacationController {
 
         String username = authentication.getName();
 
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            throw new RuntimeException("Usuario no encontrado: " + username);
-        }
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + username));
+
+        int currentYear = LocalDate.now().getYear();
+
+        List<String> holidayDates = vacationCalculator
+                .getMexHolidaysBetweenYears(currentYear - 1, currentYear + 1)
+                .stream()
+                .map(LocalDate::toString)
+                .collect(Collectors.toList());
 
         model.addAttribute("availableDays", user.getVacationDaysAvailable());
         model.addAttribute("vacationRequest", new VacationRequest());
+        model.addAttribute("holidayDates", holidayDates);
 
         return "vacations/request";
     }
 
-    // ==========================
-    // ENVIAR SOLICITUD
-    // ==========================
+    /**
+     * Registra una nueva solicitud de vacaciones.
+     *
+     * <p>
+     * Valida:
+     * </p>
+     * <ul>
+     *     <li>Autenticación</li>
+     *     <li>Formato de fechas</li>
+     *     <li>Rango válido</li>
+     *     <li>Fechas no bloqueadas (fin de semana o festivo)</li>
+     *     <li>Traslapes con otras solicitudes</li>
+     *     <li>Saldo suficiente de días</li>
+     * </ul>
+     *
+     * @param startDateStr fecha de inicio en texto
+     * @param endDateStr fecha de fin en texto
+     * @param authentication usuario autenticado
+     * @param ra atributos flash para mensajes
+     * @return redirección al formulario
+     */
     @PostMapping("/request")
     @Transactional
     public String submitVacationRequest(
@@ -92,7 +134,7 @@ public class VacationController {
 
         try {
             startDate = LocalDate.parse(startDateStr);
-            endDate   = LocalDate.parse(endDateStr);
+            endDate = LocalDate.parse(endDateStr);
         } catch (Exception e) {
             ra.addFlashAttribute("error", "Formato de fecha inválido.");
             return "redirect:/vacations/request";
@@ -103,8 +145,25 @@ public class VacationController {
             return "redirect:/vacations/request";
         }
 
+        if (vacationCalculator.isBlockedDate(startDate)) {
+            ra.addFlashAttribute(
+                    "error",
+                    "La fecha de inicio no puede ser sábado, domingo o día festivo."
+            );
+            return "redirect:/vacations/request";
+        }
+
+        if (vacationCalculator.isBlockedDate(endDate)) {
+            ra.addFlashAttribute(
+                    "error",
+                    "La fecha de fin no puede ser sábado, domingo o día festivo."
+            );
+            return "redirect:/vacations/request";
+        }
+
         String username = authentication.getName();
-        User user = userRepository.findByUsername(username);
+
+        User user = userRepository.findByUsername(username).orElse(null);
 
         if (user == null) {
             ra.addFlashAttribute("error", "Usuario no encontrado.");
@@ -168,6 +227,7 @@ public class VacationController {
             if (to != null && !to.isBlank()) {
                 emailService.sendVacationRequestEmail(
                         to,
+                        user.getName(),
                         user.getUsername(),
                         startDate.toString(),
                         endDate.toString(),
@@ -186,9 +246,13 @@ public class VacationController {
         return "redirect:/vacations/request";
     }
 
-    // ==========================
-    // ESTATUS DE SOLICITUDES
-    // ==========================
+    /**
+     * Muestra el historial y estatus de solicitudes del usuario autenticado.
+     *
+     * @param authentication usuario autenticado
+     * @param model modelo para la vista
+     * @return vista de estatus o redirección a login
+     */
     @GetMapping("/status")
     public String vacationStatus(Authentication authentication, Model model) {
 
@@ -205,5 +269,4 @@ public class VacationController {
 
         return "vacations/status";
     }
-
 }

@@ -11,7 +11,90 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
- 
+  <style>
+    #requestActionModal .modal-content {
+      background: #161b22;
+      color: #e6edf3;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.20);
+    }
+
+    #requestActionModal .modal-header,
+    #requestActionModal .modal-footer {
+      background: #0d1117;
+      border-color: rgba(255,255,255,0.08);
+    }
+
+    #requestActionModal .btn-close {
+      filter: invert(1) opacity(0.7);
+    }
+
+    #requestActionModal .action-info-box {
+      background: rgba(56,139,253,0.10);
+      border: 1px solid rgba(56,139,253,0.25);
+      border-left: 4px solid #388bfd;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 1rem;
+    }
+
+    #requestActionModal .action-info-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #8b949e;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    #requestActionModal .action-info-value {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #e6edf3;
+    }
+
+    #requestActionModal .action-helper {
+      color: #c9d1d9;
+      font-size: 0.92rem;
+      margin-bottom: 0.25rem;
+    }
+
+    #requestActionModal .action-helper-small {
+      color: #8b949e;
+      font-size: 0.82rem;
+    }
+
+    #requestActionModal .btn-secondary {
+      background: #30363d;
+      border-color: #30363d;
+      color: #fff;
+    }
+
+    #requestActionModal .btn-secondary:hover {
+      background: #3d444d;
+      border-color: #3d444d;
+    }
+
+    #requestActionModal .alert {
+      border-radius: 10px;
+      font-size: 0.88rem;
+      margin-bottom: 1rem;
+    }
+
+    #requestActionModal .alert-success {
+      background: rgba(63,185,80,0.12);
+      color: #3fb950;
+      border: 1px solid rgba(63,185,80,0.25);
+    }
+
+    #requestActionModal .alert-danger {
+      background: rgba(248,81,73,0.12);
+      color: #f85149;
+      border: 1px solid rgba(248,81,73,0.25);
+    }
+  </style>
 </head>
 
 <body>
@@ -27,7 +110,6 @@
 
 <div class="container mt-4">
 
-  <!-- HERO -->
   <div class="admin-hero shadow-soft mb-3">
     <div>
       <div class="hero-label">Panel Admin</div>
@@ -37,14 +119,12 @@
     <a class="btn-back" href="/home">← Volver</a>
   </div>
 
-  <!-- EMPTY STATE -->
   <div id="emptyState" th:if="${#lists.isEmpty(requests)}" class="empty-state">
     <div class="empty-icon">📭</div>
     <div class="empty-title">No hay solicitudes pendientes</div>
     <div class="empty-sub">Todas las solicitudes han sido atendidas.</div>
   </div>
 
-  <!-- TABLE -->
   <div th:if="${!#lists.isEmpty(requests)}" class="requests-card">
 
     <div class="req-toolbar">
@@ -69,7 +149,13 @@
           </tr>
         </thead>
         <tbody id="reqTbody">
-          <tr th:each="r : ${requests}" th:attr="data-row-id=${r.id}">
+          <tr th:each="r : ${requests}"
+              th:attr="data-row-id=${r.id},
+                       data-user=${r.user != null ? r.user.username : 'N/A'},
+                       data-email=${r.user != null ? r.user.email : ''},
+                       data-start=${#temporals.format(r.startDate,'dd/MM/yyyy')},
+                       data-end=${#temporals.format(r.endDate,'dd/MM/yyyy')},
+                       data-days=${r.days}">
 
             <td style="color:#484f58; font-size:0.78rem;" th:text="'#' + ${r.id}"></td>
 
@@ -101,13 +187,13 @@
                 <button type="button"
                         class="btn-approve"
                         th:attr="data-id=${r.id}"
-                        onclick="approveRequest(this)">
+                        onclick="openActionModal(this, 'approve')">
                   ✓ Aprobar
                 </button>
                 <button type="button"
                         class="btn-reject"
                         th:attr="data-id=${r.id}"
-                        onclick="rejectRequest(this)">
+                        onclick="openActionModal(this, 'reject')">
                   ✕ Rechazar
                 </button>
               </div>
@@ -122,9 +208,41 @@
 
 </div>
 
+<div class="modal fade" id="requestActionModal" tabindex="-1" aria-labelledby="requestActionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold" id="requestActionModalLabel">Confirmar acción</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="action-info-box">
+          <div class="action-info-label">Solicitud seleccionada</div>
+          <div class="action-info-value" id="modalRequestSummary">-</div>
+        </div>
+
+        <div class="alert d-none" id="requestActionResult"></div>
+
+        <p class="action-helper" id="modalActionText">
+          ¿Deseas continuar con esta solicitud?
+        </p>
+        <div class="action-helper-small" id="modalActionHint">
+          Esta acción actualizará el estatus de la solicitud.
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-warning" id="btnConfirmRequestAction">Confirmar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="/js/bootstrap.bundle.min.js"></script>
 <script>
-  // ===== Buscador
   document.getElementById('reqSearch')?.addEventListener('input', (e) => {
     const q = e.target.value.toLowerCase().trim();
     document.querySelectorAll('.req-table tbody tr').forEach(tr => {
@@ -132,72 +250,130 @@
     });
   });
 
-  // ===== Aprobar
-  async function approveRequest(btn) {
+  let currentRequestId = null;
+  let currentAction = null;
+
+  const requestActionModalEl = document.getElementById('requestActionModal');
+  const requestActionModal = new bootstrap.Modal(requestActionModalEl);
+
+  const modalRequestSummary = document.getElementById('modalRequestSummary');
+  const modalActionText = document.getElementById('modalActionText');
+  const modalActionHint = document.getElementById('modalActionHint');
+  const requestActionResult = document.getElementById('requestActionResult');
+  const btnConfirmRequestAction = document.getElementById('btnConfirmRequestAction');
+  const requestActionModalLabel = document.getElementById('requestActionModalLabel');
+
+  function openActionModal(btn, action) {
     const id = btn.getAttribute("data-id");
-    if (!confirm("¿Aprobar solicitud #" + id + "?")) return;
+    const row = document.querySelector(`tr[data-row-id="${id}"]`);
 
-	  setRowLoading(id, true);
-	  try {
-	    const res = await fetch(`/admin/requests/${id}/approve`, {
-	      method: "POST",
-	      headers: {
-	        "X-Requested-With": "XMLHttpRequest"
-	      }
-	    });
+    if (!row) return;
 
-	    if (res.ok) {
-	      
-	    } else {
-	      setRowLoading(id, false);
-	      alert("Se aprobó la solicitud.");
-		  window.location.reload(true); // 🔥 recarga completa
-	    }
-	  } catch (e) {
-	    setRowLoading(id, false);
-	    alert("Error de red.");
-	  }
-	}
+    currentRequestId = id;
+    currentAction = action;
 
-  // ===== Rechazar
-  // ===== Rechazar
-  async function rejectRequest(btn) {
-    const id = btn.getAttribute("data-id");
-    if (!confirm("¿Rechazar solicitud #" + id + "?")) return;
+    const user = row.dataset.user || 'N/A';
+    const email = row.dataset.email || '';
+    const start = row.dataset.start || '';
+    const end = row.dataset.end || '';
+    const days = row.dataset.days || '0';
 
-    setRowLoading(id, true);
+    modalRequestSummary.textContent = `#${id} · ${user} · ${start} → ${end} · ${days} día(s)`;
+
+    requestActionResult.className = 'alert d-none';
+    requestActionResult.textContent = '';
+
+    btnConfirmRequestAction.disabled = false;
+
+    if (action === 'approve') {
+      requestActionModalLabel.textContent = 'Aprobar solicitud';
+      modalActionText.textContent = '¿Deseas aprobar esta solicitud?';
+      modalActionHint.textContent = `Se notificará el cambio de estatus al usuario ${email ? '(' + email + ')' : ''}.`;
+      btnConfirmRequestAction.className = 'btn btn-success';
+      btnConfirmRequestAction.textContent = 'Aprobar';
+    } else {
+      requestActionModalLabel.textContent = 'Rechazar solicitud';
+      modalActionText.textContent = '¿Deseas rechazar esta solicitud?';
+      modalActionHint.textContent = `Se notificará el rechazo al usuario ${email ? '(' + email + ')' : ''}.`;
+      btnConfirmRequestAction.className = 'btn btn-danger';
+      btnConfirmRequestAction.textContent = 'Rechazar';
+    }
+
+    requestActionModal.show();
+  }
+
+  btnConfirmRequestAction?.addEventListener('click', async () => {
+    if (!currentRequestId || !currentAction) {
+      requestActionResult.className = 'alert alert-danger';
+      requestActionResult.textContent = 'Solicitud inválida.';
+      return;
+    }
+
+    btnConfirmRequestAction.disabled = true;
+    btnConfirmRequestAction.textContent = 'Procesando...';
+
+    requestActionResult.className = 'alert d-none';
+    requestActionResult.textContent = '';
+
+    setRowLoading(currentRequestId, true);
+
+    const endpoint = currentAction === 'approve'
+      ? `/admin/requests/${currentRequestId}/approve`
+      : `/admin/requests/${currentRequestId}/reject`;
 
     try {
-      const res = await fetch(`/admin/requests/${id}/reject`, {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: {
           "X-Requested-With": "XMLHttpRequest"
         }
       });
 
-      if (res.ok) {
-        
-      } else {
-        setRowLoading(id, false);
-        alert("Se rechazo la solicitud.");
-		window.location.reload(true); // 🔥 recarga completa desde servidor
+      if (!res.ok) {
+        throw new Error(
+          currentAction === 'approve'
+            ? 'No se pudo aprobar la solicitud.'
+            : 'No se pudo rechazar la solicitud.'
+        );
       }
+
+      requestActionResult.className = 'alert alert-success';
+      requestActionResult.textContent =
+        currentAction === 'approve'
+          ? 'Solicitud aprobada correctamente.'
+          : 'Solicitud rechazada correctamente.';
+
+      setTimeout(() => {
+        requestActionModal.hide();
+        window.location.reload(true);
+      }, 1000);
+
     } catch (e) {
-      setRowLoading(id, false);
-      alert("Error de red.");
+      setRowLoading(currentRequestId, false);
+      requestActionResult.className = 'alert alert-danger';
+      requestActionResult.textContent = e.message || 'Error de red.';
+      if (currentAction === 'approve') {
+        btnConfirmRequestAction.textContent = 'Aprobar';
+        btnConfirmRequestAction.className = 'btn btn-success';
+      } else {
+        btnConfirmRequestAction.textContent = 'Rechazar';
+        btnConfirmRequestAction.className = 'btn btn-danger';
+      }
+      btnConfirmRequestAction.disabled = false;
     }
-  }
+  });
 
   function setRowLoading(id, isLoading) {
     const row = document.querySelector(`tr[data-row-id="${id}"]`);
     if (!row) return;
+
     const buttons = row.querySelectorAll('button');
     buttons.forEach(b => b.disabled = isLoading);
+
     if (isLoading) {
       row.classList.add('row-loading');
       buttons.forEach(b => b.dataset.originalText = b.innerHTML);
-      buttons[0].innerHTML = 'Procesando...';
-      buttons[1].innerHTML = 'Procesando...';
+      buttons.forEach(b => b.innerHTML = 'Procesando...');
     } else {
       row.classList.remove('row-loading');
       buttons.forEach(b => b.innerHTML = b.dataset.originalText || b.innerHTML);

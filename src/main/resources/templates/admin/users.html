@@ -26,7 +26,6 @@
 
 <div class="container mt-4">
 
-  <!-- HERO -->
   <div class="admin-hero shadow-soft mb-3">
     <div>
       <div class="hero-label">Panel Admin</div>
@@ -42,11 +41,11 @@
     </div>
   </div>
 
-  <!-- ALERTS -->
   <div th:if="${param.ok}" class="alert alert-success alert-dismissible fade show mb-3">
     <span th:text="${param.ok[0]}"></span>
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
   </div>
+
   <div th:if="${param.err}" class="alert alert-danger alert-dismissible fade show mb-3">
     <span th:if="${param.err[0] == 'EMAIL_DUPLICADO'}">Ese correo ya está registrado.</span>
     <span th:if="${param.err[0] == 'USERNAME_DUPLICADO'}">Ese username ya está registrado.</span>
@@ -56,7 +55,6 @@
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
   </div>
 
-  <!-- CREAR USUARIO -->
   <div class="section-card">
     <div class="section-header">
       <span class="section-title">➕ Crear usuario</span>
@@ -68,26 +66,27 @@
           <label class="form-label">Nombre</label>
           <input class="form-control" name="name" placeholder="Nombre completo" required>
         </div>
+
         <div class="col-md-4">
           <label class="form-label">Username</label>
           <input class="form-control" name="username" placeholder="usuario.apellido" required>
         </div>
-        <div class="col-md-4">
-          <label class="form-label">Password</label>
-          <input type="password" class="form-control" name="password" placeholder="••••••••" required>
-        </div>
+
         <div class="col-md-4">
           <label class="form-label">Email</label>
           <input type="email" class="form-control" name="email" placeholder="correo@empresa.com" required>
         </div>
+
         <div class="col-md-3">
           <label class="form-label">Días disponibles</label>
           <input type="number" min="0" class="form-control" name="vacationDaysAvailable" value="12" required>
         </div>
+
         <div class="col-md-3">
           <label class="form-label">Fecha de ingreso</label>
           <input type="date" class="form-control" name="hireDate" required>
         </div>
+
         <div class="col-md-2">
           <label class="form-label">Rol</label>
           <select class="form-select" name="role">
@@ -95,6 +94,7 @@
             <option value="ROLE_ADMIN">ADMIN</option>
           </select>
         </div>
+
         <div class="col-md-2 d-flex align-items-end">
           <button class="btn-create" type="submit">Crear usuario</button>
         </div>
@@ -103,7 +103,6 @@
     </div>
   </div>
 
-  <!-- LISTA USUARIOS -->
   <div class="section-card">
 
     <div class="users-toolbar">
@@ -137,7 +136,7 @@
             <td><span class="user-sub" th:text="${u.username}"></span></td>
             <td><span class="user-sub" th:text="${u.email}"></span></td>
             <td>
-              <span class="badge-active"  th:if="${u.enabled}">● ACTIVO</span>
+              <span class="badge-active" th:if="${u.enabled}">● ACTIVO</span>
               <span class="badge-inactive" th:if="${!u.enabled}">● INACTIVO</span>
             </td>
             <td>
@@ -164,7 +163,6 @@
 
 </div>
 
-<!-- MODAL EDITAR -->
 <div class="modal fade" id="editUserModal" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
@@ -182,14 +180,17 @@
               <label class="form-label">Nombre</label>
               <input class="form-control" name="name" id="editName" required>
             </div>
+
             <div class="col-md-6">
               <label class="form-label">Username</label>
               <input class="form-control" name="username" id="editUsername" required>
             </div>
+
             <div class="col-md-6">
               <label class="form-label">Email</label>
               <input type="email" class="form-control" name="email" id="editEmail" required>
             </div>
+
             <div class="col-md-6">
               <label class="form-label">Rol</label>
               <select class="form-select" name="role" id="editRole">
@@ -197,14 +198,17 @@
                 <option value="ROLE_ADMIN">ADMIN</option>
               </select>
             </div>
+
             <div class="col-md-3">
               <label class="form-label">Días</label>
               <input type="number" class="form-control" name="vacationDaysAvailable" id="editDays">
             </div>
+
             <div class="col-md-3">
               <label class="form-label">Ingreso</label>
               <input type="date" class="form-control" name="hireDate" id="editHireDate">
             </div>
+
             <div class="col-12">
               <div class="form-check mt-2">
                 <input class="form-check-input" type="checkbox" id="editEnabled" name="enabled" value="true">
@@ -221,10 +225,9 @@
             <div class="col-md-7">
               <label class="form-label">Resetear password</label>
               <div class="input-group">
-                <input type="password" class="form-control" id="resetPasswordInput" placeholder="Nuevo password">
                 <button type="button" class="btn-reset" id="btnResetPassword">Resetear</button>
               </div>
-              <div class="form-text mt-1">El usuario usará este password en su próximo inicio de sesión.</div>
+              <div class="form-text mt-1">Se generará una contraseña temporal y se enviará por correo al usuario.</div>
             </div>
           </div>
 
@@ -236,6 +239,39 @@
         </div>
       </form>
 
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold" id="resetPasswordModalLabel">Generar contraseña temporal</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="reset-user-box">
+          <div class="reset-user-label">Usuario seleccionado</div>
+          <div class="reset-user-name" id="resetPasswordUserName">-</div>
+        </div>
+
+        <div class="alert d-none" id="resetPasswordResult"></div>
+
+        <p class="reset-helper">
+          Se generará una <strong>contraseña temporal</strong> y se enviará por correo al usuario.
+        </p>
+        <div class="reset-helper-small">
+          El usuario deberá cambiarla al iniciar sesión.
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-warning" id="btnResetPasswordConfirm">Generar y enviar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -256,36 +292,100 @@
   });
 
   const modalEl = document.getElementById('editUserModal');
-  const formEl  = document.getElementById('editUserForm');
+  const formEl = document.getElementById('editUserForm');
+
+  const editName = document.getElementById('editName');
+  const editUsername = document.getElementById('editUsername');
+  const editEmail = document.getElementById('editEmail');
+  const editRole = document.getElementById('editRole');
+  const editDays = document.getElementById('editDays');
+  const editHireDate = document.getElementById('editHireDate');
+  const editEnabled = document.getElementById('editEnabled');
+  const editUserTitle = document.getElementById('editUserTitle');
+
   let currentUserId = null;
+  let currentUserName = '';
+
+  const resetPasswordModalEl = document.getElementById('resetPasswordModal');
+  const resetPasswordModal = new bootstrap.Modal(resetPasswordModalEl);
+
+  const resetPasswordUserName = document.getElementById('resetPasswordUserName');
+  const btnResetPassword = document.getElementById('btnResetPassword');
+  const btnResetPasswordConfirm = document.getElementById('btnResetPasswordConfirm');
+  const resetPasswordResult = document.getElementById('resetPasswordResult');
 
   modalEl.addEventListener('show.bs.modal', e => {
     const b = e.relatedTarget;
+
     currentUserId = b.dataset.id;
+    currentUserName = b.dataset.name || b.dataset.username || 'Usuario';
+
     formEl.action = `/admin/users/${currentUserId}/update`;
-    editName.value     = b.dataset.name     || '';
+    editName.value = b.dataset.name || '';
     editUsername.value = b.dataset.username || '';
-    editEmail.value    = b.dataset.email    || '';
-    editRole.value     = b.dataset.role     || 'ROLE_COLABORADOR';
-    editDays.value     = b.dataset.days     || 0;
+    editEmail.value = b.dataset.email || '';
+    editRole.value = b.dataset.role || 'ROLE_COLABORADOR';
+    editDays.value = b.dataset.days || 0;
     editHireDate.value = b.dataset.hiredate || '';
     editEnabled.checked = (b.dataset.enabled === 'true');
     editUserTitle.textContent = `Editar: ${b.dataset.name || b.dataset.username}`;
-    resetPasswordInput.value = '';
   });
 
-  document.getElementById('btnResetPassword').addEventListener('click', async () => {
-    const pwd = resetPasswordInput.value.trim();
-    if (!pwd || !currentUserId) return alert('Ingresa un password válido.');
-    if (!confirm('¿Resetear el password de este usuario?')) return;
-    const res = await fetch(`/admin/users/${currentUserId}/reset-password`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ password: pwd })
-    });
-    if (res.redirected) window.location.href = res.url;
-    else if (!res.ok) alert('No se pudo resetear el password.');
-    else { alert('Password reseteado correctamente.'); resetPasswordInput.value = ''; }
+  btnResetPassword?.addEventListener('click', () => {
+    if (!currentUserId) {
+      return;
+    }
+
+    resetPasswordUserName.textContent = currentUserName;
+    resetPasswordResult.className = 'alert d-none';
+    resetPasswordResult.textContent = '';
+
+    btnResetPasswordConfirm.disabled = false;
+    btnResetPasswordConfirm.textContent = 'Generar y enviar';
+
+    resetPasswordModal.show();
+  });
+
+  btnResetPasswordConfirm?.addEventListener('click', async () => {
+    if (!currentUserId) {
+      resetPasswordResult.className = 'alert alert-danger';
+      resetPasswordResult.textContent = 'Usuario inválido.';
+      return;
+    }
+
+    btnResetPasswordConfirm.disabled = true;
+    btnResetPasswordConfirm.textContent = 'Procesando...';
+    resetPasswordResult.className = 'alert d-none';
+    resetPasswordResult.textContent = '';
+
+    try {
+      const res = await fetch(`/admin/users/${currentUserId}/reset-password`, {
+        method: 'POST'
+      });
+
+      if (res.redirected) {
+        window.location.href = res.url;
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error('No se pudo resetear el password.');
+      }
+
+      resetPasswordResult.className = 'alert alert-success';
+      resetPasswordResult.textContent = 'Password temporal generado y enviado correctamente.';
+
+      setTimeout(() => {
+        resetPasswordModal.hide();
+        window.location.reload();
+      }, 1200);
+
+    } catch (error) {
+      resetPasswordResult.className = 'alert alert-danger';
+      resetPasswordResult.textContent = error.message || 'Ocurrió un error al resetear el password.';
+      btnResetPasswordConfirm.disabled = false;
+      btnResetPasswordConfirm.textContent = 'Generar y enviar';
+    }
   });
 </script>
 
