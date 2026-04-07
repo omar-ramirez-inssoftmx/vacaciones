@@ -136,32 +136,53 @@
   async function approveRequest(btn) {
     const id = btn.getAttribute("data-id");
     if (!confirm("¿Aprobar solicitud #" + id + "?")) return;
-    setRowLoading(id, true);
-    try {
-      const res = await fetch(`/admin/requests/${id}/approve`, {
-        method: "POST",
-        headers: { "X-Requested-With": "XMLHttpRequest" }
-      });
-      if (res.ok) removeRow(id);
-      else { setRowLoading(id, false); alert("Error al aprobar."); }
-    } catch (e) {
-      setRowLoading(id, false);
-      alert("Error de red.");
-    }
-  }
 
+	  setRowLoading(id, true);
+
+	  try {
+	    const res = await fetch(`/admin/requests/${id}/approve`, {
+	      method: "POST",
+	      headers: {
+	        "X-Requested-With": "XMLHttpRequest"
+	      }
+	    });
+
+	    if (res.ok) {
+	      
+	    } else {
+	      setRowLoading(id, false);
+	      alert("Se aprobó la solicitud.");
+		  window.location.reload(true); // 🔥 recarga completa
+	    }
+	  } catch (e) {
+	    setRowLoading(id, false);
+	    alert("Error de red.");
+	  }
+	}
+
+  // ===== Rechazar
   // ===== Rechazar
   async function rejectRequest(btn) {
     const id = btn.getAttribute("data-id");
     if (!confirm("¿Rechazar solicitud #" + id + "?")) return;
+
     setRowLoading(id, true);
+
     try {
       const res = await fetch(`/admin/requests/${id}/reject`, {
         method: "POST",
-        headers: { "X-Requested-With": "XMLHttpRequest" }
+        headers: {
+          "X-Requested-With": "XMLHttpRequest"
+        }
       });
-      if (res.ok) removeRow(id);
-      else { setRowLoading(id, false); alert("Error al rechazar."); }
+
+      if (res.ok) {
+        
+      } else {
+        setRowLoading(id, false);
+        alert("Se rechazo la solicitud.");
+		window.location.reload(true); // 🔥 recarga completa desde servidor
+      }
     } catch (e) {
       setRowLoading(id, false);
       alert("Error de red.");

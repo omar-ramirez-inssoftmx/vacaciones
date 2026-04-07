@@ -1,6 +1,5 @@
 package com.mx.vacaciones.controller;
 
-import java.security.Principal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -26,150 +25,185 @@ import jakarta.transaction.Transactional;
 @RequestMapping("/vacations")
 public class VacationController {
 
-	private final VacationRepository vacationRepository;
-	private final UserRepository userRepository;
-	private final EmailService emailService;
-	private final VacationCalculator vacationCalculator;
+    private final VacationRepository vacationRepository;
+    private final UserRepository userRepository;
+    private final EmailService emailService;
+    private final VacationCalculator vacationCalculator;
 
-	public VacationController(VacationRepository vacationRepository, UserRepository userRepository,
-			EmailService emailService, VacationCalculator vacationCalculator) {
-		this.vacationRepository = vacationRepository;
-		this.userRepository = userRepository;
-		this.emailService = emailService;
-		this.vacationCalculator = vacationCalculator;
-	}
+    public VacationController(
+            VacationRepository vacationRepository,
+            UserRepository userRepository,
+            EmailService emailService,
+            VacationCalculator vacationCalculator) {
 
-	@GetMapping("/request")
-	public String showRequestForm(Model model, Principal principal) {
+        this.vacationRepository = vacationRepository;
+        this.userRepository = userRepository;
+        this.emailService = emailService;
+        this.vacationCalculator = vacationCalculator;
+    }
 
-		// 1️⃣ Obtener usuario logueado
-		User user = userRepository.findByUsername(principal.getName());
+    // ==========================
+    // MOSTRAR FORMULARIO
+    // ==========================
+    @GetMapping("/request")
+    public String showRequestForm(Model model, Authentication authentication) {
 
-		// 2️⃣ Mandar saldo a la vista
-		model.addAttribute("availableDays", user.getVacationDaysAvailable());
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
 
-		// 3️⃣ Tu objeto del form
-		model.addAttribute("vacationRequest", new VacationRequest());
+        String username = authentication.getName();
 
-		return "vacations/request";
-	}
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("Usuario no encontrado: " + username);
+        }
 
-	@PostMapping("request")
-	@Transactional
-	public String submitVacationRequest(@RequestParam("startDate") String startDateStr,
-	                                    @RequestParam("endDate") String endDateStr,
-	                                    Authentication authentication,
-	                                    RedirectAttributes ra) {
+        model.addAttribute("availableDays", user.getVacationDaysAvailable());
+        model.addAttribute("vacationRequest", new VacationRequest());
 
-	    if (startDateStr == null || startDateStr.isBlank() ||
-	        endDateStr == null || endDateStr.isBlank()) {
-	        ra.addFlashAttribute("error", "Debes seleccionar fecha inicio y fecha fin.");
-	        return "redirect:/vacations/request";
-	    }
+        return "vacations/request";
+    }
 
-	    LocalDate startDate;
-	    LocalDate endDate;
+    // ==========================
+    // ENVIAR SOLICITUD
+    // ==========================
+    @PostMapping("/request")
+    @Transactional
+    public String submitVacationRequest(
+            @RequestParam("startDate") String startDateStr,
+            @RequestParam("endDate") String endDateStr,
+            Authentication authentication,
+            RedirectAttributes ra) {
 
-	    try {
-	        startDate = LocalDate.parse(startDateStr);
-	        endDate   = LocalDate.parse(endDateStr);
-	    } catch (Exception e) {
-	        ra.addFlashAttribute("error", "Formato de fecha inválido.");
-	        return "redirect:/vacations/request";
-	    }
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
 
-	    if (endDate.isBefore(startDate)) {
-	        ra.addFlashAttribute("error", "La fecha fin no puede ser menor que la fecha inicio.");
-	        return "redirect:/vacations/request";
-	    }
+        if (startDateStr == null || startDateStr.isBlank()
+                || endDateStr == null || endDateStr.isBlank()) {
 
-	    String username = authentication.getName();
-	    User user = userRepository.findByUsername(username);
+            ra.addFlashAttribute("error", "Debes seleccionar fecha inicio y fecha fin.");
+            return "redirect:/vacations/request";
+        }
 
-	    if (user == null) {
-	        ra.addFlashAttribute("error", "Usuario no encontrado.");
-	        return "redirect:/vacations/request";
-	    }
+        LocalDate startDate;
+        LocalDate endDate;
 
-	    // ✅ Evitar traslapes (bloquea si hay solicitudes PENDING o APPROVED que se crucen)
-	    List<String> blockingStatuses = List.of("PENDING", "APPROVED");
-	    boolean overlap = vacationRepository.existsOverlapping(
-	            user.getId(),
-	            startDate,
-	            endDate,
-	            blockingStatuses
-	    );
+        try {
+            startDate = LocalDate.parse(startDateStr);
+            endDate   = LocalDate.parse(endDateStr);
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Formato de fecha inválido.");
+            return "redirect:/vacations/request";
+        }
 
-	    if (overlap) {
-	        ra.addFlashAttribute("error", "Ya tienes una solicitud de vacaciones que se traslapa con esas fechas.");
-	        return "redirect:/vacations/request";
-	    }
+        if (endDate.isBefore(startDate)) {
+            ra.addFlashAttribute("error", "La fecha fin no puede ser menor que la fecha inicio.");
+            return "redirect:/vacations/request";
+        }
 
-	    // ✅ Días hábiles (sin fines de semana ni festivos)
-	    int days = vacationCalculator.businessDaysInclusive(startDate, endDate);
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username);
 
-	    if (days <= 0) {
-	        ra.addFlashAttribute("error", "El rango no contiene días hábiles.");
-	        return "redirect:/vacations/request";
-	    }
+        if (user == null) {
+            ra.addFlashAttribute("error", "Usuario no encontrado.");
+            return "redirect:/vacations/request";
+        }
 
-	    int available = user.getVacationDaysAvailable();
-	    if (available < days) {
-	        ra.addFlashAttribute("error", "No tienes días suficientes. Disponibles: " + available);
-	        return "redirect:/vacations/request";
-	    }
+        // Evitar traslapes
+        List<String> blockingStatuses = List.of("PENDING", "APPROVED");
+        boolean overlap = vacationRepository.existsOverlapping(
+                user.getId(),
+                startDate,
+                endDate,
+                blockingStatuses
+        );
 
-	    // ✅ Descontar saldo
-	    user.setVacationDaysAvailable(available - days);
-	    userRepository.save(user);
+        if (overlap) {
+            ra.addFlashAttribute(
+                    "error",
+                    "Ya tienes una solicitud que se traslapa con esas fechas."
+            );
+            return "redirect:/vacations/request";
+        }
 
-	    // ✅ Guardar solicitud
-	    VacationRequest request = new VacationRequest();
-	    request.setStartDate(startDate);
-	    request.setEndDate(endDate);
-	    request.setDays(days);
-	    request.setStatus("PENDING");
-	    request.setUser(user);
-	    request.setUsername(username);
+        // Calcular días hábiles
+        int days = vacationCalculator.businessDaysInclusive(startDate, endDate);
 
-	    VacationRequest saved = vacationRepository.save(request);
+        if (days <= 0) {
+            ra.addFlashAttribute("error", "El rango no contiene días hábiles.");
+            return "redirect:/vacations/request";
+        }
 
-	    // ✅ Correos
-	    emailService.notifyAdminsVacationRequest(saved);
+        int available = user.getVacationDaysAvailable();
+        if (available < days) {
+            ra.addFlashAttribute(
+                    "error",
+                    "No tienes días suficientes. Disponibles: " + available
+            );
+            return "redirect:/vacations/request";
+        }
 
-	    String to = user.getEmail();
-	    if (to != null && !to.isBlank()) {
-	        emailService.sendVacationRequestEmail(
-	                to,
-	                user.getUsername(),
-	                startDate.toString(),
-	                endDate.toString(),
-	                days
-	        );
-	    }
+        // Descontar saldo
+        user.setVacationDaysAvailable(available - days);
+        userRepository.save(user);
 
-	    ra.addFlashAttribute("success", "Solicitud enviada. Se descontaron " + days + " días.");
-	    return "redirect:/vacations/request";
-	}
+        // Guardar solicitud
+        VacationRequest request = new VacationRequest();
+        request.setStartDate(startDate);
+        request.setEndDate(endDate);
+        request.setDays(days);
+        request.setStatus("PENDING");
+        request.setUser(user);
+        request.setUsername(username);
 
+        VacationRequest saved = vacationRepository.save(request);
 
-	@GetMapping("/status")
-	public String vacationStatus(Authentication authentication, Model model) {
+        // Correos (si fallan NO rompen la app)
+        try {
+            emailService.notifyAdminsVacationRequest(saved);
 
-		String username = authentication.getName();
-		List<VacationRequest> requests = vacationRepository.findByUserUsernameOrderByIdDesc(username);
+            String to = user.getEmail();
+            if (to != null && !to.isBlank()) {
+                emailService.sendVacationRequestEmail(
+                        to,
+                        user.getUsername(),
+                        startDate.toString(),
+                        endDate.toString(),
+                        days
+                );
+            }
+        } catch (Exception e) {
+            System.err.println("⚠ Error enviando correo: " + e.getMessage());
+        }
 
-		model.addAttribute("requests", requests);
-		model.addAttribute("username", username);
+        ra.addFlashAttribute(
+                "success",
+                "Solicitud enviada. Se descontaron " + days + " días."
+        );
 
-		return "vacations/status"; // templates/vacations/status.html
-	}
+        return "redirect:/vacations/request";
+    }
 
-	@GetMapping("/new")
-	public String newRequest(Model model, Principal principal) {
-		User user = userRepository.findByEmail(principal.getName());
-		model.addAttribute("availableDays", user.getVacationDaysAvailable());
-		return "vacations/request";
-	}
+    // ==========================
+    // ESTATUS DE SOLICITUDES
+    // ==========================
+    @GetMapping("/status")
+    public String vacationStatus(Authentication authentication, Model model) {
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+
+        String username = authentication.getName();
+        List<VacationRequest> requests =
+                vacationRepository.findByUserUsernameOrderByIdDesc(username);
+
+        model.addAttribute("requests", requests);
+        model.addAttribute("username", username);
+
+        return "vacations/status";
+    }
 
 }
