@@ -135,6 +135,7 @@ public class EmailService {
         String content =
             "<p>Se ha registrado una nueva solicitud de vacaciones en el sistema.</p>" +
             buildInfoTable(new String[][]{
+                {"Nombre Solicitante", safe(request.getUser().getName())},
                 {"Usuario", safe(request.getUser().getUsername())},
                 {"Correo", safe(request.getUser().getEmail())},
                 {"Fecha inicio", String.valueOf(request.getStartDate())},
