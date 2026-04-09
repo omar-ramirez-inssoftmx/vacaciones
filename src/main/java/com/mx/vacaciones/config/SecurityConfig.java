@@ -27,6 +27,14 @@ import lombok.RequiredArgsConstructor;
  * </ul>
  *
  * <p>
+ * Ajuste realizado:
+ * </p>
+ * <ul>
+ *     <li>Se permite que tanto COLABORADOR como ADMIN accedan a /vacations/**</li>
+ *     <li>Se mantiene /admin/** exclusivo para ADMIN</li>
+ * </ul>
+ *
+ * <p>
  * Se agregó un {@link CustomAuthenticationSuccessHandler} para redirigir
  * al usuario a la pantalla de cambio de contraseña cuando su contraseña
  * esté marcada como temporal.
@@ -58,8 +66,14 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
+            // CSRF deshabilitado según tu implementación actual.
+            // Si después activas CSRF, habría que ajustar formularios y endpoints.
             .csrf(csrf -> csrf.disable())
+
             .authorizeHttpRequests(auth -> auth
+                // =========================
+                // RUTAS PÚBLICAS
+                // =========================
                 .requestMatchers(
                     "/login",
                     "/change-password",
@@ -67,10 +81,27 @@ public class SecurityConfig {
                     "/js/**",
                     "/images/**"
                 ).permitAll()
-                .requestMatchers("/vacations/**").hasAuthority("ROLE_COLABORADOR")
-                .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
+
+                // =========================
+                // RUTAS DE VACACIONES
+                // Ahora pueden entrar:
+                // - ROLE_COLABORADOR
+                // - ROLE_ADMIN
+                // =========================
+                .requestMatchers("/vacations/**")
+                .hasAnyAuthority("ROLE_COLABORADOR", "ROLE_ADMIN")
+
+                // =========================
+                // RUTAS DE ADMINISTRACIÓN
+                // Exclusivas para admin
+                // =========================
+                .requestMatchers("/admin/**")
+                .hasAuthority("ROLE_ADMIN")
+
+                // Cualquier otra ruta requiere autenticación
                 .anyRequest().authenticated()
             )
+
             .formLogin(form -> form
                 .loginPage("/login")
                 .failureHandler((request, response, exception) -> {
@@ -83,6 +114,7 @@ public class SecurityConfig {
                 .successHandler(customAuthenticationSuccessHandler)
                 .permitAll()
             )
+
             .logout(logout -> logout
                 .logoutSuccessUrl("/login?logout")
                 .permitAll()

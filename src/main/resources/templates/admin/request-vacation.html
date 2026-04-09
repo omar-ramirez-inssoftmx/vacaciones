@@ -35,54 +35,42 @@
 
   <!-- ========================= -->
   <!-- ENCABEZADO -->
+  <!-- Ahora el texto ya no dice solo "Colaborador"
+       para que también sirva con admin -->
   <!-- ========================= -->
   <div class="admin-hero shadow-soft mb-3">
     <div>
-      <div class="hero-label" th:if="${isAdmin}">Administrador / RRHH</div>
-      <div class="hero-label" th:unless="${isAdmin}">Colaborador</div>
-
-      <h4 th:if="${isAdmin}">Nueva Solicitud de Vacaciones (Modo RRHH)</h4>
-      <h4 th:unless="${isAdmin}">Nueva Solicitud de Vacaciones</h4>
-
-      <div class="muted" th:if="${isAdmin}">
-        Selecciona el empleado y después el rango de fechas.
+      <div class="hero-label"
+           th:text="${rol == 'ROLE_ADMIN' ? 'Administrador' : 'Usuario'}">
+        Usuario
       </div>
-      <div class="muted" th:unless="${isAdmin}">
-        Selecciona el rango de fechas y revisa los días solicitados.
-      </div>
+
+      <h4>Nueva Solicitud de Vacaciones</h4>
+      <div class="muted">Selecciona el rango de fechas y revisa los días solicitados.</div>
     </div>
 
-    <a class="btn-back no-loader" th:href="@{/home}">← Volver</a>
+    <a class="btn-back" th:href="@{/home}">← Volver</a>
   </div>
 
-  <!-- ========================= -->
-  <!-- MENSAJES -->
-  <!-- ========================= -->
+  <!-- Mensajes del backend -->
   <div th:if="${success}" class="alert-success-custom" th:text="${success}"></div>
   <div th:if="${error}" class="alert-danger-custom" th:text="${error}"></div>
 
+  <!-- ========================= -->
+  <!-- FORMULARIO -->
+  <!-- ========================= -->
   <div class="form-card">
     <div class="form-card-header">📋 Detalle de solicitud</div>
 
     <div class="form-card-body">
 
-      <!-- ========================= -->
-      <!-- RESUMEN DE SALDO -->
-      <!-- ========================= -->
+      <!-- Resumen de días -->
       <div class="balance-row">
 
         <div class="balance-chip bc-available">
-          <span class="chip-label" th:if="${isAdmin}">Días disponibles del empleado</span>
-          <span class="chip-label" th:unless="${isAdmin}">Días disponibles</span>
-
-          <!-- Admin -->
-          <span class="chip-value" id="availableDaysLabel" th:if="${isAdmin}">0</span>
-
-          <!-- Colaborador -->
-          <span class="chip-value" id="availableDaysLabel" th:unless="${isAdmin}" th:text="${availableDays}">0</span>
-
-          <span class="chip-sub" th:if="${isAdmin}">Selecciona un empleado</span>
-          <span class="chip-sub" th:unless="${isAdmin}">Saldo actual</span>
+          <span class="chip-label">Días disponibles</span>
+          <span class="chip-value" th:text="${availableDays ?: 0}">0</span>
+          <span class="chip-sub">Saldo actual</span>
         </div>
 
         <div class="balance-chip bc-requested" id="requestedChip" style="display:none">
@@ -99,42 +87,20 @@
 
       </div>
 
-      <!--
-        Hidden para JS.
-        Se separa en dos inputs con th:if/th:unless para evitar ternarios.
-      -->
-      <input type="hidden" id="availableDays" value="0" th:if="${isAdmin}">
-      <input type="hidden" id="availableDays" th:value="${availableDays}" th:unless="${isAdmin}">
+      <!-- Días disponibles enviados por backend -->
+      <input type="hidden" id="availableDays" th:value="${availableDays ?: 0}">
 
+      <!--
+        IMPORTANTE:
+        Este formulario sirve para colaborador y admin,
+        siempre que el backend permita ambas rutas/roles.
+      -->
       <form method="post"
             th:action="@{/vacations/request}"
             th:object="${vacationRequest}">
 
         <div th:if="${_csrf != null}">
           <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-        </div>
-
-        <!-- ========================= -->
-        <!-- MODO RRHH -->
-        <!-- ========================= -->
-        <div class="row g-3 mb-3" th:if="${isAdmin}">
-          <div class="col-md-12">
-            <label class="form-label">Empleado</label>
-
-            <select id="targetUserId" name="targetUserId" class="form-select" required>
-              <option value="">Selecciona un empleado</option>
-
-              <option th:each="u : ${users}"
-                      th:value="${u.id}"
-                      th:text="${(u.name != null and !#strings.isEmpty(u.name) ? u.name : u.username) + ' (' + u.username + ')'}"
-                      th:attr="data-days=${u.vacationDaysAvailable}">
-              </option>
-            </select>
-
-            <small class="text-muted">
-              En modo RRHH la solicitud se registrará para el usuario seleccionado.
-            </small>
-          </div>
         </div>
 
         <div class="row g-3">
@@ -171,13 +137,8 @@
 
         <div class="inline-msg danger" id="weekendError" style="display:none"></div>
 
-        <div class="inline-msg danger" id="userError" style="display:none">
-          Debes seleccionar un empleado.
-        </div>
-
         <button id="submitBtn" class="btn-submit" type="submit">
-          <span th:if="${isAdmin}">✓ Registrar Solicitud</span>
-          <span th:unless="${isAdmin}">✓ Enviar Solicitud</span>
+          ✓ Enviar Solicitud
         </button>
 
       </form>
@@ -188,44 +149,27 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
 <script th:inline="javascript">
 document.addEventListener("DOMContentLoaded", () => {
 
-  const isAdmin = /*[[${isAdmin}]]*/ false;
+  // Días disponibles enviados desde backend
+  const availableDays = parseInt(document.getElementById("availableDays")?.value || "0", 10);
 
-  const availableDaysInput = document.getElementById("availableDays");
-  const availableDaysLabel = document.getElementById("availableDaysLabel");
-  const targetUserSelect = document.getElementById("targetUserId");
-
+  // Referencias a elementos visuales
   const requestedChip = document.getElementById("requestedChip");
   const remainingChip = document.getElementById("remainingChip");
   const summaryBox = document.getElementById("summaryBox");
-
   const daysEl = document.getElementById("days");
   const daysLabelEl = document.getElementById("daysLabel");
   const remainingEl = document.getElementById("remaining");
-
   const dateError = document.getElementById("dateError");
   const weekendError = document.getElementById("weekendError");
-  const userError = document.getElementById("userError");
   const submitBtn = document.getElementById("submitBtn");
 
+  // Lista de días festivos enviada desde backend
   const holidayDates = /*[[${holidayDates}]]*/ [];
   const holidaySet = new Set((holidayDates || []).map(String));
-
-  function getAvailableDays() {
-    return parseInt(availableDaysInput?.value || "0", 10);
-  }
-
-  function setAvailableDays(days) {
-    const normalized = parseInt(days || "0", 10);
-    availableDaysInput.value = normalized;
-
-    if (availableDaysLabel) {
-      availableDaysLabel.textContent = normalized;
-    }
-  }
 
   function formatDate(date) {
     return date.getFullYear() + "-" +
@@ -242,13 +186,14 @@ document.addEventListener("DOMContentLoaded", () => {
     return holidaySet.has(formatDate(date));
   }
 
+  // Fecha bloqueada = fin de semana o festivo
   function isBlockedDate(date) {
     return isWeekend(date) || isHoliday(date);
   }
 
+  // Cuenta solo días hábiles
   function countBusinessDays(start, end) {
     let count = 0;
-
     const current = new Date(start);
     current.setHours(0, 0, 0, 0);
 
@@ -265,40 +210,17 @@ document.addEventListener("DOMContentLoaded", () => {
     return count;
   }
 
-  function resetSummary() {
+  // Actualiza el resumen visual del formulario
+  function updateSummary() {
+    const startValue = document.getElementById("startDate").value;
+    const endValue = document.getElementById("endDate").value;
+
     requestedChip.style.display = "none";
     remainingChip.style.display = "none";
     summaryBox.style.display = "none";
     dateError.style.display = "none";
     weekendError.style.display = "none";
-    userError.style.display = "none";
     submitBtn.disabled = false;
-  }
-
-  function validateTargetUserIfNeeded() {
-    if (!isAdmin) {
-      return true;
-    }
-
-    if (!targetUserSelect || !targetUserSelect.value) {
-      userError.style.display = "block";
-      submitBtn.disabled = true;
-      return false;
-    }
-
-    userError.style.display = "none";
-    return true;
-  }
-
-  function updateSummary() {
-    const startValue = document.getElementById("startDate").value;
-    const endValue = document.getElementById("endDate").value;
-
-    resetSummary();
-
-    if (!validateTargetUserIfNeeded()) {
-      return;
-    }
 
     if (!startValue || !endValue) {
       return;
@@ -328,7 +250,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const businessDays = countBusinessDays(start, end);
-    const remainingDays = getAvailableDays() - businessDays;
+    const remainingDays = availableDays - businessDays;
 
     requestedChip.style.display = "block";
     remainingChip.style.display = "block";
@@ -337,18 +259,10 @@ document.addEventListener("DOMContentLoaded", () => {
     daysEl.textContent = businessDays;
     daysLabelEl.textContent = businessDays;
     remainingEl.textContent = remainingDays;
-
-    if (remainingDays < 0) {
-      weekendError.textContent = "El usuario seleccionado no tiene días suficientes.";
-      weekendError.style.display = "block";
-      submitBtn.disabled = true;
-    }
   }
 
   const commonConfig = {
-	
-	locale: "es",
-    dateFormat: "d/m/Y",
+    dateFormat: "Y-m-d",
     disable: [
       function(date) {
         return isBlockedDate(date);
@@ -359,6 +273,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  // Picker de fecha inicio
   const startPicker = flatpickr("#startDate", {
     ...commonConfig,
     onChange: function(selectedDates, dateStr) {
@@ -371,18 +286,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Picker de fecha fin
   const endPicker = flatpickr("#endDate", {
     ...commonConfig
   });
-
-  if (isAdmin && targetUserSelect) {
-    targetUserSelect.addEventListener("change", function() {
-      const selectedOption = targetUserSelect.options[targetUserSelect.selectedIndex];
-      const days = selectedOption ? selectedOption.getAttribute("data-days") : "0";
-      setAvailableDays(days || "0");
-      updateSummary();
-    });
-  }
 
   updateSummary();
 });

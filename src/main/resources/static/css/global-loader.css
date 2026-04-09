@@ -1,0 +1,115 @@
+/*
+ * Loader global con estilo oscuro alineado al sistema.
+ *
+ * Características:
+ * - Overlay oscuro translúcido
+ * - Caja central tipo glass / panel
+ * - Spinner azul elegante
+ * - Texto claro
+ */
+
+.global-loader {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+
+  background:
+    radial-gradient(circle at top, rgba(37, 99, 235, 0.10), transparent 35%),
+    rgba(2, 8, 23, 0.72);
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.global-loader.show {
+  display: flex;
+}
+
+.global-loader__box {
+  position: relative;
+  min-width: 220px;
+  max-width: 280px;
+  padding: 28px 26px;
+  border-radius: 22px;
+
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.88));
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.global-loader__box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.10), transparent 45%);
+}
+
+.global-loader__spinner {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 4px solid rgba(59, 130, 246, 0.16);
+  border-top-color: #60a5fa;
+  border-right-color: #3b82f6;
+  animation: global-loader-spin 0.9s linear infinite;
+  box-shadow: 0 0 18px rgba(59, 130, 246, 0.16);
+}
+
+.global-loader__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #e2e8f0;
+  letter-spacing: 0.02em;
+}
+
+.global-loader__text {
+  font-size: 13px;
+  color: #94a3b8;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.global-loader__dots::after {
+  content: "";
+  animation: global-loader-dots 1.4s infinite steps(4);
+}
+
+body.loading {
+  overflow: hidden;
+}
+
+@keyframes global-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes global-loader-dots {
+  0% {
+    content: "";
+  }
+  25% {
+    content: ".";
+  }
+  50% {
+    content: "..";
+  }
+  75% {
+    content: "...";
+  }
+  100% {
+    content: "";
+  }
+}

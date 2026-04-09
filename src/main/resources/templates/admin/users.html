@@ -35,7 +35,7 @@
     <div class="hero-actions">
       <form method="post" action="/admin/users/vacations/recalc"
             onsubmit="return confirm('¿Recalcular vacaciones por antigüedad para TODOS los usuarios?');">
-        <button class="btn-hero" type="submit">⟳ Recalcular vacaciones</button>
+<!--        <button class="btn-hero" type="submit">⟳ Recalcular vacaciones</button>-->
       </form>
       <a href="/home" class="btn-hero">← Volver</a>
     </div>
@@ -388,6 +388,17 @@
     }
   });
 </script>
+<!-- ========================= -->
+<!-- LOADER GLOBAL -->
+<!-- ========================= -->
+<div id="globalLoader" class="global-loader" aria-hidden="true">
+  <div class="global-loader__box">
+    <div class="global-loader__spinner"></div>
+    <div class="global-loader__text">Cargando...</div>
+  </div>
+</div>
 
+<link rel="stylesheet" href="/css/global-loader.css">
+<script src="/js/global-loader.js"></script>
 </body>
 </html>

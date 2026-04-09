@@ -33,7 +33,7 @@
     </div>
     <div class="d-flex gap-2 flex-shrink-0">
       <a class="btn-hero-new" href="/vacations/request">+ Nueva solicitud</a>
-      <a class="btn-hero-back" href="/home">← Volver</a>
+      <a class="btn-hero-back no-loader" href="/home">← Volver</a>
     </div>
   </div>
 
@@ -106,5 +106,17 @@
 </div>
 
 <script src="/js/bootstrap.bundle.min.js"></script>
+<!-- ========================= -->
+<!-- LOADER GLOBAL -->
+<!-- ========================= -->
+<div id="globalLoader" class="global-loader" aria-hidden="true">
+  <div class="global-loader__box">
+    <div class="global-loader__spinner"></div>
+    <div class="global-loader__text">Cargando...</div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="/css/global-loader.css">
+<script src="/js/global-loader.js"></script>
 </body>
 </html>

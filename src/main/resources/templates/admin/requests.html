@@ -116,7 +116,7 @@
       <h4 class="mb-1">Revisar Solicitudes</h4>
       <div class="muted">Solo se muestran solicitudes <b>PENDIENTES</b>.</div>
     </div>
-    <a class="btn-back" href="/home">← Volver</a>
+    <a class="btn-back no-loader" th:href="@{/home}">← Volver</a>
   </div>
 
   <div id="emptyState" th:if="${#lists.isEmpty(requests)}" class="empty-state">
@@ -401,6 +401,17 @@
     }
   }
 </script>
+<!-- ========================= -->
+<!-- LOADER GLOBAL -->
+<!-- ========================= -->
+<div id="globalLoader" class="global-loader" aria-hidden="true">
+  <div class="global-loader__box">
+    <div class="global-loader__spinner"></div>
+    <div class="global-loader__text">Cargando...</div>
+  </div>
+</div>
 
+<link rel="stylesheet" href="/css/global-loader.css">
+<script src="/js/global-loader.js"></script>
 </body>
 </html>

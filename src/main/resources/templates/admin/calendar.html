@@ -55,7 +55,11 @@
       white-space: nowrap;
       flex-shrink: 0;
     }
-    .btn-back:hover { color: #e6edf3; border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.05); }
+    .btn-back:hover {
+      color: #e6edf3;
+      border-color: rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.05);
+    }
 
     /* ── LEYENDA ── */
     .legend-wrap {
@@ -91,8 +95,6 @@
     }
 
     /* ── FULLCALENDAR OVERRIDES ── */
-
-    /* Toolbar */
     .fc .fc-header-toolbar {
       background: rgba(13,17,23,0.7) !important;
       border: 1px solid rgba(255,255,255,0.07) !important;
@@ -133,7 +135,6 @@
     }
     .fc .fc-button-primary:focus { box-shadow: none !important; }
 
-    /* Export PDF button */
     .fc .fc-exportPdf-button {
       background: rgba(56,189,248,0.1) !important;
       border: 1px solid rgba(56,189,248,0.25) !important;
@@ -144,7 +145,6 @@
       color: #7dd3fc !important;
     }
 
-    /* Grid headers */
     .fc .fc-col-header-cell-cushion {
       color: #484f58 !important;
       font-size: 0.72rem !important;
@@ -155,7 +155,6 @@
     }
     .fc .fc-col-header-cell { border-color: rgba(255,255,255,0.06) !important; }
 
-    /* Day cells */
     .fc .fc-daygrid-day { border-color: rgba(255,255,255,0.04) !important; }
     .fc .fc-daygrid-day-number {
       color: #6e7681 !important;
@@ -174,19 +173,18 @@
     }
     .fc .fc-day-other .fc-daygrid-day-number { color: #30363d !important; }
 
-    /* Events */
     .fc .fc-event {
       border-radius: 6px !important;
       font-size: 0.75rem !important;
       font-weight: 600 !important;
       border: none !important;
       padding: 1px 5px !important;
+      cursor: pointer;
     }
     .fc .fc-event, .fc .fc-event .fc-event-main,
     .fc .fc-event .fc-event-title, .fc .fc-event .fc-event-time,
     .fc .fc-event a { color: #ffffff !important; }
 
-    /* List view */
     .fc .fc-list-day-cushion {
       background: rgba(255,255,255,0.04) !important;
       border-top: 1px solid rgba(255,255,255,0.06) !important;
@@ -209,7 +207,6 @@
     .fc .fc-list-event-time { color: #484f58 !important; font-size: 0.75rem !important; }
     .fc .fc-list-empty { color: #484f58 !important; font-size: 0.85rem !important; }
 
-    /* Timegrid */
     .fc .fc-timegrid-axis-cushion,
     .fc .fc-timegrid-slot-label-cushion {
       color: #484f58 !important;
@@ -221,17 +218,106 @@
     .fc .fc-timegrid-axis { border-color: rgba(255,255,255,0.06) !important; }
     .fc .fc-now-indicator-line { border-color: #388bfd !important; }
 
-    /* Scrollbar */
     .fc-scroller::-webkit-scrollbar { width: 5px; height: 5px; }
     .fc-scroller::-webkit-scrollbar-track { background: transparent; }
     .fc-scroller::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+    /* ── MODAL ESTILO SISTEMA ── */
+    .modal-content.modal-dark {
+      background: #161b22;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      color: #e6edf3;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+    }
+
+    .modal-dark .modal-header,
+    .modal-dark .modal-footer {
+      border-color: rgba(255,255,255,0.08);
+    }
+
+    .modal-dark .modal-title {
+      font-weight: 700;
+      color: #e6edf3;
+    }
+
+    .modal-dark .btn-close {
+      filter: invert(1) grayscale(100%);
+      opacity: 0.8;
+    }
+
+    .modal-dark .btn-close:hover {
+      opacity: 1;
+    }
+
+    .modal-info-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.75rem;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .modal-info-table th,
+    .modal-info-table td {
+      padding: 0.8rem 0.9rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 0.85rem;
+    }
+
+    .modal-info-table th {
+      width: 34%;
+      color: #8b949e;
+      font-weight: 700;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .modal-info-table td {
+      color: #e6edf3;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .status-pill.approved {
+      background: rgba(63,185,80,0.18);
+      color: #3fb950;
+      border: 1px solid rgba(63,185,80,0.25);
+    }
+
+    .status-pill.pending {
+      background: rgba(210,153,34,0.18);
+      color: #d29922;
+      border: 1px solid rgba(210,153,34,0.25);
+    }
+
+    .status-pill.other {
+      background: rgba(88,166,255,0.12);
+      color: #58a6ff;
+      border: 1px solid rgba(88,166,255,0.22);
+    }
+
+    .modal-helper-text {
+      color: #8b949e;
+      font-size: 0.83rem;
+      margin-bottom: 0;
+    }
 
     /* ── ANIMATIONS ── */
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(10px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-    .admin-hero   { animation: fadeUp 0.3s ease both; }
+    .admin-hero { animation: fadeUp 0.3s ease both; }
     .calendar-card { animation: fadeUp 0.3s 0.08s ease both; }
   </style>
 </head>
@@ -256,7 +342,7 @@
       <h4>Calendario de Ausencias</h4>
       <div class="muted">Visualiza vacaciones aprobadas y pendientes.</div>
     </div>
-    <a class="btn-back" href="/home">← Volver</a>
+    <a class="btn-back no-loader" th:href="@{/home}">← Volver</a>
   </div>
 
   <!-- LEYENDA -->
@@ -278,6 +364,75 @@
 
 </div>
 
+<!-- ========================= -->
+<!-- MODAL DETALLE EVENTO -->
+<!-- ========================= -->
+<div class="modal fade" id="eventDetailModal" tabindex="-1" aria-labelledby="eventDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-dark">
+      <div class="modal-header">
+        <h5 class="modal-title" id="eventDetailModalLabel">Detalle de ausencia</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-helper-text">Consulta la información completa de la solicitud seleccionada.</p>
+
+        <table class="modal-info-table">
+          <tr>
+            <th>Empleado</th>
+            <td id="modalEmployee">N/D</td>
+          </tr>
+          <tr>
+            <th>Inicio</th>
+            <td id="modalStart">N/D</td>
+          </tr>
+          <tr>
+            <th>Fin</th>
+            <td id="modalEnd">N/D</td>
+          </tr>
+          <tr>
+            <th>Días</th>
+            <td id="modalDays">N/D</td>
+          </tr>
+          <tr>
+            <th>Estatus</th>
+            <td id="modalStatus">N/D</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= -->
+<!-- MODAL ERROR -->
+<!-- ========================= -->
+<div class="modal fade" id="calendarErrorModal" tabindex="-1" aria-labelledby="calendarErrorModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-dark">
+      <div class="modal-header">
+        <h5 class="modal-title" id="calendarErrorModalLabel">No se pudieron cargar los eventos</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <p class="mb-0">
+          Ocurrió un problema al consultar el calendario. Intenta nuevamente en unos segundos.
+        </p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/locales-all.global.min.js"></script>
@@ -287,6 +442,52 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const calendarEl = document.getElementById('calendar');
 
+  /*
+   * Instancias de Bootstrap Modal.
+   * Se usan en lugar de alert().
+   */
+  const eventDetailModal = new bootstrap.Modal(document.getElementById('eventDetailModal'));
+  const calendarErrorModal = new bootstrap.Modal(document.getElementById('calendarErrorModal'));
+
+  /*
+   * Convierte fecha ISO a formato dd/MM/yyyy.
+   * Si no hay valor, regresa N/D.
+   */
+  function formatDateEs(value) {
+    if (!value) {
+      return 'N/D';
+    }
+
+    const date = new Date(value + 'T00:00:00');
+
+    if (isNaN(date.getTime())) {
+      return value;
+    }
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year}`;
+  }
+
+  /*
+   * Construye el badge visual del estatus dentro del modal.
+   */
+  function buildStatusPill(status) {
+    const safeStatus = (status || 'N/D').toUpperCase();
+
+    if (safeStatus.includes('APPRO')) {
+      return '<span class="status-pill approved">APROBADA</span>';
+    }
+
+    if (safeStatus.includes('PEND')) {
+      return '<span class="status-pill pending">PENDIENTE</span>';
+    }
+
+    return `<span class="status-pill other">${safeStatus}</span>`;
+  }
+
   const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
     height: 'auto',
@@ -295,6 +496,8 @@ document.addEventListener('DOMContentLoaded', function() {
     firstDay: 1,
     nowIndicator: true,
     navLinks: true,
+	// 👇 NUEVO: oculta sábado y domingo
+	weekends: false,
 
     buttonText: {
       today: 'Hoy',
@@ -307,30 +510,44 @@ document.addEventListener('DOMContentLoaded', function() {
     events: {
       url: '/admin/calendar/events',
       failure: function() {
-        alert('No se pudieron cargar los eventos.');
+        calendarErrorModal.show();
       }
     },
 
+    /*
+     * En lugar de alert(), muestra un modal bonito con el detalle.
+     */
     eventClick: function(info) {
       const e = info.event;
       const username = e.extendedProps.username || 'N/D';
-      const status   = e.extendedProps.status   || 'N/D';
-      const days     = e.extendedProps.days      ?? 'N/D';
-      alert(
-        "Empleado: " + username + "\n" +
-        "Inicio: "   + e.startStr + "\n" +
-        "Fin: "      + e.endStr   + "\n" +
-        "Días: "     + days       + "\n" +
-        "Estatus: "  + status
-      );
+      const status   = e.extendedProps.status || 'N/D';
+      const days     = e.extendedProps.days ?? 'N/D';
+
+      document.getElementById('modalEmployee').textContent = username;
+      document.getElementById('modalStart').textContent = formatDateEs(e.startStr);
+
+      /*
+       * FullCalendar para eventos all-day suele manejar end exclusivo.
+       * Si quieres que visualmente el fin coincida con lo esperado,
+       * usamos extendedProps.endDate si existe; si no, usamos endStr.
+       */
+      document.getElementById('modalEnd').textContent =
+        formatDateEs(e.extendedProps.endDate || e.endStr || e.startStr);
+
+      document.getElementById('modalDays').textContent = days;
+      document.getElementById('modalStatus').innerHTML = buildStatusPill(status);
+
+      eventDetailModal.show();
     },
 
     eventDidMount: function(info) {
       const status = (info.event.extendedProps.status || "").toUpperCase();
+
       if (status.includes("APPRO")) {
         info.el.style.backgroundColor = "#1a7f37";
         info.el.style.borderColor     = "#1a7f37";
       }
+
       if (status.includes("PEND")) {
         info.el.style.backgroundColor = "#9e6a03";
         info.el.style.borderColor     = "#9e6a03";
@@ -344,10 +561,12 @@ document.addEventListener('DOMContentLoaded', function() {
         click: function() {
           const view = calendar.view;
           const from = view.currentStart.toISOString().slice(0,10);
+
           const toDate = new Date(view.currentEnd);
           toDate.setDate(toDate.getDate() - 1);
           const to = toDate.toISOString().slice(0,10);
-          window.open(`/admin/calendar/export.pdf?from=${from}&to=${to}`, '_blank');
+
+          window.open(`/admin/calendar/vacaciones.pdf?from=${from}&to=${to}`, '_blank');
         }
       }
     },
@@ -356,12 +575,24 @@ document.addEventListener('DOMContentLoaded', function() {
       left:   'prev,next today exportPdf',
       center: 'title',
       right:  'dayGridMonth,timeGridWeek,listMonth'
-    },
+    }
   });
 
   calendar.render();
 });
 </script>
 
+<!-- ========================= -->
+<!-- LOADER GLOBAL -->
+<!-- ========================= -->
+<div id="globalLoader" class="global-loader" aria-hidden="true">
+  <div class="global-loader__box">
+    <div class="global-loader__spinner"></div>
+    <div class="global-loader__text">Cargando...</div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="/css/global-loader.css">
+<script src="/js/global-loader.js"></script>
 </body>
 </html>

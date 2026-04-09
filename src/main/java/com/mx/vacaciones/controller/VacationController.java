@@ -1,7 +1,11 @@
 package com.mx.vacaciones.controller;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
@@ -23,20 +27,39 @@ import com.mx.vacaciones.service.VacationCalculator;
 import jakarta.transaction.Transactional;
 
 /**
- * Controlador encargado del flujo de solicitudes de vacaciones del colaborador.
+ * Controlador encargado del flujo de solicitudes de vacaciones.
  *
  * <p>
- * Permite:
+ * Soporta dos modos de trabajo:
  * </p>
  * <ul>
- *     <li>Mostrar formulario de solicitud</li>
- *     <li>Registrar una nueva solicitud</li>
- *     <li>Consultar el estatus de solicitudes realizadas</li>
+ *     <li><b>Colaborador:</b> solicita vacaciones para sí mismo</li>
+ *     <li><b>Administrador / RRHH:</b> puede registrar vacaciones para otro usuario</li>
+ * </ul>
+ *
+ * <p>
+ * Además, este controlador ya acepta fechas en dos formatos:
+ * </p>
+ * <ul>
+ *     <li><b>yyyy-MM-dd</b> (formato ISO)</li>
+ *     <li><b>dd/MM/yyyy</b> (formato visual en español)</li>
  * </ul>
  */
 @Controller
 @RequestMapping("/vacations")
 public class VacationController {
+
+    /**
+     * Formato ISO, por ejemplo: 2026-04-08
+     */
+    private static final DateTimeFormatter ISO_FORMAT =
+            DateTimeFormatter.ISO_LOCAL_DATE;
+
+    /**
+     * Formato visual en español, por ejemplo: 08/04/2026
+     */
+    private static final DateTimeFormatter ES_FORMAT =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy", new Locale("es", "MX"));
 
     private final VacationRepository vacationRepository;
     private final UserRepository userRepository;
@@ -58,6 +81,11 @@ public class VacationController {
     /**
      * Muestra el formulario para registrar una solicitud de vacaciones.
      *
+     * <p>
+     * Si el usuario autenticado es ADMIN, además carga la lista de usuarios
+     * para operar en modo RRHH.
+     * </p>
+     *
      * @param model modelo para la vista
      * @param authentication usuario autenticado
      * @return vista del formulario o redirección a login
@@ -71,8 +99,10 @@ public class VacationController {
 
         String username = authentication.getName();
 
-        User user = userRepository.findByUsername(username)
+        User loggedUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + username));
+
+        boolean isAdmin = hasRole(authentication, "ROLE_ADMIN");
 
         int currentYear = LocalDate.now().getYear();
 
@@ -82,9 +112,27 @@ public class VacationController {
                 .map(LocalDate::toString)
                 .collect(Collectors.toList());
 
-        model.addAttribute("availableDays", user.getVacationDaysAvailable());
+        model.addAttribute("availableDays", loggedUser.getVacationDaysAvailable());
         model.addAttribute("vacationRequest", new VacationRequest());
         model.addAttribute("holidayDates", holidayDates);
+        model.addAttribute("rol", isAdmin ? "ROLE_ADMIN" : "ROLE_COLABORADOR");
+        model.addAttribute("isAdmin", isAdmin);
+        model.addAttribute("loggedUserId", loggedUser.getId());
+
+        /*
+         * En modo RRHH cargamos todos los usuarios para el combo de selección.
+         * Se ordenan por nombre para mejorar la experiencia visual.
+         */
+        if (isAdmin) {
+            List<User> users = userRepository.findAll()
+                    .stream()
+                    .sorted(Comparator.comparing(
+                            user -> user.getName() != null ? user.getName().toLowerCase() : ""
+                    ))
+                    .collect(Collectors.toList());
+
+            model.addAttribute("users", users);
+        }
 
         return "vacations/request";
     }
@@ -93,19 +141,24 @@ public class VacationController {
      * Registra una nueva solicitud de vacaciones.
      *
      * <p>
-     * Valida:
+     * Comportamiento:
      * </p>
      * <ul>
-     *     <li>Autenticación</li>
-     *     <li>Formato de fechas</li>
-     *     <li>Rango válido</li>
-     *     <li>Fechas no bloqueadas (fin de semana o festivo)</li>
-     *     <li>Traslapes con otras solicitudes</li>
-     *     <li>Saldo suficiente de días</li>
+     *     <li>Si es colaborador, la solicitud siempre se registra para sí mismo</li>
+     *     <li>Si es admin y envía targetUserId, la solicitud se registra para ese usuario</li>
+     * </ul>
+     *
+     * <p>
+     * Este método acepta fechas en:
+     * </p>
+     * <ul>
+     *     <li>yyyy-MM-dd</li>
+     *     <li>dd/MM/yyyy</li>
      * </ul>
      *
      * @param startDateStr fecha de inicio en texto
      * @param endDateStr fecha de fin en texto
+     * @param targetUserId id del usuario objetivo en modo RRHH (opcional)
      * @param authentication usuario autenticado
      * @param ra atributos flash para mensajes
      * @return redirección al formulario
@@ -115,6 +168,7 @@ public class VacationController {
     public String submitVacationRequest(
             @RequestParam("startDate") String startDateStr,
             @RequestParam("endDate") String endDateStr,
+            @RequestParam(value = "targetUserId", required = false) Long targetUserId,
             Authentication authentication,
             RedirectAttributes ra) {
 
@@ -133,9 +187,14 @@ public class VacationController {
         LocalDate endDate;
 
         try {
-            startDate = LocalDate.parse(startDateStr);
-            endDate = LocalDate.parse(endDateStr);
-        } catch (Exception e) {
+            /*
+             * Se intenta parsear ambos formatos:
+             * - yyyy-MM-dd
+             * - dd/MM/yyyy
+             */
+            startDate = parseFlexibleDate(startDateStr);
+            endDate = parseFlexibleDate(endDateStr);
+        } catch (IllegalArgumentException e) {
             ra.addFlashAttribute("error", "Formato de fecha inválido.");
             return "redirect:/vacations/request";
         }
@@ -161,19 +220,46 @@ public class VacationController {
             return "redirect:/vacations/request";
         }
 
-        String username = authentication.getName();
+        String loggedUsername = authentication.getName();
 
-        User user = userRepository.findByUsername(username).orElse(null);
+        User loggedUser = userRepository.findByUsername(loggedUsername).orElse(null);
 
-        if (user == null) {
-            ra.addFlashAttribute("error", "Usuario no encontrado.");
+        if (loggedUser == null) {
+            ra.addFlashAttribute("error", "Usuario autenticado no encontrado.");
             return "redirect:/vacations/request";
         }
 
-        // Evitar traslapes
+        boolean isAdmin = hasRole(authentication, "ROLE_ADMIN");
+
+        /*
+         * Usuario objetivo:
+         * - colaborador => siempre él mismo
+         * - admin => puede elegir otro usuario por id
+         */
+        User targetUser = loggedUser;
+
+        if (isAdmin && targetUserId != null) {
+            targetUser = userRepository.findById(targetUserId).orElse(null);
+
+            if (targetUser == null) {
+                ra.addFlashAttribute("error", "El usuario seleccionado no existe.");
+                return "redirect:/vacations/request";
+            }
+        }
+
+        /*
+         * Si es admin y no selecciona usuario en modo RRHH,
+         * se evita registrar accidentalmente para un usuario nulo.
+         */
+        if (isAdmin && targetUserId == null) {
+            ra.addFlashAttribute("error", "Debes seleccionar un empleado.");
+            return "redirect:/vacations/request";
+        }
+
+        // Evitar traslapes con solicitudes pendientes o aprobadas
         List<String> blockingStatuses = List.of("PENDING", "APPROVED");
         boolean overlap = vacationRepository.existsOverlapping(
-                user.getId(),
+                targetUser.getId(),
                 startDate,
                 endDate,
                 blockingStatuses
@@ -182,7 +268,7 @@ public class VacationController {
         if (overlap) {
             ra.addFlashAttribute(
                     "error",
-                    "Ya tienes una solicitud que se traslapa con esas fechas."
+                    "El usuario seleccionado ya tiene una solicitud que se traslapa con esas fechas."
             );
             return "redirect:/vacations/request";
         }
@@ -195,59 +281,99 @@ public class VacationController {
             return "redirect:/vacations/request";
         }
 
-        int available = user.getVacationDaysAvailable();
+        int available = targetUser.getVacationDaysAvailable();
         if (available < days) {
             ra.addFlashAttribute(
                     "error",
-                    "No tienes días suficientes. Disponibles: " + available
+                    "El usuario seleccionado no tiene días suficientes. Disponibles: " + available
             );
             return "redirect:/vacations/request";
         }
 
-        // Descontar saldo
-        user.setVacationDaysAvailable(available - days);
-        userRepository.save(user);
+        // Descontar saldo del usuario objetivo
+        targetUser.setVacationDaysAvailable(available - days);
+        userRepository.save(targetUser);
 
-        // Guardar solicitud
+        // Guardar solicitud vinculada al usuario objetivo
         VacationRequest request = new VacationRequest();
         request.setStartDate(startDate);
         request.setEndDate(endDate);
         request.setDays(days);
         request.setStatus("PENDING");
-        request.setUser(user);
-        request.setUsername(username);
+        request.setUser(targetUser);
+        request.setUsername(targetUser.getUsername());
 
         VacationRequest saved = vacationRepository.save(request);
 
-        // Correos (si fallan NO rompen la app)
+        /*
+         * Envío de correos:
+         * - Siempre se notifica a admins indicando quién capturó la solicitud.
+         * - Si el usuario se la registró a sí mismo, se envía correo normal.
+         * - Si un admin la registró para otro usuario, se envía correo especial RRHH.
+         */
         try {
-            emailService.notifyAdminsVacationRequest(saved);
+            emailService.notifyAdminsVacationRequest(saved, loggedUser);
 
-            String to = user.getEmail();
-            if (to != null && !to.isBlank()) {
-                emailService.sendVacationRequestEmail(
-                        to,
-                        user.getName(),
-                        user.getUsername(),
-                        startDate.toString(),
-                        endDate.toString(),
-                        days
-                );
+            boolean requestCreatedByAdminForAnotherUser =
+                    isAdmin && !targetUser.getUsername().equals(loggedUser.getUsername());
+
+            String targetEmail = targetUser.getEmail();
+
+            if (targetEmail != null && !targetEmail.isBlank()) {
+                if (requestCreatedByAdminForAnotherUser) {
+                    emailService.sendVacationRequestByAdminEmail(
+                            targetEmail,
+                            safeName(targetUser),
+                            targetUser.getUsername(),
+                            startDate.format(ES_FORMAT),
+                            endDate.format(ES_FORMAT),
+                            days,
+                            safeName(loggedUser),
+                            loggedUser.getUsername()
+                    );
+                } else {
+                    emailService.sendVacationRequestEmail(
+                            targetEmail,
+                            safeName(targetUser),
+                            targetUser.getUsername(),
+                            startDate.format(ES_FORMAT),
+                            endDate.format(ES_FORMAT),
+                            days
+                    );
+                }
             }
+
         } catch (Exception e) {
             System.err.println("⚠ Error enviando correo: " + e.getMessage());
+            e.printStackTrace();
         }
 
-        ra.addFlashAttribute(
-                "success",
-                "Solicitud enviada. Se descontaron " + days + " días."
-        );
+        /*
+         * Mensaje final para pantalla.
+         */
+        if (isAdmin && !targetUser.getUsername().equals(loggedUser.getUsername())) {
+            ra.addFlashAttribute(
+                    "success",
+                    "Solicitud registrada para " + safeName(targetUser)
+                            + ". Se descontaron " + days + " días."
+            );
+        } else {
+            ra.addFlashAttribute(
+                    "success",
+                    "Solicitud enviada. Se descontaron " + days + " días."
+            );
+        }
 
         return "redirect:/vacations/request";
     }
 
     /**
      * Muestra el historial y estatus de solicitudes del usuario autenticado.
+     *
+     * <p>
+     * Este método mantiene el comportamiento actual:
+     * siempre muestra las solicitudes del usuario logueado.
+     * </p>
      *
      * @param authentication usuario autenticado
      * @param model modelo para la vista
@@ -268,5 +394,73 @@ public class VacationController {
         model.addAttribute("username", username);
 
         return "vacations/status";
+    }
+
+    /**
+     * Valida si el usuario autenticado tiene el rol indicado.
+     *
+     * @param authentication autenticación actual
+     * @param role rol a validar, por ejemplo ROLE_ADMIN
+     * @return true si tiene el rol
+     */
+    private boolean hasRole(Authentication authentication, String role) {
+        return authentication.getAuthorities()
+                .stream()
+                .anyMatch(a -> role.equals(a.getAuthority()));
+    }
+
+    /**
+     * Obtiene un nombre seguro para mensajes y correos.
+     *
+     * @param user usuario
+     * @return nombre o username si no hay nombre
+     */
+    private String safeName(User user) {
+        if (user == null) {
+            return "";
+        }
+
+        if (user.getName() != null && !user.getName().isBlank()) {
+            return user.getName();
+        }
+
+        return user.getUsername();
+    }
+
+    /**
+     * Intenta convertir una fecha recibida desde la vista.
+     *
+     * <p>
+     * Formatos soportados:
+     * </p>
+     * <ul>
+     *     <li>yyyy-MM-dd</li>
+     *     <li>dd/MM/yyyy</li>
+     * </ul>
+     *
+     * @param raw valor recibido desde el formulario
+     * @return fecha convertida
+     * @throws IllegalArgumentException si no coincide con ningún formato válido
+     */
+    private LocalDate parseFlexibleDate(String raw) {
+        if (raw == null || raw.isBlank()) {
+            throw new IllegalArgumentException("Fecha vacía");
+        }
+
+        String value = raw.trim();
+
+        try {
+            return LocalDate.parse(value, ISO_FORMAT);
+        } catch (DateTimeParseException ignored) {
+            // Intento siguiente
+        }
+
+        try {
+            return LocalDate.parse(value, ES_FORMAT);
+        } catch (DateTimeParseException ignored) {
+            // Intento siguiente
+        }
+
+        throw new IllegalArgumentException("Formato de fecha inválido: " + value);
     }
 }

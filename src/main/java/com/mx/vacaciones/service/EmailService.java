@@ -25,7 +25,8 @@ import jakarta.mail.internet.MimeMessage;
  * Este servicio centraliza todas las notificaciones por correo:
  * </p>
  * <ul>
- *   <li>Confirmación de solicitud de vacaciones registrada.</li>
+ *   <li>Confirmación de solicitud de vacaciones registrada por el propio usuario.</li>
+ *   <li>Confirmación de solicitud registrada por un administrador / RRHH para otro usuario.</li>
  *   <li>Notificación a administradores sobre nuevas solicitudes.</li>
  *   <li>Notificación al usuario cuando su solicitud es aprobada o rechazada.</li>
  *   <li>Envío de credenciales de acceso a usuarios nuevos.</li>
@@ -45,12 +46,14 @@ public class EmailService {
      * Remitente configurado para todos los correos del sistema.
      */
     private static final String FROM_EMAIL = "no-reply@inssoftmx.com";
-    @Value("${app.system.url}")
-    private String systemUrl;
+
     /**
      * Nombre del sistema mostrado en correos.
      */
     private static final String SYSTEM_NAME = "Sistema de Vacaciones";
+
+    @Value("${app.system.url}")
+    private String systemUrl;
 
     private final JavaMailSender mailSender;
     private final UserRepository userRepository;
@@ -68,10 +71,11 @@ public class EmailService {
 
     /**
      * Envía correo al usuario confirmando que su solicitud de vacaciones
-     * fue registrada correctamente.
+     * fue registrada correctamente por él mismo.
      *
      * @param to correo del destinatario
-     * @param username nombre del usuario
+     * @param name nombre de la persona
+     * @param username nombre de usuario
      * @param startDate fecha de inicio
      * @param endDate fecha de fin
      * @param days número de días solicitados
@@ -84,12 +88,19 @@ public class EmailService {
             String endDate,
             int days
     ) {
+        if (to == null || to.trim().isEmpty()) {
+            log.warn("No se puede enviar correo de solicitud porque el destinatario es nulo o vacío");
+            return;
+        }
+
         String subject = "Solicitud de vacaciones registrada";
 
         String content =
             "<p>Hola <strong>" + safe(name) + "</strong>,</p>" +
             "<p>Tu solicitud de vacaciones fue registrada correctamente.</p>" +
             buildInfoTable(new String[][]{
+                {"Nombre", safe(name)},
+                {"Usuario", safe(username)},
                 {"Inicio", safe(startDate)},
                 {"Fin", safe(endDate)},
                 {"Días solicitados", String.valueOf(days)},
@@ -101,12 +112,85 @@ public class EmailService {
     }
 
     /**
+     * Envía correo al usuario confirmando que un administrador / RRHH
+     * registró una solicitud de vacaciones en su nombre.
+     *
+     * @param to correo del destinatario
+     * @param employeeName nombre del empleado
+     * @param employeeUsername username del empleado
+     * @param startDate fecha de inicio
+     * @param endDate fecha de fin
+     * @param days días solicitados
+     * @param adminName nombre del administrador que realizó la captura
+     * @param adminUsername username del administrador que realizó la captura
+     */
+    public void sendVacationRequestByAdminEmail(
+            String to,
+            String employeeName,
+            String employeeUsername,
+            String startDate,
+            String endDate,
+            int days,
+            String adminName,
+            String adminUsername
+    ) {
+        if (to == null || to.trim().isEmpty()) {
+            log.warn("No se puede enviar correo RRHH porque el destinatario es nulo o vacío");
+            return;
+        }
+
+        String subject = "Solicitud de vacaciones registrada por RRHH / Administrador";
+
+        String content =
+            "<p>Hola <strong>" + safe(employeeName) + "</strong>,</p>" +
+            "<p>Se registró una solicitud de vacaciones en tu nombre desde el sistema.</p>" +
+            buildInfoTable(new String[][]{
+                {"Empleado", safe(employeeName)},
+                {"Usuario", safe(employeeUsername)},
+                {"Inicio", safe(startDate)},
+                {"Fin", safe(endDate)},
+                {"Días solicitados", String.valueOf(days)},
+                {"Estatus", "PENDIENTE"},
+                {"Registrado por", safe(adminName)},
+                {"Usuario administrador", safe(adminUsername)}
+            }) +
+            "<p>La solicitud quedó pendiente de revisión administrativa.</p>";
+
+        sendHtmlEmail(to, subject, buildBaseTemplate("Solicitud registrada por RRHH", content));
+    }
+
+    /**
      * Notifica a todos los administradores activos que se ha registrado
      * una nueva solicitud de vacaciones.
+     *
+     * <p>
+     * Esta versión conserva compatibilidad con el flujo anterior.
+     * Cuando no se informa quién registró la solicitud, se envía el formato estándar.
+     * </p>
      *
      * @param request solicitud de vacaciones registrada
      */
     public void notifyAdminsVacationRequest(VacationRequest request) {
+        notifyAdminsVacationRequest(request, null);
+    }
+
+    /**
+     * Notifica a todos los administradores activos que se ha registrado
+     * una nueva solicitud de vacaciones, incluyendo opcionalmente quién
+     * realizó la captura en el sistema.
+     *
+     * <p>
+     * Esto permite distinguir entre:
+     * </p>
+     * <ul>
+     *   <li>Solicitud hecha directamente por el propio usuario</li>
+     *   <li>Solicitud capturada por un admin / RRHH para otro usuario</li>
+     * </ul>
+     *
+     * @param request solicitud de vacaciones registrada
+     * @param createdBy usuario que capturó la solicitud; puede ser null
+     */
+    public void notifyAdminsVacationRequest(VacationRequest request, User createdBy) {
         List<User> admins = userRepository.findByRoleAndEnabledTrue(Role.ROLE_ADMIN);
 
         if (admins.isEmpty()) {
@@ -114,7 +198,7 @@ public class EmailService {
         }
 
         for (User admin : admins) {
-            sendMailToAdmin(admin.getEmail(), request);
+            sendMailToAdmin(admin.getEmail(), request, createdBy);
         }
     }
 
@@ -122,29 +206,79 @@ public class EmailService {
      * Envía correo individual a un administrador con el detalle
      * de la nueva solicitud de vacaciones.
      *
+     * <p>
+     * Si createdBy es distinto del usuario objetivo, el correo indicará
+     * que la solicitud fue registrada por RRHH / administrador.
+     * </p>
+     *
      * @param to correo del administrador
      * @param request solicitud registrada
+     * @param createdBy usuario que capturó la solicitud; puede ser null
      */
-    private void sendMailToAdmin(String to, VacationRequest request) {
+    private void sendMailToAdmin(String to, VacationRequest request, User createdBy) {
+        if (to == null || to.trim().isEmpty()) {
+            return;
+        }
+
         if (request == null || request.getUser() == null) {
             return;
         }
 
-        String subject = "Nueva solicitud de vacaciones";
+        User requestedUser = request.getUser();
 
-        String content =
-            "<p>Se ha registrado una nueva solicitud de vacaciones en el sistema.</p>" +
+        boolean hasCreator = createdBy != null;
+        boolean createdByAnotherUser =
+                hasCreator
+                && createdBy.getUsername() != null
+                && requestedUser.getUsername() != null
+                && !createdBy.getUsername().equals(requestedUser.getUsername());
+
+        String subject = createdByAnotherUser
+                ? "Nueva solicitud de vacaciones registrada por RRHH"
+                : "Nueva solicitud de vacaciones";
+
+        StringBuilder content = new StringBuilder();
+
+        content.append("<p>Se ha registrado una nueva solicitud de vacaciones en el sistema.</p>");
+
+        content.append(
             buildInfoTable(new String[][]{
-                {"Nombre Solicitante", safe(request.getUser().getName())},
-                {"Usuario", safe(request.getUser().getUsername())},
-                {"Correo", safe(request.getUser().getEmail())},
+                {"Nombre solicitante", safe(requestedUser.getName())},
+                {"Usuario", safe(requestedUser.getUsername())},
+                {"Correo", safe(requestedUser.getEmail())},
                 {"Fecha inicio", String.valueOf(request.getStartDate())},
                 {"Fecha fin", String.valueOf(request.getEndDate())},
-                {"Días solicitados", String.valueOf(request.getDays())}
-            }) +
-            "<p>Ingresa al sistema para revisarla.</p>";
+                {"Días solicitados", String.valueOf(request.getDays())},
+                {"Estatus", safe(request.getStatus())}
+            })
+        );
 
-        sendHtmlEmail(to, subject, buildBaseTemplate("Nueva solicitud recibida", content));
+        if (createdByAnotherUser) {
+            content.append(
+                buildHighlightBox(
+                    "Captura realizada por administrador / RRHH",
+                    "Esta solicitud fue registrada por " + safeName(createdBy)
+                            + " (" + safe(createdBy.getUsername()) + ") para el usuario "
+                            + safeName(requestedUser) + "."
+                )
+            );
+        } else if (hasCreator) {
+            content.append(
+                "<p><strong>Registrado por:</strong> "
+                        + safeName(createdBy)
+                        + " ("
+                        + safe(createdBy.getUsername())
+                        + ")</p>"
+            );
+        }
+
+        content.append("<p>Ingresa al sistema para revisarla.</p>");
+
+        String title = createdByAnotherUser
+                ? "Nueva solicitud recibida (RRHH)"
+                : "Nueva solicitud recibida";
+
+        sendHtmlEmail(to, subject, buildBaseTemplate(title, content.toString()));
     }
 
     /**
@@ -416,6 +550,24 @@ public class EmailService {
             "<p style='margin:0 0 8px; font-weight:bold; color:#1d4ed8;'>" + safe(title) + "</p>" +
             "<p style='margin:0;'>" + safe(message) + "</p>" +
             "</div>";
+    }
+
+    /**
+     * Devuelve un nombre seguro para mostrar en correos.
+     *
+     * @param user usuario
+     * @return nombre o username si el nombre no existe
+     */
+    private String safeName(User user) {
+        if (user == null) {
+            return "";
+        }
+
+        if (user.getName() != null && !user.getName().isBlank()) {
+            return safe(user.getName());
+        }
+
+        return safe(user.getUsername());
     }
 
     /**

@@ -9,12 +9,43 @@
   <link rel="stylesheet" href="/css/home.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /*
+     * Badge tipo notificación.
+     * Se posiciona encima del icono de "Revisar Solicitudes".
+     */
+    .home-item__icon--badge {
+      position: relative;
+    }
+
+    .home-item__badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: #ef4444;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 22px;
+      text-align: center;
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+  </style>
 </head>
 <body>
 
+<!-- NAVBAR -->
 <nav class="navbar navbar-dark">
   <div class="container-fluid">
     <span class="navbar-brand">Sistema de Vacaciones</span>
+
+    <!-- Botón logout -->
     <form method="post" action="/logout">
       <button class="btn btn-outline-light btn-sm">Salir</button>
     </form>
@@ -27,31 +58,40 @@
   <div class="home-hero shadow-soft">
     <div class="home-hero__text">
       <div class="home-hero__greeting">Portal de Vacaciones</div>
+
+      <!-- Nombre del usuario -->
       <h4 class="mb-1">Bienvenido, <span th:text="${usuario}"></span></h4>
+
       <p class="mb-0">
         Administra las solicitudes y consulta la información de vacaciones en un solo lugar.
       </p>
+
+      <!-- Badge de rol -->
       <div class="role-badge"
            th:text="${rol == 'ROLE_COLABORADOR' ? '👤 Colaborador' :
                     (rol == 'ROLE_ADMIN' ? '⚡ Administrador' : rol)}">
       </div>
     </div>
+
     <div class="home-hero__img">
       <img src="/images/sg7t68nrdnkdvoop4iak.avif" alt="Sistema de Vacaciones">
     </div>
   </div>
 
-  <!-- TARJETA / CAJA DE OPCIONES -->
+  <!-- TARJETA DE OPCIONES -->
   <div class="home-card shadow-soft mt-4">
 
     <div class="home-card__header">
       <h5>Acciones rápidas</h5>
     </div>
 
-    <!-- SOLO COLABORADOR -->
+    <!-- ========================= -->
+    <!-- OPCIONES PARA COLABORADOR -->
+    <!-- ========================= -->
     <div th:if="${rol == 'ROLE_COLABORADOR'}">
       <div class="list-group list-group-flush">
 
+        <!-- Solicitar vacaciones -->
         <a href="/vacations/request" class="list-group-item list-group-item-action home-item">
           <div class="home-item__icon icon-blue">🏖️</div>
           <div class="home-item__body">
@@ -61,6 +101,7 @@
           <span class="home-item__arrow">›</span>
         </a>
 
+        <!-- Ver estatus -->
         <a href="/vacations/status" class="list-group-item list-group-item-action home-item">
           <div class="home-item__icon icon-green">📋</div>
           <div class="home-item__body">
@@ -73,19 +114,58 @@
       </div>
     </div>
 
-    <!-- SOLO ADMIN -->
+    <!-- ========================= -->
+    <!-- OPCIONES PARA ADMIN -->
+    <!-- ========================= -->
     <div th:if="${rol == 'ROLE_ADMIN'}">
       <div class="list-group list-group-flush">
 
-        <a href="/admin/requests" class="list-group-item list-group-item-action home-item">
-          <div class="home-item__icon icon-orange">⏳</div>
+        <!-- Admin también puede solicitar vacaciones -->
+        <a href="/vacations/request" class="list-group-item list-group-item-action home-item">
+          <div class="home-item__icon icon-blue">🏖️</div>
           <div class="home-item__body">
-            <div class="home-item__title">Revisar Solicitudes</div>
-            <small class="text-muted">Aprueba o rechaza solicitudes pendientes</small>
+            <div class="home-item__title">Solicitar Vacaciones</div>
+            <small class="text-muted">Crea una solicitud como administrador</small>
           </div>
           <span class="home-item__arrow">›</span>
         </a>
 
+        <!-- Admin puede ver sus solicitudes -->
+        <a href="/vacations/status" class="list-group-item list-group-item-action home-item">
+          <div class="home-item__icon icon-green">📋</div>
+          <div class="home-item__body">
+            <div class="home-item__title">Mis Vacaciones</div>
+            <small class="text-muted">Consulta tus propias solicitudes</small>
+          </div>
+          <span class="home-item__arrow">›</span>
+        </a>
+
+        <!-- Revisar solicitudes con badge -->
+        <a href="/admin/requests" class="list-group-item list-group-item-action home-item">
+          <div class="home-item__icon icon-orange home-item__icon--badge">
+            ⏳
+
+            <!--
+              Badge de pendientes.
+              Solo aparece si pendingRequestsCount > 0.
+              Si hay más de 99, muestra 99+.
+            -->
+            <span class="home-item__badge"
+                  th:if="${pendingRequestsCount != null and pendingRequestsCount > 0}"
+                  th:text="${pendingRequestsCount > 99 ? '99+' : pendingRequestsCount}">
+              0
+            </span>
+          </div>
+
+          <div class="home-item__body">
+            <div class="home-item__title">Revisar Solicitudes</div>
+            <small class="text-muted">Aprueba o rechaza solicitudes pendientes</small>
+          </div>
+
+          <span class="home-item__arrow">›</span>
+        </a>
+
+        <!-- Usuarios -->
         <a href="/admin/users" class="list-group-item list-group-item-action home-item">
           <div class="home-item__icon icon-blue">👥</div>
           <div class="home-item__body">
@@ -95,15 +175,17 @@
           <span class="home-item__arrow">›</span>
         </a>
 
+        <!-- Historial -->
         <a href="/admin/requests/history" class="list-group-item list-group-item-action home-item">
           <div class="home-item__icon icon-purple">📂</div>
           <div class="home-item__body">
-            <div class="home-item__title">Historial (Aprobadas / Rechazadas)</div>
-            <small class="text-muted">Ver decisiones tomadas</small>
+            <div class="home-item__title">Historial</div>
+            <small class="text-muted">Aprobadas / Rechazadas</small>
           </div>
           <span class="home-item__arrow">›</span>
         </a>
 
+        <!-- Calendario -->
         <a href="/admin/calendar" class="list-group-item list-group-item-action home-item">
           <div class="home-item__icon icon-teal">📅</div>
           <div class="home-item__body">
@@ -113,11 +195,12 @@
           <span class="home-item__arrow">›</span>
         </a>
 
+        <!-- Dashboard -->
         <a href="/admin/dashboard" class="list-group-item list-group-item-action home-item">
           <div class="home-item__icon icon-green">📊</div>
           <div class="home-item__body">
             <div class="home-item__title">Dashboard KPI</div>
-            <small class="text-muted">Métricas de ausencias, pendientes y consumo mensual</small>
+            <small class="text-muted">Métricas generales</small>
           </div>
           <span class="home-item__arrow">›</span>
         </a>
@@ -130,5 +213,17 @@
 </div>
 
 <script src="/js/bootstrap.bundle.min.js"></script>
+<!-- ========================= -->
+<!-- LOADER GLOBAL -->
+<!-- ========================= -->
+<div id="globalLoader" class="global-loader" aria-hidden="true">
+  <div class="global-loader__box">
+    <div class="global-loader__spinner"></div>
+    <div class="global-loader__text">Cargando...</div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="/css/global-loader.css">
+<script src="/js/global-loader.js"></script>
 </body>
 </html>
