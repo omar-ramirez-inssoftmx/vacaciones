@@ -12,7 +12,108 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
+<style>
+	.date-input-wrapper {
+		     position: relative;
+		   }
 
+		   .date-input-wrapper .calendar-icon {
+		     position: absolute;
+		     top: 50%;
+		     right: 14px;
+		     transform: translateY(-50%);
+		     color: #6c757d;
+		     font-size: 1rem;
+		     pointer-events: none;
+		     z-index: 5;
+		   }
+
+		   .date-input-wrapper .form-control,
+		   .date-input-wrapper .flatpickr-input {
+		     padding-right: 42px;
+		     background-color: #fff;
+		     cursor: pointer;
+		   }
+
+		   /* Deshabilitados visualmente */
+		   .flatpickr-day.flatpickr-disabled,
+		   .flatpickr-day.flatpickr-disabled:hover {
+		     color: #c0c4cc !important;
+		     background: #f8f9fa !important;
+		     cursor: not-allowed !important;
+		   }
+
+		   /* Fin de semana más tenue */
+		   .flatpickr-day.prevMonthDay,
+		   .flatpickr-day.nextMonthDay {
+		     opacity: 0.35;
+		   }
+
+/* Oculta cabeceras Sáb y Dom */
+.flatpickr-weekdays .flatpickr-weekday:nth-child(6),
+.flatpickr-weekdays .flatpickr-weekday:nth-child(7) {
+  display: none !important;
+}
+
+/* Oculta celdas Sáb y Dom */
+.flatpickr-day:nth-child(7n+6),
+.flatpickr-day:nth-child(7n) {
+  display: none !important;
+  width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Grid de 5 columnas para los días */
+.dayContainer {
+  display: grid !important;
+  grid-template-columns: repeat(5, 1fr) !important;
+  width: 300px !important;
+  min-width: 300px !important;
+  max-width: 300px !important;
+  gap: 2px !important;
+}
+
+/* Cabeceras también en 5 columnas con espaciado */
+.flatpickr-weekdays {
+  width: 300px !important;
+}
+
+.flatpickr-weekdays .flatpickr-weekdaycontainer {
+  display: grid !important;
+  grid-template-columns: repeat(5, 1fr) !important;
+  width: 300px !important;
+}
+
+.flatpickr-weekday {
+  flex: unset !important;
+  width: auto !important;
+  text-align: center !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  padding: 4px 0 !important;
+}
+
+/* Ancho general del calendario */
+.flatpickr-calendar {
+  width: 320px !important;
+  padding: 10px !important;
+}
+
+.flatpickr-days,
+.flatpickr-innerContainer {
+  width: 300px !important;
+}
+
+/* Días individuales */
+.flatpickr-day {
+  max-width: 100% !important;
+  width: auto !important;
+  border-radius: 6px !important;
+  line-height: 38px !important;
+  height: 38px !important;
+}
+</style>
 <body>
 
 <!-- ========================= -->
@@ -141,22 +242,27 @@
 
           <div class="col-md-6">
             <label class="form-label">Fecha Inicio</label>
-            <input id="startDate"
-                   name="startDate"
-                   type="text"
-                   class="form-control"
-                   readonly
-                   required>
-          </div>
+			<div class="date-input-wrapper">
+					                <input id="startDate"
+					                       name="startDate"
+					                       type="text"
+					                       class="form-control"
+					                       readonly
+					                       required>
+					                <i class="bi bi-calendar3 calendar-icon"></i>
+					              </div>          </div>
 
           <div class="col-md-6">
             <label class="form-label">Fecha Fin</label>
-            <input id="endDate"
-                   name="endDate"
-                   type="text"
-                   class="form-control"
-                   readonly
-                   required>
+			<div class="date-input-wrapper">
+			              <input id="endDate"
+			                     name="endDate"
+			                     type="text"
+			                     class="form-control"
+			                     readonly
+			                     required>
+			              <i class="bi bi-calendar3 calendar-icon"></i>
+			            </div>
           </div>
 
         </div>
@@ -346,7 +452,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const commonConfig = {
-	
 	locale: "es",
     dateFormat: "d/m/Y",
     disable: [
