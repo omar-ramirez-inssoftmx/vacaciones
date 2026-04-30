@@ -84,6 +84,9 @@ public class SecurityConfig {
 
             .requestMatchers("/vacations/**")
             .hasAnyAuthority("ROLE_COLABORADOR", "ROLE_ADMIN")
+            
+            .requestMatchers("/vacations/**")
+            .hasAnyAuthority("ROLE_COLABORADOR", "ROLE_ADMIN")
 
             .requestMatchers("/admin/**")
             .hasAuthority("ROLE_ADMIN")

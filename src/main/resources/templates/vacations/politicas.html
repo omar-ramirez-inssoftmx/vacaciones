@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Políticas de la Empresa</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .navbar {
+      background: #0f1117;
+      border-bottom: 1px solid #1e2433;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .navbar-brand { font-size: 15px; font-weight: 600; color: #e2e8f0; }
+    .btn-volver {
+      background: transparent;
+      border: 1px solid #2d3748;
+      color: #94a3b8;
+      font-size: 13px;
+      padding: 5px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .2s;
+    }
+    .btn-volver:hover { border-color: #4a5568; color: #e2e8f0; }
+
+    .page-wrapper { max-width: 960px; margin: 0 auto; padding: 36px 20px 80px; }
+
+    /* HERO HEADER */
+    .hero {
+      background: linear-gradient(135deg, #0d1a2e 0%, #112240 100%);
+      border: 1px solid #1e3a5f;
+      border-radius: 16px;
+      padding: 32px 36px;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 180px; height: 180px;
+      background: radial-gradient(circle, rgba(59,130,246,.12) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero-icon {
+      width: 64px; height: 64px;
+      background: #1e3a5f;
+      border: 1px solid #2d6a9f;
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+    .hero-label {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 1.2px; color: #3b82f6;
+      text-transform: uppercase; margin-bottom: 4px;
+    }
+    .hero-title {
+      font-size: 22px; font-weight: 700;
+      color: #f1f5f9; margin: 0 0 4px;
+    }
+    .hero-sub { font-size: 13px; color: #64748b; margin: 0; }
+
+    /* STATS BAR */
+    .stats-bar {
+      display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;
+    }
+    .stat-pill {
+      background: #161b27;
+      border: 1px solid #1e2433;
+      border-radius: 10px;
+      padding: 10px 18px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .stat-pill-icon { font-size: 18px; }
+    .stat-pill-num {
+      font-size: 18px; font-weight: 700; color: #f1f5f9; line-height: 1;
+    }
+    .stat-pill-label { font-size: 11px; color: #64748b; }
+
+    /* SEARCH */
+    .search-wrap {
+      position: relative; margin-bottom: 20px;
+    }
+    .search-icon {
+      position: absolute; left: 14px; top: 50%;
+      transform: translateY(-50%);
+      color: #4a5568; font-size: 15px; pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      background: #161b27;
+      border: 1px solid #1e2433;
+      border-radius: 10px;
+      color: #e2e8f0;
+      font-size: 14px;
+      padding: 10px 14px 10px 40px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color .2s;
+    }
+    .search-input::placeholder { color: #4a5568; }
+    .search-input:focus { border-color: #3b82f6; }
+
+    /* GRID DE CARDS */
+    .politicas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    /* CARD POLÍTICA */
+    .pol-card {
+      background: #161b27;
+      border: 1px solid #1e2433;
+      border-radius: 14px;
+      overflow: hidden;
+      transition: border-color .2s, transform .15s;
+      display: flex;
+      flex-direction: column;
+    }
+    .pol-card:hover {
+      border-color: #2d4a6e;
+      transform: translateY(-2px);
+    }
+
+    /* Franja superior coloreada */
+    .pol-card-top {
+      background: linear-gradient(135deg, #0d1e38, #1a3a5c);
+      padding: 20px 20px 16px;
+      position: relative;
+    }
+    .pol-card-top::after {
+      content: '📄';
+      position: absolute;
+      right: 16px; top: 16px;
+      font-size: 28px;
+      opacity: .4;
+    }
+    .pol-num {
+      font-size: 10px; font-weight: 700;
+      letter-spacing: .8px; color: #3b82f6;
+      text-transform: uppercase; margin-bottom: 6px;
+    }
+    .pol-nombre {
+      font-size: 15px; font-weight: 600;
+      color: #f1f5f9; line-height: 1.4;
+      margin: 0;
+      padding-right: 36px;
+    }
+
+    /* Cuerpo de la card */
+    .pol-card-body {
+      padding: 14px 20px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+    .pol-meta {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .badge-pdf {
+      display: inline-block;
+      background: #1e1010;
+      border: 1px solid #7f1d1d;
+      color: #f87171;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: .6px;
+      padding: 2px 8px; border-radius: 6px;
+      text-transform: uppercase;
+    }
+    .pol-meta-text { font-size: 12px; color: #475569; }
+
+    /* Botones de acción */
+    .pol-actions { display: flex; gap: 8px; }
+    .btn-pol {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center;
+      gap: 6px;
+      font-size: 12px; font-weight: 600;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all .2s;
+      font-family: inherit;
+      text-decoration: none;
+    }
+    .btn-ver-pol {
+      background: #0f1e3d;
+      border-color: #1d4ed8;
+      color: #60a5fa;
+    }
+    .btn-ver-pol:hover { background: #1e3a5f; color: #93c5fd; }
+    .btn-dl-pol {
+      background: #0f2a1a;
+      border-color: #166534;
+      color: #4ade80;
+    }
+    .btn-dl-pol:hover { background: #14532d; color: #86efac; }
+
+    /* EMPTY STATE */
+    .empty-state {
+      text-align: center; padding: 60px 20px;
+      color: #374151;
+    }
+    .empty-state .ei { font-size: 52px; margin-bottom: 14px; }
+    .empty-state p { font-size: 14px; color: #4b5563; }
+
+    /* MODAL PDF */
+    .modal-content {
+      background: #161b27 !important;
+      border: 1px solid #1e2433 !important;
+      border-radius: 16px !important;
+    }
+    .modal-header {
+      background: #0f1117 !important;
+      border-bottom: 1px solid #1e2433 !important;
+      border-radius: 16px 16px 0 0 !important;
+      padding: 14px 20px !important;
+    }
+    .modal-title-text {
+      font-size: 14px; font-weight: 600; color: #e2e8f0;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .btn-close-white { filter: invert(1) brightness(2); }
+    #modalIframe { width: 100%; height: 76vh; border: none; display: block; }
+
+    .modal-footer-custom {
+      background: #0f1117;
+      border-top: 1px solid #1e2433;
+      padding: 12px 20px;
+      display: flex; justify-content: flex-end; gap: 10px;
+    }
+    .btn-dl-modal {
+      display: flex; align-items: center; gap: 6px;
+      background: #0f2a1a; border: 1px solid #166534;
+      color: #4ade80; font-size: 13px; font-weight: 600;
+      padding: 8px 18px; border-radius: 8px;
+      cursor: pointer; font-family: inherit;
+      text-decoration: none; transition: all .2s;
+    }
+    .btn-dl-modal:hover { background: #14532d; color: #86efac; }
+    .btn-cerrar-modal {
+      background: #1a1a2e; border: 1px solid #2d3748;
+      color: #94a3b8; font-size: 13px; font-weight: 600;
+      padding: 8px 18px; border-radius: 8px;
+      cursor: pointer; font-family: inherit; transition: all .2s;
+    }
+    .btn-cerrar-modal:hover { color: #e2e8f0; }
+
+    /* NO RESULTS */
+    #noResults { display: none; text-align: center; padding: 40px; color: #4b5563; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <span class="navbar-brand">Sistema de Vacaciones</span>
+  <a href="/home" class="btn-volver">← Volver</a>
+</nav>
+
+<div class="page-wrapper">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-icon">📋</div>
+    <div>
+      <div class="hero-label">Recursos</div>
+      <h1 class="hero-title">Políticas de la Empresa</h1>
+      <p class="hero-sub">Consulta, visualiza y descarga los documentos oficiales.</p>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat-pill">
+      <span class="stat-pill-icon">📄</span>
+      <div>
+        <div class="stat-pill-num" th:text="${#lists.size(politicas)}">0</div>
+        <div class="stat-pill-label">Documentos disponibles</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUSCADOR -->
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" class="search-input" id="buscador"
+           placeholder="Buscar política por nombre..."
+           oninput="filtrar(this.value)">
+  </div>
+
+  <!-- EMPTY STATE sin registros -->
+  <div th:if="${#lists.isEmpty(politicas)}" class="empty-state">
+    <div class="ei">📭</div>
+    <p>No hay políticas publicadas aún.</p>
+  </div>
+
+  <!-- GRID -->
+  <div th:if="${!#lists.isEmpty(politicas)}" class="politicas-grid" id="gridPoliticas">
+    <div class="pol-card" th:each="p, i : ${politicas}"
+         th:attr="data-nombre=${#strings.toLowerCase(p.nombrePolitica)}">
+
+      <div class="pol-card-top">
+        <div class="pol-num" th:text="'Documento #' + ${i.count}"></div>
+        <p class="pol-nombre" th:text="${p.nombrePolitica}"></p>
+      </div>
+
+      <div class="pol-card-body">
+        <div class="pol-meta">
+          <span class="badge-pdf">PDF</span>
+          <span class="pol-meta-text">Documento oficial</span>
+        </div>
+
+        <div class="pol-actions">
+          <!-- Ver en modal -->
+		  <button class="btn-pol btn-ver-pol"
+		          th:onclick="|abrirModal('/vacations/politicas/ver/' + ${p.idpolitica}, '${p.nombrePolitica}', '/vacations/politicas/descargar/' + ${p.idpolitica})|">
+		    👁 Visualizar
+		  </button>
+
+          <!-- Descargar directo -->
+		  <a class="btn-pol btn-dl-pol"
+		     th:href="@{/vacations/politicas/descargar/{id}(id=${p.idpolitica})}"
+		     download>
+		    ⬇ Descargar
+		  </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Sin resultados de búsqueda -->
+  <div id="noResults">No se encontraron políticas con ese nombre.</div>
+
+</div>
+
+<!-- MODAL PDF -->
+<div class="modal fade" id="modalPdf" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title-text">
+          <span>📄</span>
+          <span id="modalTitulo">Previsualización</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white"
+                data-bs-dismiss="modal"></button>
+      </div>
+      <div style="padding:0">
+        <iframe id="modalIframe" src=""></iframe>
+      </div>
+      <div class="modal-footer-custom">
+        <a id="btnDescargaModal" href="#" class="btn-dl-modal" download>
+          ⬇ Descargar PDF
+        </a>
+        <button class="btn-cerrar-modal" data-bs-dismiss="modal">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script>
+  function abrirModal(urlVer, nombre, urlDescarga) {
+    document.getElementById('modalIframe').src = urlVer;
+    document.getElementById('modalTitulo').textContent = nombre;
+    document.getElementById('btnDescargaModal').href = urlDescarga;
+    new bootstrap.Modal(document.getElementById('modalPdf')).show();
+  }
+
+  document.getElementById('modalPdf').addEventListener('hidden.bs.modal', () => {
+    document.getElementById('modalIframe').src = '';
+  });
+
+  function filtrar(texto) {
+    const q = texto.toLowerCase().trim();
+    const cards = document.querySelectorAll('#gridPoliticas .pol-card');
+    let visibles = 0;
+    cards.forEach(card => {
+      const nombre = card.getAttribute('data-nombre') || '';
+      const mostrar = nombre.includes(q);
+      card.style.display = mostrar ? '' : 'none';
+      if (mostrar) visibles++;
+    });
+    document.getElementById('noResults').style.display =
+      visibles === 0 && q !== '' ? 'block' : 'none';
+  }
+</script>
+
+<div id="globalLoader" class="global-loader" aria-hidden="true">
+  <div class="global-loader__box">
+    <div class="global-loader__spinner"></div>
+    <div class="global-loader__text">Cargando...</div>
+  </div>
+</div>
+<link rel="stylesheet" href="/css/global-loader.css">
+<script src="/js/global-loader.js"></script>
+</body>
+</html>
