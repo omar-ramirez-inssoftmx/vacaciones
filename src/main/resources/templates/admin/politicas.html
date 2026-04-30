@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Políticas de la Empresa</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    /* NAVBAR */
+    .navbar {
+      background: #0f1117;
+      border-bottom: 1px solid #1e2433;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .navbar-brand {
+      font-size: 15px;
+      font-weight: 600;
+      color: #e2e8f0;
+      letter-spacing: .3px;
+    }
+    .btn-salir {
+      background: transparent;
+      border: 1px solid #2d3748;
+      color: #94a3b8;
+      font-size: 13px;
+      padding: 5px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-salir:hover { border-color: #4a5568; color: #e2e8f0; }
+
+    /* CONTENIDO */
+    .page-wrapper { max-width: 900px; margin: 0 auto; padding: 36px 20px 80px; }
+
+    /* BREADCRUMB LABEL */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      color: #3b82f6;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin: 0 0 4px;
+    }
+    .section-sub {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 28px;
+    }
+
+    /* CARD */
+    .panel {
+      background: #161b27;
+      border: 1px solid #1e2433;
+      border-radius: 14px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 14px 22px;
+      border-bottom: 1px solid #1e2433;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-header-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #3b82f6;
+      text-transform: uppercase;
+    }
+    .panel-body { padding: 22px; }
+
+    /* FORM */
+    .form-label-custom {
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+      letter-spacing: .4px;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .form-control-custom {
+      width: 100%;
+      background: #0f1117;
+      border: 1px solid #2d3748;
+      border-radius: 8px;
+      color: #e2e8f0;
+      font-size: 14px;
+      padding: 9px 14px;
+      outline: none;
+      transition: border-color .2s;
+      font-family: inherit;
+    }
+    .form-control-custom::placeholder { color: #4a5568; }
+    .form-control-custom:focus { border-color: #3b82f6; }
+
+    /* DROP ZONE */
+    .drop-zone {
+      width: 100%;
+      min-height: 110px;
+      background: #0f1117;
+      border: 1.5px dashed #2d3748;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      color: #4a5568;
+      font-size: 13px;
+    }
+    .drop-zone:hover { border-color: #3b82f6; background: #0d1420; color: #64748b; }
+    .drop-zone .dz-icon { font-size: 30px; }
+    .drop-zone.has-file { border-color: #3b82f6; color: #93c5fd; background: #0d1420; }
+
+    /* PREVIEW iframe */
+    .preview-frame {
+      width: 100%;
+      height: 480px;
+      border: 1px solid #1e2433;
+      border-radius: 10px;
+      display: none;
+      margin-top: 14px;
+      background: #0f1117;
+    }
+
+    /* BTN PRIMARY */
+    .btn-primary-custom {
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 9px 22px;
+      cursor: pointer;
+      transition: background .2s;
+      font-family: inherit;
+    }
+    .btn-primary-custom:hover { background: #2563eb; }
+
+    /* TABLE */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .data-table thead tr {
+      border-bottom: 1px solid #1e2433;
+    }
+    .data-table thead th {
+      padding: 10px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .8px;
+      color: #475569;
+      text-transform: uppercase;
+      text-align: left;
+    }
+    .data-table tbody tr {
+      border-bottom: 1px solid #1a2030;
+      transition: background .15s;
+    }
+    .data-table tbody tr:last-child { border-bottom: none; }
+    .data-table tbody tr:hover { background: #1a2233; }
+    .data-table td { padding: 13px 16px; color: #cbd5e1; vertical-align: middle; }
+    .td-id { color: #475569; font-size: 12px; }
+    .td-name { font-weight: 600; color: #e2e8f0; }
+
+    /* BADGE PDF */
+    .badge-pdf {
+      display: inline-block;
+      background: #1e1010;
+      border: 1px solid #7f1d1d;
+      color: #f87171;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .6px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+
+    /* ACCIONES */
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 13px;
+      border-radius: 7px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all .2s;
+      font-family: inherit;
+    }
+    .btn-ver {
+      background: #0f1e3d;
+      border-color: #1d4ed8;
+      color: #60a5fa;
+    }
+    .btn-ver:hover { background: #1e3a5f; color: #93c5fd; }
+    .btn-del {
+      background: #1a0f0f;
+      border-color: #7f1d1d;
+      color: #f87171;
+    }
+    .btn-del:hover { background: #2d1010; color: #fca5a5; }
+
+    /* EMPTY STATE */
+    .empty-state {
+      text-align: center;
+      padding: 52px 20px;
+      color: #374151;
+    }
+    .empty-state .empty-icon { font-size: 44px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; color: #4b5563; margin: 0; }
+
+    /* COUNTER BADGE */
+    .count-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #1e2d4a;
+      color: #60a5fa;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 7px;
+    }
+
+    /* MODAL */
+    .modal-content {
+      background: #161b27 !important;
+      border: 1px solid #1e2433 !important;
+      border-radius: 14px !important;
+    }
+    .modal-header {
+      background: #0f1117 !important;
+      border-bottom: 1px solid #1e2433 !important;
+      border-radius: 14px 14px 0 0 !important;
+    }
+    .modal-title { color: #e2e8f0 !important; font-size: 14px !important; font-weight: 600 !important; }
+    .btn-close-white { filter: invert(1) brightness(2); }
+    #modalIframe { width: 100%; height: 75vh; border: none; display: block; }
+
+    /* DIVIDER FORM */
+    .form-row { display: flex; gap: 16px; }
+    .form-row .form-group { flex: 1; }
+    .form-group { margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <span class="navbar-brand">Sistema de Vacaciones</span>
+  <a href="/home">
+    <button class="btn-salir">← Volver</button>
+  </a>
+</nav>
+
+<div class="page-wrapper">
+
+  <!-- HEADER -->
+  <div class="section-label">Panel Admin</div>
+  <h1 class="section-title">Políticas de la Empresa</h1>
+  <p class="section-sub">Sube, consulta y administra los documentos de políticas en formato PDF.</p>
+
+  <!-- PANEL SUBIR -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-header-label">+ Subir nueva política</span>
+    </div>
+    <div class="panel-body">
+      <form method="post" action="/admin/politicas/guardar"
+            enctype="multipart/form-data" id="formSubir">
+
+        <div class="form-group">
+          <label class="form-label-custom">Nombre de la política</label>
+          <input type="text" name="nombre" class="form-control-custom"
+                 placeholder="Ej. Reglamento Interno 2025" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label-custom">Documento PDF</label>
+          <div class="drop-zone" id="dropZone"
+               onclick="document.getElementById('archivoInput').click()">
+            <span class="dz-icon">📂</span>
+            <span id="dropLabel">Haz clic para seleccionar un archivo PDF</span>
+            <span style="font-size:11px;color:#374151">Solo archivos .pdf</span>
+          </div>
+          <input type="file" name="archivo" id="archivoInput"
+                 accept="application/pdf" style="display:none" required
+                 onchange="previsualizarLocal(this)">
+          <iframe id="previewLocal" class="preview-frame"></iframe>
+        </div>
+
+        <button type="submit" class="btn-primary-custom">⬆ Subir política</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- PANEL TABLA -->
+  <div class="panel">
+    <div class="panel-header" style="justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="panel-header-label">Políticas registradas</span>
+        <span class="count-badge" th:text="${#lists.size(politicas)}">0</span>
+      </div>
+    </div>
+
+    <!-- EMPTY -->
+    <div th:if="${#lists.isEmpty(politicas)}" class="empty-state">
+      <div class="empty-icon">📭</div>
+      <p>No hay políticas registradas aún.</p>
+    </div>
+
+    <!-- TABLA -->
+    <table th:if="${!#lists.isEmpty(politicas)}" class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre de la política</th>
+          <th>Archivo</th>
+          <th style="text-align:center">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="p, i : ${politicas}">
+          <td class="td-id" th:text="'#' + ${i.count}"></td>
+          <td class="td-name" th:text="${p.nombrePolitica}"></td>
+          <td><span class="badge-pdf">PDF</span></td>
+          <td style="text-align:center">
+            <button class="btn-action btn-ver"
+                    th:onclick="|abrirModal('/admin/politicas/ver/' + ${p.idpolitica})|">
+              👁 Ver
+            </button>
+            &nbsp;
+            <form method="post"
+                  th:action="@{/admin/politicas/eliminar/{id}(id=${p.idpolitica})}"
+                  style="display:inline"
+                  onsubmit="return confirm('¿Seguro que deseas eliminar esta política?')">
+              <button type="submit" class="btn-action btn-del">🗑 Eliminar</button>
+            </form>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- MODAL PDF -->
+<div class="modal fade" id="modalPdf" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="modal-title">📄 Previsualización del documento</span>
+        <button type="button" class="btn-close btn-close-white"
+                data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="padding:0">
+        <iframe id="modalIframe" src=""></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script>
+  function previsualizarLocal(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const frame = document.getElementById('previewLocal');
+    const label = document.getElementById('dropLabel');
+    const zone  = document.getElementById('dropZone');
+    frame.src = url;
+    frame.style.display = 'block';
+    label.textContent = '📄 ' + file.name;
+    zone.classList.add('has-file');
+  }
+
+  function abrirModal(url) {
+    document.getElementById('modalIframe').src = url;
+    new bootstrap.Modal(document.getElementById('modalPdf')).show();
+  }
+
+  document.getElementById('modalPdf').addEventListener('hidden.bs.modal', () => {
+    document.getElementById('modalIframe').src = '';
+  });
+</script>
+
+<div id="globalLoader" class="global-loader" aria-hidden="true">
+  <div class="global-loader__box">
+    <div class="global-loader__spinner"></div>
+    <div class="global-loader__text">Cargando...</div>
+  </div>
+</div>
+<link rel="stylesheet" href="/css/global-loader.css">
+<script src="/js/global-loader.js"></script>
+<!-- MODAL ÉXITO -->
+<div class="modal fade" id="modalExito" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+    <div class="modal-content" style="
+      background:#161b27;
+      border:1px solid #1e2433;
+      border-radius:20px;
+      overflow:hidden;
+      text-align:center;
+    ">
+      <!-- Franja superior verde -->
+      <div style="background:linear-gradient(135deg,#052e16,#14532d);padding:32px 24px 24px">
+        <div style="
+          width:64px;height:64px;
+          background:#16a34a;
+          border-radius:50%;
+          display:flex;align-items:center;justify-content:center;
+          margin:0 auto 14px;
+          box-shadow:0 0 0 10px rgba(22,163,74,.15);
+        ">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+               stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <div style="font-size:18px;font-weight:700;color:#f0fdf4;margin-bottom:6px">
+          ¡Política guardada!
+        </div>
+        <div style="font-size:13px;color:#86efac" id="modalNombreDoc">
+          El documento fue almacenado correctamente.
+        </div>
+      </div>
+
+      <!-- Cuerpo -->
+      <div style="padding:22px 28px 28px">
+        <div style="
+          background:#0f1117;
+          border:1px solid #1e2433;
+          border-radius:10px;
+          padding:12px 16px;
+          display:flex;align-items:center;gap:12px;
+          margin-bottom:22px;
+          text-align:left;
+        ">
+          <div style="
+            background:#1a0f0f;border:1px solid #7f1d1d;
+            border-radius:6px;padding:4px 8px;
+            font-size:10px;font-weight:700;color:#f87171;letter-spacing:.6px
+          ">PDF</div>
+          <div style="font-size:13px;color:#94a3b8" id="modalNombreDoc2">
+            documento.pdf
+          </div>
+        </div>
+
+        <button onclick="cerrarModalExito()"
+                style="
+                  width:100%;background:#16a34a;color:#fff;
+                  border:none;border-radius:10px;
+                  font-size:14px;font-weight:600;
+                  padding:11px;cursor:pointer;
+                  font-family:inherit;transition:background .2s;
+                "
+                onmouseover="this.style.background='#15803d'"
+                onmouseout="this.style.background='#16a34a'">
+          Aceptar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detectar si se guardó -->
+<th:block th:if="${guardado}">
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const nombre = '[[${nombreGuardado}]]';
+      document.getElementById('modalNombreDoc').textContent  = '"' + nombre + '"';
+      document.getElementById('modalNombreDoc2').textContent = nombre + '.pdf';
+      new bootstrap.Modal(document.getElementById('modalExito')).show();
+    });
+  </script>
+</th:block>
+
+<script>
+  function cerrarModalExito() {
+    bootstrap.Modal.getInstance(document.getElementById('modalExito')).hide();
+  }
+</script>
+</body>
+</html>

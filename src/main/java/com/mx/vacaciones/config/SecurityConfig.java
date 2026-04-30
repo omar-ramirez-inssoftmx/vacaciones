@@ -65,42 +65,31 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        http
-            // CSRF deshabilitado según tu implementación actual.
-            // Si después activas CSRF, habría que ajustar formularios y endpoints.
-            .csrf(csrf -> csrf.disable())
+    	http
+        .csrf(csrf -> csrf.disable())
 
-            .authorizeHttpRequests(auth -> auth
-                // =========================
-                // RUTAS PÚBLICAS
-                // =========================
-                .requestMatchers(
-                    "/login",
-                    "/change-password",
-                    "/css/**",
-                    "/js/**",
-                    "/images/**"
-                ).permitAll()
+        // Permite que iframes del mismo origen muestren contenido (necesario para ver PDFs)
+        .headers(headers -> headers
+            .frameOptions(frame -> frame.sameOrigin())
+        )
 
-                // =========================
-                // RUTAS DE VACACIONES
-                // Ahora pueden entrar:
-                // - ROLE_COLABORADOR
-                // - ROLE_ADMIN
-                // =========================
-                .requestMatchers("/vacations/**")
-                .hasAnyAuthority("ROLE_COLABORADOR", "ROLE_ADMIN")
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers(
+                "/login",
+                "/change-password",
+                "/css/**",
+                "/js/**",
+                "/images/**"
+            ).permitAll()
 
-                // =========================
-                // RUTAS DE ADMINISTRACIÓN
-                // Exclusivas para admin
-                // =========================
-                .requestMatchers("/admin/**")
-                .hasAuthority("ROLE_ADMIN")
+            .requestMatchers("/vacations/**")
+            .hasAnyAuthority("ROLE_COLABORADOR", "ROLE_ADMIN")
 
-                // Cualquier otra ruta requiere autenticación
-                .anyRequest().authenticated()
-            )
+            .requestMatchers("/admin/**")
+            .hasAuthority("ROLE_ADMIN")
+
+            .anyRequest().authenticated()
+        )
 
             .formLogin(form -> form
                 .loginPage("/login")
