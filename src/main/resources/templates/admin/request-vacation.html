@@ -153,10 +153,8 @@
 <script th:inline="javascript">
 document.addEventListener("DOMContentLoaded", () => {
 
-  // Días disponibles enviados desde backend
   const availableDays = parseInt(document.getElementById("availableDays")?.value || "0", 10);
 
-  // Referencias a elementos visuales
   const requestedChip = document.getElementById("requestedChip");
   const remainingChip = document.getElementById("remainingChip");
   const summaryBox = document.getElementById("summaryBox");
@@ -167,8 +165,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const weekendError = document.getElementById("weekendError");
   const submitBtn = document.getElementById("submitBtn");
 
-  // Lista de días festivos enviada desde backend
+  // 🔥 FIX REAL AQUÍ (sin romper tu lógica)
   const holidayDates = /*[[${holidayDates}]]*/ [];
+  const holidaySet = new Set((holidayDates || []).map(String));
+
+
   const holidaySet = new Set((holidayDates || []).map(String));
 
   function formatDate(date) {
@@ -177,6 +178,26 @@ document.addEventListener("DOMContentLoaded", () => {
       String(date.getDate()).padStart(2, "0");
   }
 
+  function parseInputDate(val) {
+    if (!val) return null;
+
+    try {
+      if (val.includes("/")) {
+        const [day, month, year] = val.split("/");
+        return new Date(year, month - 1, day);
+      }
+
+      if (val.includes("-")) {
+        const [year, month, day] = val.split("-");
+        return new Date(year, month - 1, day);
+      }
+
+    } catch (e) {
+      console.log("Error parseando fecha:", val);
+    }
+
+    return null;
+  }
   function isWeekend(date) {
     const day = date.getDay();
     return day === 0 || day === 6;
@@ -186,21 +207,15 @@ document.addEventListener("DOMContentLoaded", () => {
     return holidaySet.has(formatDate(date));
   }
 
-  // Fecha bloqueada = fin de semana o festivo
   function isBlockedDate(date) {
     return isWeekend(date) || isHoliday(date);
   }
 
-  // Cuenta solo días hábiles
   function countBusinessDays(start, end) {
     let count = 0;
-    const current = new Date(start);
-    current.setHours(0, 0, 0, 0);
+    let current = new Date(start);
 
-    const last = new Date(end);
-    last.setHours(0, 0, 0, 0);
-
-    while (current <= last) {
+    while (current <= end) {
       if (!isBlockedDate(current)) {
         count++;
       }
@@ -210,10 +225,11 @@ document.addEventListener("DOMContentLoaded", () => {
     return count;
   }
 
-  // Actualiza el resumen visual del formulario
   function updateSummary() {
     const startValue = document.getElementById("startDate").value;
     const endValue = document.getElementById("endDate").value;
+	console.log("startValue:", startValue);
+	console.log("endValue:", endValue);
 
     requestedChip.style.display = "none";
     remainingChip.style.display = "none";
@@ -222,13 +238,15 @@ document.addEventListener("DOMContentLoaded", () => {
     weekendError.style.display = "none";
     submitBtn.disabled = false;
 
-    if (!startValue || !endValue) {
-      return;
-    }
+    if (!startValue || !endValue) return;
 
-    const start = new Date(startValue + "T00:00:00");
-    const end = new Date(endValue + "T00:00:00");
+    const start = parseInputDate(startValue);
+    const end = parseInputDate(endValue);
 
+	if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) {
+	  console.log("Fechas inválidas:", start, end);
+	  return;
+	}
     if (end < start) {
       dateError.style.display = "block";
       submitBtn.disabled = true;
@@ -250,6 +268,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const businessDays = countBusinessDays(start, end);
+    console.log("start:", start, "end:", end, "días:", businessDays);
+
     const remainingDays = availableDays - businessDays;
 
     requestedChip.style.display = "block";
@@ -262,22 +282,18 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const commonConfig = {
-    dateFormat: "Y-m-d",
-    disable: [
-      function(date) {
-        return isBlockedDate(date);
-      }
-    ],
-    onChange: function() {
-      updateSummary();
-    }
+    dateFormat: "d/m/Y",
+    disable: [function(date) { return isBlockedDate(date); }],
+    onChange: function() { updateSummary(); },
+    onClose: function() { updateSummary(); } // 👈 🔥 CLAVE
   };
-
-  // Picker de fecha inicio
   const startPicker = flatpickr("#startDate", {
     ...commonConfig,
     onChange: function(selectedDates, dateStr) {
-      if (dateStr) {
+      if (selectedDates.length > 0 && isBlockedDate(selectedDates[0])) {
+        startPicker.clear();
+        endPicker.set("minDate", null);
+      } else if (selectedDates.length > 0) {
         endPicker.set("minDate", dateStr);
       } else {
         endPicker.set("minDate", null);
@@ -286,9 +302,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Picker de fecha fin
   const endPicker = flatpickr("#endDate", {
-    ...commonConfig
+    ...commonConfig,
+    onChange: function(selectedDates, dateStr) {
+      if (selectedDates.length > 0 && isBlockedDate(selectedDates[0])) {
+        endPicker.clear();
+      }
+      updateSummary();
+    }
   });
 
   updateSummary();

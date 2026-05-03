@@ -30,7 +30,20 @@ public class PoliticaController {
         model.addAttribute("politicas", politicaService.listarTodas());
         return "admin/politicas";
     }
+    @GetMapping("/descargar/{id}")
+    public ResponseEntity<byte[]> descargar(@PathVariable Integer id) {
+        Optional<Politica> politica = politicaService.buscarPorId(id);
 
+        if (politica.isPresent()) {
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"politica.pdf\"")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(politica.get().getDocumentoPdf());
+        }
+
+        return ResponseEntity.notFound().build();
+    }
     // Guarda nueva política
     @PostMapping("/guardar")
     public String guardar(@RequestParam("nombre") String nombre,
@@ -45,15 +58,30 @@ public class PoliticaController {
     }
     // Sirve el PDF para previsualizar en el navegador
     @GetMapping("/ver/{id}")
-    public ResponseEntity<byte[]> verPdf(@PathVariable Integer id) {
+    public ResponseEntity<?> verPdf(@PathVariable Integer id) {
+
         Optional<Politica> politica = politicaService.buscarPorId(id);
-        if (politica.isPresent() && politica.get().getDocumentoPdf() != null) {
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"politica.pdf\"")
-                    .contentType(MediaType.APPLICATION_PDF)
-                    .body(politica.get().getDocumentoPdf());
+
+        if (politica.isEmpty()) {
+            System.out.println("NO EXISTE");
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
+
+        byte[] pdf = politica.get().getDocumentoPdf();
+
+        if (pdf == null) {
+            System.out.println("PDF NULL");
+            return ResponseEntity.badRequest().body("PDF NULL");
+        }
+
+        System.out.println("PDF OK");
+        System.out.println("Tamaño: " + pdf.length);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=politica.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .contentLength(pdf.length)
+                .body(pdf);
     }
 
     // Elimina una política

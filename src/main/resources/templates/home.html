@@ -122,114 +122,148 @@
 		</a>
       </div>
     </div>
+	<!-- ========================= -->
+	<!-- OPCIONES PARA LIDER       -->
+	<!-- ========================= -->
+	<div th:if="${rol == 'ROLE_LIDER'}">
+	  <div class="list-group list-group-flush">
 
-    <!-- ========================= -->
-    <!-- OPCIONES PARA ADMIN -->
-    <!-- ========================= -->
-    <div th:if="${rol == 'ROLE_ADMIN'}">
-      <div class="list-group list-group-flush">
+	    <!-- Solicitar vacaciones -->
+	    <a href="/vacations/request" class="list-group-item list-group-item-action home-item">
+	      <div class="home-item__icon icon-blue">🏖️</div>
+	      <div class="home-item__body">
+	        <div class="home-item__title">Solicitar Vacaciones</div>
+	        <small class="text-muted">Crea una nueva solicitud</small>
+	      </div>
+	      <span class="home-item__arrow">›</span>
+	    </a>
 
-        <!-- Admin también puede solicitar vacaciones -->
-        <a href="/vacations/request" class="list-group-item list-group-item-action home-item">
-          <div class="home-item__icon icon-blue">🏖️</div>
-          <div class="home-item__body">
-            <div class="home-item__title">Solicitar Vacaciones</div>
-            <small class="text-muted">Crea una solicitud como administrador</small>
-          </div>
-          <span class="home-item__arrow">›</span>
-        </a>
+	    <!-- Ver mis solicitudes -->
+	    <a href="/vacations/status" class="list-group-item list-group-item-action home-item">
+	      <div class="home-item__icon icon-green">📋</div>
+	      <div class="home-item__body">
+	        <div class="home-item__title">Mis Vacaciones</div>
+	        <small class="text-muted">Consulta tus propias solicitudes</small>
+	      </div>
+	      <span class="home-item__arrow">›</span>
+	    </a>
 
-        <!-- Admin puede ver sus solicitudes -->
-        <a href="/vacations/status" class="list-group-item list-group-item-action home-item">
-          <div class="home-item__icon icon-green">📋</div>
-          <div class="home-item__body">
-            <div class="home-item__title">Mis Vacaciones</div>
-            <small class="text-muted">Consulta tus propias solicitudes</small>
-          </div>
-          <span class="home-item__arrow">›</span>
-        </a>
+	    <!-- Políticas -->
+	    <a href="/vacations/politicas" class="list-group-item list-group-item-action home-item">
+	      <div class="home-item__icon icon-purple">📄</div>
+	      <div class="home-item__body">
+	        <div class="home-item__title">Políticas de la Empresa</div>
+	        <small class="text-muted">Consulta los documentos y reglamentos</small>
+	      </div>
+	      <span class="home-item__arrow">›</span>
+	    </a>
 
-        <!-- Revisar solicitudes con badge -->
-        <a href="/admin/requests" class="list-group-item list-group-item-action home-item">
-          <div class="home-item__icon icon-orange home-item__icon--badge">
-            ⏳
+	    <!-- Revisar solicitudes (con badge) -->
+	    <a href="/admin/requests" class="list-group-item list-group-item-action home-item">
+	      <div class="home-item__icon icon-orange home-item__icon--badge">
+	        ⏳
+	        <span class="home-item__badge"
+	              th:if="${pendingRequestsCount != null and pendingRequestsCount > 0}"
+	              th:text="${pendingRequestsCount > 99 ? '99+' : pendingRequestsCount}">
+	        </span>
+	      </div>
+	      <div class="home-item__body">
+	        <div class="home-item__title">Revisar Solicitudes</div>
+	        <small class="text-muted">Aprueba o rechaza solicitudes pendientes</small>
+	      </div>
+	      <span class="home-item__arrow">›</span>
+	    </a>
 
-            <!--
-              Badge de pendientes.
-              Solo aparece si pendingRequestsCount > 0.
-              Si hay más de 99, muestra 99+.
-            -->
-            <span class="home-item__badge"
-                  th:if="${pendingRequestsCount != null and pendingRequestsCount > 0}"
-                  th:text="${pendingRequestsCount > 99 ? '99+' : pendingRequestsCount}">
-              0
-            </span>
-          </div>
+	    <!-- Historial -->
+	    <a href="/admin/requests/history" class="list-group-item list-group-item-action home-item">
+	      <div class="home-item__icon icon-purple">📂</div>
+	      <div class="home-item__body">
+	        <div class="home-item__title">Historial</div>
+	        <small class="text-muted">Aprobadas / Rechazadas</small>
+	      </div>
+	      <span class="home-item__arrow">›</span>
+	    </a>
 
-          <div class="home-item__body">
-            <div class="home-item__title">Revisar Solicitudes</div>
-            <small class="text-muted">Aprueba o rechaza solicitudes pendientes</small>
-          </div>
+	  </div>
+	</div>
+	<!-- ========================= -->
+	<!-- OPCIONES PARA ADMIN -->
+	<!-- ========================= -->
+	<div th:if="${rol == 'ROLE_ADMIN'}">
+	  <div class="list-group list-group-flush">
 
-          <span class="home-item__arrow">›</span>
-        </a>
+	    <!-- Revisar solicitudes -->
+	    <a href="/admin/requests" class="list-group-item list-group-item-action home-item">
+	      <div class="home-item__icon icon-orange home-item__icon--badge">
+	        ⏳
+	        <span class="home-item__badge"
+	              th:if="${pendingRequestsCount != null and pendingRequestsCount > 0}"
+	              th:text="${pendingRequestsCount > 99 ? '99+' : pendingRequestsCount}">
+	        </span>
+	      </div>
 
-        <!-- Usuarios -->
-        <a href="/admin/users" class="list-group-item list-group-item-action home-item">
-          <div class="home-item__icon icon-blue">👥</div>
-          <div class="home-item__body">
-            <div class="home-item__title">Administración de Usuarios</div>
-            <small class="text-muted">Alta, baja y edición de usuarios</small>
-          </div>
-          <span class="home-item__arrow">›</span>
-        </a>
+	      <div class="home-item__body">
+	        <div class="home-item__title">Revisar Solicitudes</div>
+	        <small class="text-muted">Aprueba o rechaza solicitudes pendientes</small>
+	      </div>
 
-        <!-- Historial -->
-        <a href="/admin/requests/history" class="list-group-item list-group-item-action home-item">
-          <div class="home-item__icon icon-purple">📂</div>
-          <div class="home-item__body">
-            <div class="home-item__title">Historial</div>
-            <small class="text-muted">Aprobadas / Rechazadas</small>
-          </div>
-          <span class="home-item__arrow">›</span>
-        </a>
+	      <span class="home-item__arrow">›</span>
+	    </a>
 
-        <!-- Calendario -->
-        <a href="/admin/calendar" class="list-group-item list-group-item-action home-item">
-          <div class="home-item__icon icon-teal">📅</div>
-          <div class="home-item__body">
-            <div class="home-item__title">Calendario</div>
-            <small class="text-muted">Ver calendario de vacaciones</small>
-          </div>
-          <span class="home-item__arrow">›</span>
-        </a>
-		
-		<!-- POLITICAS  -->
-		<a href="/admin/politicas" class="list-group-item list-group-item-action home-item">
-		  <div class="home-item__icon icon-blue">📄</div>
-		  <div class="home-item__body">
-		    <div class="home-item__title">Políticas de la Empresa</div>
-		    <small class="text-muted">Gestión de documentos y reglamentos</small>
-		  </div>
-		  <span class="home-item__arrow">›</span>
-		</a>
-        <!-- Dashboard -->
-        <a href="/admin/dashboard" class="list-group-item list-group-item-action home-item">
-          <div class="home-item__icon icon-green">📊</div>
-          <div class="home-item__body">
-            <div class="home-item__title">Dashboard KPI</div>
-            <small class="text-muted">Métricas generales</small>
-          </div>
-          <span class="home-item__arrow">›</span>
-        </a>
+	    <!-- Usuarios -->
+	    <a href="/admin/users" class="list-group-item list-group-item-action home-item">
+	      <div class="home-item__icon icon-blue">👥</div>
+	      <div class="home-item__body">
+	        <div class="home-item__title">Administración de Usuarios</div>
+	        <small class="text-muted">Alta, baja y edición de usuarios</small>
+	      </div>
+	      <span class="home-item__arrow">›</span>
+	    </a>
 
-      </div>
-    </div>
+	    <!-- Historial -->
+	    <a href="/admin/requests/history" class="list-group-item list-group-item-action home-item">
+	      <div class="home-item__icon icon-purple">📂</div>
+	      <div class="home-item__body">
+	        <div class="home-item__title">Historial</div>
+	        <small class="text-muted">Aprobadas / Rechazadas</small>
+	      </div>
+	      <span class="home-item__arrow">›</span>
+	    </a>
 
-  </div>
+	    <!-- Calendario -->
+	    <a href="/admin/calendar" class="list-group-item list-group-item-action home-item">
+	      <div class="home-item__icon icon-teal">📅</div>
+	      <div class="home-item__body">
+	        <div class="home-item__title">Calendario</div>
+	        <small class="text-muted">Ver calendario de vacaciones</small>
+	      </div>
+	      <span class="home-item__arrow">›</span>
+	    </a>
 
-</div>
+	    <!-- Políticas -->
+	    <a href="/admin/politicas" class="list-group-item list-group-item-action home-item">
+	      <div class="home-item__icon icon-blue">📄</div>
+	      <div class="home-item__body">
+	        <div class="home-item__title">Políticas de la Empresa</div>
+	        <small class="text-muted">Gestión de documentos y reglamentos</small>
+	      </div>
+	      <span class="home-item__arrow">›</span>
+	    </a>
 
+	    <!-- Dashboard -->
+	    <a href="/admin/dashboard" class="list-group-item list-group-item-action home-item">
+	      <div class="home-item__icon icon-green">📊</div>
+	      <div class="home-item__body">
+	        <div class="home-item__title">Dashboard KPI</div>
+	        <small class="text-muted">Métricas generales</small>
+	      </div>
+	      <span class="home-item__arrow">›</span>
+	    </a>
+
+	  </div>
+	</div>
+	</div> <!-- home-card -->
+	</div> <!-- container -->
 <script src="/js/bootstrap.bundle.min.js"></script>
 <!-- ========================= -->
 <!-- LOADER GLOBAL -->

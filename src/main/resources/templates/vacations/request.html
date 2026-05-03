@@ -452,8 +452,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const commonConfig = {
-	locale: "es",
-    dateFormat: "d/m/Y",
+    locale: "es",
+    dateFormat: "Y-m-d",   // valor interno
+    altInput: true,
+    altFormat: "d/m/Y",    // lo que ve el usuario
     disable: [
       function(date) {
         return isBlockedDate(date);

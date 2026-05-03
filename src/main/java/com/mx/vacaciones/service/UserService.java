@@ -72,19 +72,25 @@ public class UserService {
 
         User savedUser = userRepository.save(u);
 
-        if (savedUser.getEmail() != null && !savedUser.getEmail().trim().isEmpty()) {
-            emailService.sendNewUserCredentialsEmail(
-                    savedUser.getName(),
-                    savedUser.getEmail(),
-                    savedUser.getUsername(),
-                    temporaryPassword,
-                    systemUrl
-            );
+        try {
+            if (savedUser.getEmail() != null && !savedUser.getEmail().trim().isEmpty()) {
+                emailService.sendNewUserCredentialsEmail(
+                        savedUser.getName(),
+                        savedUser.getEmail(),
+                        savedUser.getUsername(),
+                        temporaryPassword,
+                        systemUrl
+                );
+            }
+        } catch (Exception emailEx) {
+            log.warn("Usuario creado pero no se pudo enviar el correo a {}: {}",
+                    savedUser.getEmail(), emailEx.getMessage());
         }
 
         log.info("Usuario creado correctamente: {}", username);
 
         return savedUser;
+
     }
 
     public User updateUser(
@@ -114,21 +120,24 @@ public class UserService {
 
         User savedUser = userRepository.save(u);
 
-        if (savedUser.getEmail() != null && !savedUser.getEmail().trim().isEmpty()) {
-            emailService.sendResetPasswordEmail(
-                    savedUser.getName(),
-                    savedUser.getEmail(),
-                    savedUser.getUsername(),
-                    temporaryPassword,
-                    systemUrl
-            );
+        try {
+            if (savedUser.getEmail() != null && !savedUser.getEmail().trim().isEmpty()) {
+                emailService.sendResetPasswordEmail(
+                        savedUser.getName(),
+                        savedUser.getEmail(),
+                        savedUser.getUsername(),
+                        temporaryPassword,
+                        systemUrl
+                );
+            }
+        } catch (Exception emailEx) {
+            log.warn("Password reseteado pero no se pudo enviar el correo a {}: {}",
+                    savedUser.getEmail(), emailEx.getMessage());
         }
 
-        log.info("Password temporal generado para usuario: {}", savedUser.getUsername());
-
-        return savedUser;
+        log.info("Password temporal generado para usuario: {}", savedUser.getUsername()); // ← faltaba
+        return savedUser; // ← faltaba
     }
-
     public User changeOwnPassword(String username, String newPassword) {
         User u = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));

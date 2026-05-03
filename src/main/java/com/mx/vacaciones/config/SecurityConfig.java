@@ -82,15 +82,24 @@ public class SecurityConfig {
                 "/images/**"
             ).permitAll()
 
-            .requestMatchers("/vacations/**")
-            .hasAnyAuthority("ROLE_COLABORADOR", "ROLE_ADMIN")
-            
-            .requestMatchers("/vacations/**")
-            .hasAnyAuthority("ROLE_COLABORADOR", "ROLE_ADMIN")
 
+            .requestMatchers("/vacations/**")
+            .hasAnyAuthority("ROLE_COLABORADOR", "ROLE_ADMIN", "ROLE_LIDER")
+
+            .requestMatchers("/admin/requests", "/admin/requests/approve",
+                             "/admin/requests/reject", "/admin/requests/history")
+            .hasAnyAuthority("ROLE_ADMIN", "ROLE_LIDER")
+
+            .requestMatchers("/admin/requests/**", "/admin/requests/history/**")
+            .hasAnyAuthority("ROLE_ADMIN", "ROLE_LIDER")
+            
+            .requestMatchers(
+            	    "/admin/politicas/ver/**",
+            	    "/admin/politicas/descargar/**"
+            	).hasAnyAuthority("ROLE_ADMIN", "ROLE_COLABORADOR", "ROLE_LIDER")
+            
             .requestMatchers("/admin/**")
             .hasAuthority("ROLE_ADMIN")
-
             .anyRequest().authenticated()
         )
 
