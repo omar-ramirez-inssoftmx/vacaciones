@@ -62,7 +62,7 @@ public class HomeController {
          */
         long pendingRequestsCount = 0L;
 
-        if ("ROLE_ADMIN".equals(rol)) {
+        if ("ROLE_ADMIN".equals(rol) || "ROLE_LIDER".equals(rol)) {
             pendingRequestsCount = vacationRepository.countByStatus("PENDING");
         }
 

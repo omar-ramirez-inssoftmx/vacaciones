@@ -45,8 +45,7 @@ public class EmailService {
     /**
      * Remitente configurado para todos los correos del sistema.
      */
-    private static final String FROM_EMAIL = "no-reply@inssoftmx.com";
-
+    private static final String FROM_EMAIL = "ci.admin@inssoftmx.com";
     /**
      * Nombre del sistema mostrado en correos.
      */
@@ -300,15 +299,25 @@ public class EmailService {
         String subject;
         String title;
         String intro;
+        String extraComment = "";
 
         if ("APPROVED".equals(status)) {
             subject = "Vacaciones aprobadas";
             title = "Solicitud aprobada";
             intro = "<p>Tu solicitud de vacaciones fue <strong style='color:#15803d;'>APROBADA</strong>.</p>";
+
         } else if ("REJECTED".equals(status)) {
             subject = "Vacaciones rechazadas";
             title = "Solicitud rechazada";
             intro = "<p>Tu solicitud de vacaciones fue <strong style='color:#b91c1c;'>RECHAZADA</strong>.</p>";
+
+            if (request.getAdminComment() != null && !request.getAdminComment().isBlank()) {
+                extraComment = buildHighlightBox(
+                    "Motivo del rechazo",
+                    request.getAdminComment()
+                );
+            }
+
         } else {
             return;
         }
@@ -321,11 +330,11 @@ public class EmailService {
                 {"Días", String.valueOf(request.getDays())},
                 {"Estatus", safe(status)}
             }) +
+            extraComment +
             "<p>Puedes consultar el detalle en el sistema.</p>";
 
         sendHtmlEmail(to, subject, buildBaseTemplate(title, content));
     }
-
     /**
      * Envía un correo de bienvenida a un usuario nuevo con sus credenciales
      * de acceso y la URL del sistema.

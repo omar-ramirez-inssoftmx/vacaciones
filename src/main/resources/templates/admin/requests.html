@@ -12,6 +12,19 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
+	#rejectReason {
+	  background: #0d1117;
+	  color: #e6edf3;
+	  border: 1px solid rgba(255,255,255,0.15);
+	}
+
+	#rejectReason:focus {
+	  background: #0d1117;
+	  color: #fff;
+	  border-color: #f85149;
+	  box-shadow: 0 0 0 0.15rem rgba(248,81,73,0.25);
+	}
+	
     #requestActionModal .modal-content {
       background: #161b22;
       color: #e6edf3;
@@ -231,6 +244,14 @@
         <div class="action-helper-small" id="modalActionHint">
           Esta acción actualizará el estatus de la solicitud.
         </div>
+		<div id="rejectReasonContainer" class="mt-3 d-none">
+		  <label class="form-label fw-semibold">Motivo del rechazo</label>
+		  <textarea
+		      id="rejectReason"
+		      class="form-control"
+		      rows="4"
+		      placeholder="Escribe el motivo del rechazo..."></textarea>
+		</div>
       </div>
 
       <div class="modal-footer">
@@ -255,7 +276,8 @@
 
   const requestActionModalEl = document.getElementById('requestActionModal');
   const requestActionModal = new bootstrap.Modal(requestActionModalEl);
-
+  const rejectReasonContainer = document.getElementById('rejectReasonContainer');
+  const rejectReason = document.getElementById('rejectReason');
   const modalRequestSummary = document.getElementById('modalRequestSummary');
   const modalActionText = document.getElementById('modalActionText');
   const modalActionHint = document.getElementById('modalActionHint');
@@ -286,19 +308,24 @@
     btnConfirmRequestAction.disabled = false;
 
     if (action === 'approve') {
+		rejectReasonContainer.classList.add('d-none');
+		rejectReason.value = '';
       requestActionModalLabel.textContent = 'Aprobar solicitud';
       modalActionText.textContent = '¿Deseas aprobar esta solicitud?';
       modalActionHint.textContent = `Se notificará el cambio de estatus al usuario ${email ? '(' + email + ')' : ''}.`;
       btnConfirmRequestAction.className = 'btn btn-success';
       btnConfirmRequestAction.textContent = 'Aprobar';
-    } else {
-      requestActionModalLabel.textContent = 'Rechazar solicitud';
-      modalActionText.textContent = '¿Deseas rechazar esta solicitud?';
-      modalActionHint.textContent = `Se notificará el rechazo al usuario ${email ? '(' + email + ')' : ''}.`;
-      btnConfirmRequestAction.className = 'btn btn-danger';
-      btnConfirmRequestAction.textContent = 'Rechazar';
-    }
+	  } else {
+	    requestActionModalLabel.textContent = 'Rechazar solicitud';
+	    modalActionText.textContent = '¿Deseas rechazar esta solicitud?';
+	    modalActionHint.textContent = `Se notificará el rechazo al usuario ${email ? '(' + email + ')' : ''}.`;
 
+	    btnConfirmRequestAction.className = 'btn btn-danger';
+	    btnConfirmRequestAction.textContent = 'Rechazar';
+
+	    rejectReasonContainer.classList.remove('d-none');
+	    rejectReason.value = '';
+	  }
     requestActionModal.show();
   }
 
@@ -312,6 +339,20 @@
     btnConfirmRequestAction.disabled = true;
     btnConfirmRequestAction.textContent = 'Procesando...';
 
+    let motivo = "";
+
+    if (currentAction === 'reject') {
+      motivo = rejectReason.value.trim();
+
+      if (!motivo) {
+        requestActionResult.className = 'alert alert-danger';
+        requestActionResult.textContent = 'Debes escribir el motivo del rechazo.';
+        btnConfirmRequestAction.disabled = false;
+        btnConfirmRequestAction.textContent = 'Rechazar';
+        return;
+      }
+    }
+
     requestActionResult.className = 'alert d-none';
     requestActionResult.textContent = '';
 
@@ -322,12 +363,16 @@
       : `/admin/requests/${currentRequestId}/reject`;
 
     try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "X-Requested-With": "XMLHttpRequest"
-        }
-      });
+		const res = await fetch(endpoint, {
+		  method: "POST",
+		  headers: {
+		    "Content-Type": "application/json",
+		    "X-Requested-With": "XMLHttpRequest"
+		  },
+		  body: currentAction === 'reject'
+		    ? JSON.stringify({ motivo })
+		    : null
+		});
 
       if (!res.ok) {
         throw new Error(

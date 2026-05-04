@@ -9,12 +9,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -36,7 +38,6 @@ import com.mx.vacaciones.repository.VacationRepository;
 import com.mx.vacaciones.service.EmailService;
 
 import jakarta.servlet.http.HttpServletResponse;
-
 /**
  * Controlador de administración de solicitudes de vacaciones.
  *
@@ -130,23 +131,27 @@ public class AdminVacationController {
      * @return redirección al listado de solicitudes
      */
     @PostMapping("/requests/{id}/reject")
-    public String reject(@PathVariable Long id, Authentication auth) {
+    @ResponseBody
+    public ResponseEntity<?> reject(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body,
+            Authentication auth) {
 
         VacationRequest request = vacationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
+        String motivo = body.get("motivo");
+
         request.setStatus("REJECTED");
         request.setDecidedBy(auth.getName());
         request.setDecidedAt(LocalDateTime.now());
+        request.setAdminComment(motivo);
 
         VacationRequest saved = vacationRepository.save(request);
 
-        /*
-         * Notifica al usuario que su solicitud fue rechazada.
-         */
         emailService.notifyUserDecision(saved);
 
-        return "redirect:/admin/requests";
+        return ResponseEntity.ok().build();
     }
 
     /**
