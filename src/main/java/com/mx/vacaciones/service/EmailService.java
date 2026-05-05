@@ -588,4 +588,67 @@ public class EmailService {
     private String safe(String value) {
         return value == null ? "" : value;
     }
+
+    public void notifyLeaderVacationRequest(VacationRequest request, User leader) {
+
+        // Si hay líder asignado -> enviar al líder
+        if (leader != null && leader.getEmail() != null && !leader.getEmail().isBlank()) {
+
+            String subject = "Nueva solicitud pendiente de aprobación";
+
+            String content =
+                "<p>Hola <strong>" + safeName(leader) + "</strong>,</p>" +
+                "<p>Tienes una nueva solicitud de vacaciones pendiente por revisar.</p>" +
+
+                buildInfoTable(new String[][]{
+                    {"Empleado", safeName(request.getUser())},
+                    {"Usuario", safe(request.getUser().getUsername())},
+                    {"Fecha inicio", String.valueOf(request.getStartDate())},
+                    {"Fecha fin", String.valueOf(request.getEndDate())},
+                    {"Días solicitados", String.valueOf(request.getDays())},
+                    {"Estatus", request.getStatus()}                }) +
+
+                "<p>Ingresa al sistema para aprobar o rechazar esta solicitud.</p>";
+
+            sendHtmlEmail(
+                leader.getEmail(),
+                subject,
+                buildBaseTemplate("Solicitud pendiente", content)
+            );
+
+            return;
+        }
+
+        // Si no hay líder (porque quien solicitó fue un líder)
+        // se notifica directamente a admins
+        notifyAdminsVacationRequest(request, request.getUser());
+    }
+    
+    public void notifyAdminVacationRequest(VacationRequest request, User leader) {
+
+        List<User> admins = userRepository.findByRoleAndEnabledTrue(Role.ROLE_ADMIN);
+
+        if (admins.isEmpty()) {
+            return;
+        }
+
+        String colaborador = safeName(request.getUser());
+        String liderNombre = safeName(leader);
+
+        String subject = "Nueva solicitud enviada a revisión";
+
+        String content =
+            "<p>El usuario <strong>" + colaborador + "</strong> solicitó vacaciones, " +
+            "las cuales pasaron a revisión del líder <strong>" + liderNombre + "</strong>.</p>";
+
+        for (User admin : admins) {
+            if (admin.getEmail() != null && !admin.getEmail().isBlank()) {
+                sendHtmlEmail(
+                    admin.getEmail(),
+                    subject,
+                    buildBaseTemplate("Nueva solicitud en revisión", content)
+                );
+            }
+        }
+    }
 }

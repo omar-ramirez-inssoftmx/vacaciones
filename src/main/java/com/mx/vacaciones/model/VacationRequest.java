@@ -41,16 +41,25 @@ public class VacationRequest {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
     
+    @ManyToOne
+    @JoinColumn(name = "leader_id")
+    private User leader;
+    
+    private String leaderDecision;
+    private LocalDateTime leaderDecidedAt;
+    private String leaderComment;
+    
     private LocalDateTime createdAt;
+    
 
 
     private String adminComment;
-    
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        // CAMBIO EN PLAABRAS YA QUE HAY CONFUSON ENTRE PALABRS ALGUNAS EN ESPANOL Y OTRAS EN INGLES 
-        status = "PENDING";
+
+        if (status == null) {
+            status = "PENDING_LEADER";
+        }
     }
-    
-}
+    }

@@ -87,15 +87,13 @@ public class AdminVacationController {
     @GetMapping("/requests")
     public String viewRequests(Model model) {
 
-        /*
-         * Se usa PENDING porque es el valor persistido en base de datos.
-         */
-        List<VacationRequest> pending = vacationRepository.findByStatusOrderByIdDesc("PENDING");
+        List<VacationRequest> pending =
+                vacationRepository.findByStatusOrderByIdDesc("PENDING_ADMIN");
+
         model.addAttribute("requests", pending);
 
         return "admin/requests";
     }
-
     /**
      * Aprueba una solicitud de vacaciones.
      *
@@ -218,8 +216,8 @@ public class AdminVacationController {
     @ResponseBody
     public List<Map<String, Object>> calendarEvents() {
 
-        List<String> statuses = List.of("APPROVED", "PENDING");
-        List<VacationRequest> list = vacationRepository.findForCalendar(statuses);
+    	List<String> statuses = List.of("APPROVED", "PENDING_ADMIN");
+    	List<VacationRequest> list = vacationRepository.findForCalendar(statuses);
 
         return list.stream().map(v -> {
             Map<String, Object> event = new HashMap<>();
@@ -234,7 +232,7 @@ public class AdminVacationController {
              */
             if ("APPROVED".equalsIgnoreCase(v.getStatus())) {
                 event.put("color", "#198754");
-            } else if ("PENDING".equalsIgnoreCase(v.getStatus())) {
+            } else if ("PENDING_ADMIN".equalsIgnoreCase(v.getStatus())) {
                 event.put("color", "#ffc107");
                 event.put("textColor", "#000");
             }
@@ -284,8 +282,8 @@ public class AdminVacationController {
          * Se incluyen solicitudes aprobadas y pendientes
          * para construir el reporte del calendario administrativo.
          */
-        List<String> statuses = List.of("PENDING", "APPROVED");
-        List<VacationRequest> list = vacationRepository.findForCalendarRange(statuses, from, to);
+    	List<String> statuses = List.of("PENDING_ADMIN", "APPROVED");
+    	List<VacationRequest> list = vacationRepository.findForCalendarRange(statuses, from, to);
 
         /*
          * Configuración de la respuesta HTTP para mostrar el PDF en navegador.
@@ -474,8 +472,8 @@ public class AdminVacationController {
 
             if ("APPROVED".equalsIgnoreCase(safeStatus)) {
                 labelStatus = "APROBADA";
-            } else if ("PENDING".equalsIgnoreCase(safeStatus)) {
-                labelStatus = "PENDIENTE";
+            } else if ("PENDING_ADMIN".equalsIgnoreCase(safeStatus)) {
+                labelStatus = "PENDIENTE ADMIN";
             } else if ("REJECTED".equalsIgnoreCase(safeStatus)) {
                 labelStatus = "RECHAZADA";
             }
