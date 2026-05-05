@@ -115,10 +115,27 @@ public class VacationController {
         model.addAttribute("availableDays", loggedUser.getVacationDaysAvailable());
         model.addAttribute("vacationRequest", new VacationRequest());
         model.addAttribute("holidayDates", holidayDates);
-        model.addAttribute("rol", isAdmin ? "ROLE_ADMIN" : "ROLE_COLABORADOR");
+        boolean isLeader = hasRole(authentication, "ROLE_LIDER");
+
+        String rol = "ROLE_COLABORADOR";
+
+        if (isAdmin) {
+            rol = "ROLE_ADMIN";
+        } else if (isLeader) {
+            rol = "ROLE_LIDER";
+        }
+
+        model.addAttribute("rol", rol);
         model.addAttribute("isAdmin", isAdmin);
         model.addAttribute("loggedUserId", loggedUser.getId());
+        
+        
+        List<User> leaders = userRepository.findAll()
+        	    .stream()
+        	    .filter(u -> u.getRole().name().equals("ROLE_LIDER"))
+        	    .collect(Collectors.toList());
 
+        model.addAttribute("leaders", leaders);
         /*
          * En modo RRHH cargamos todos los usuarios para el combo de selección.
          * Se ordenan por nombre para mejorar la experiencia visual.
@@ -169,6 +186,7 @@ public class VacationController {
             @RequestParam("startDate") String startDateStr,
             @RequestParam("endDate") String endDateStr,
             @RequestParam(value = "targetUserId", required = false) Long targetUserId,
+            @RequestParam(value = "leaderId", required = false) Long leaderId,
             Authentication authentication,
             RedirectAttributes ra) {
 
@@ -246,7 +264,19 @@ public class VacationController {
                 return "redirect:/vacations/request";
             }
         }
+        
+        User leader = null;
 
+        boolean isLeader = hasRole(authentication, "ROLE_LIDER");
+
+        if (!isLeader) {
+            leader = userRepository.findById(leaderId).orElse(null);
+
+            if (leader == null) {
+                ra.addFlashAttribute("error", "Debes seleccionar un líder.");
+                return "redirect:/vacations/request";
+            }
+        }
         /*
          * Si es admin y no selecciona usuario en modo RRHH,
          * se evita registrar accidentalmente para un usuario nulo.
@@ -257,8 +287,11 @@ public class VacationController {
         }
 
         // Evitar traslapes con solicitudes pendientes o aprobadas
-        List<String> blockingStatuses = List.of("PENDING", "APPROVED");
-        boolean overlap = vacationRepository.existsOverlapping(
+        List<String> blockingStatuses = List.of(
+        	    "PENDING_LEADER",
+        	    "PENDING_ADMIN",
+        	    "APPROVED"
+        	);        boolean overlap = vacationRepository.existsOverlapping(
                 targetUser.getId(),
                 startDate,
                 endDate,
@@ -299,21 +332,32 @@ public class VacationController {
         request.setStartDate(startDate);
         request.setEndDate(endDate);
         request.setDays(days);
-        request.setStatus("PENDING");
         request.setUser(targetUser);
+        if (leader != null) {
+            request.setLeader(leader);
+        }
         request.setUsername(targetUser.getUsername());
 
-        VacationRequest saved = vacationRepository.save(request);
+        if (isLeader) {
+            request.setStatus("PENDING_ADMIN");
+        } else {
+            request.setStatus("PENDING_LEADER");
+        }
 
-        /*
+        System.out.println("¿Es líder?: " + isLeader);
+        System.out.println("Status asignado: " + request.getStatus());
+
+        VacationRequest saved = vacationRepository.save(request);        /*
          * Envío de correos:
          * - Siempre se notifica a admins indicando quién capturó la solicitud.
          * - Si el usuario se la registró a sí mismo, se envía correo normal.
          * - Si un admin la registró para otro usuario, se envía correo especial RRHH.
          */
         try {
-            emailService.notifyAdminsVacationRequest(saved, loggedUser);
-
+        	emailService.notifyLeaderVacationRequest(saved, leader);
+        	emailService.notifyAdminVacationRequest(saved, leader);
+        	
+        	
             boolean requestCreatedByAdminForAnotherUser =
                     isAdmin && !targetUser.getUsername().equals(loggedUser.getUsername());
 

@@ -97,7 +97,8 @@ public class SecurityConfig {
             	    "/admin/politicas/ver/**",
             	    "/admin/politicas/descargar/**"
             	).hasAnyAuthority("ROLE_ADMIN", "ROLE_COLABORADOR", "ROLE_LIDER")
-            
+            .requestMatchers("/leader/**")
+            .hasAuthority("ROLE_LIDER")
             .requestMatchers("/admin/**")
             .hasAuthority("ROLE_ADMIN")
             .anyRequest().authenticated()

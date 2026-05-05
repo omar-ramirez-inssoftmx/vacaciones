@@ -125,7 +125,7 @@
 
   <div class="admin-hero shadow-soft mb-3">
     <div>
-      <div class="hero-label">Panel Admin</div>
+      <div class="hero-label">Panel LIDER</div>
       <h4 class="mb-1">Revisar Solicitudes</h4>
       <div class="muted">Solo se muestran solicitudes <b>PENDIENTES</b>.</div>
     </div>
@@ -162,15 +162,13 @@
           </tr>
         </thead>
         <tbody id="reqTbody">
-			<tr th:each="r : ${requests}"
-			    th:attr="
-			      data-row-id=${r.id},
-			      data-user=${r.user != null ? r.user.username : 'N/A'},
-			      data-email=${r.user != null ? r.user.email : ''},
-			      data-start=${#temporals.format(r.startDate,'dd/MM/yyyy')},
-			      data-end=${#temporals.format(r.endDate,'dd/MM/yyyy')},
-			      data-days=${r.days},
-			      data-leader-comment=${r.leaderComment}">
+          <tr th:each="r : ${requests}"
+              th:attr="data-row-id=${r.id},
+                       data-user=${r.user != null ? r.user.username : 'N/A'},
+                       data-email=${r.user != null ? r.user.email : ''},
+                       data-start=${#temporals.format(r.startDate,'dd/MM/yyyy')},
+                       data-end=${#temporals.format(r.endDate,'dd/MM/yyyy')},
+                       data-days=${r.days}">
 
             <td style="color:#484f58; font-size:0.78rem;" th:text="'#' + ${r.id}"></td>
 
@@ -233,15 +231,10 @@
       </div>
 
       <div class="modal-body">
-		<div class="action-info-box">
-		  <div class="action-info-label">Solicitud seleccionada</div>
-		  <div class="action-info-value" id="modalRequestSummary">-</div>
-		</div>
-
-		<div id="leaderReasonBox" class="mt-3 d-none">
-		  <div class="action-info-label">Motivo del líder</div>
-		  <div class="action-info-value" id="leaderReasonText"></div>
-		</div>
+        <div class="action-info-box">
+          <div class="action-info-label">Solicitud seleccionada</div>
+          <div class="action-info-value" id="modalRequestSummary">-</div>
+        </div>
 
         <div class="alert d-none" id="requestActionResult"></div>
 
@@ -291,30 +284,13 @@
   const requestActionResult = document.getElementById('requestActionResult');
   const btnConfirmRequestAction = document.getElementById('btnConfirmRequestAction');
   const requestActionModalLabel = document.getElementById('requestActionModalLabel');
-  const leaderReasonBox = document.getElementById('leaderReasonBox');
-  const leaderReasonText = document.getElementById('leaderReasonText');
 
   function openActionModal(btn, action) {
-	console.log("ENTRÓ AL MODAL");
-      const id = btn.getAttribute("data-id");
-      const row = document.querySelector(`tr[data-row-id="${id}"]`);
-	  console.log("leaderComment:", row.dataset.leaderComment);
+    const id = btn.getAttribute("data-id");
+    const row = document.querySelector(`tr[data-row-id="${id}"]`);
 
-      if (!row) return;
+    if (!row) return;
 
-	  const leaderComment = row.getAttribute("data-leader-comment") || '';
-
-	  console.log("Comentario:", leaderComment);
-	  console.log("Caja:", leaderReasonBox);
-
-	  if (leaderComment.trim() !== '') {
-	      console.log("MOSTRAR");
-	      leaderReasonBox.classList.remove('d-none');
-	      leaderReasonText.textContent = leaderComment;
-	  } else {
-	      console.log("OCULTAR");
-	      leaderReasonBox.classList.add('d-none');
-	  }
     currentRequestId = id;
     currentAction = action;
 
@@ -382,10 +358,9 @@
 
     setRowLoading(currentRequestId, true);
 
-    const endpoint = currentAction === 'approve'
-      ? `/admin/requests/${currentRequestId}/approve`
-      : `/admin/requests/${currentRequestId}/reject`;
-
+	const endpoint = currentAction === 'approve'
+	  ? `/leader/approve/${currentRequestId}`
+	  : `/leader/reject/${currentRequestId}`;
     try {
 		const res = await fetch(endpoint, {
 		  method: "POST",

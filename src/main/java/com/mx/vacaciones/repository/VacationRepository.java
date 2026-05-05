@@ -290,4 +290,6 @@ public interface VacationRepository extends JpaRepository<VacationRequest, Long>
             @Param("startOfMonth") LocalDate startOfMonth,
             @Param("endOfMonth") LocalDate endOfMonth
     );
+    
+    List<VacationRequest> findByLeaderAndStatus(User leader, String status);
 }
