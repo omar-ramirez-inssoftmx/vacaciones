@@ -99,6 +99,7 @@ public class UserService {
             String email,
             String role,
             int vacationDaysAvailable,
+            LocalDate hireDate,
             boolean enabled) {
 
         User u = findById(id);
@@ -106,6 +107,7 @@ public class UserService {
         u.setRole(Role.valueOf(role));
         u.setVacationDaysAvailable(vacationDaysAvailable);
         u.setEmail(email);
+        u.setHireDate(hireDate);
         u.setEnabled(enabled);
         return userRepository.save(u);
     }

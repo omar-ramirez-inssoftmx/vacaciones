@@ -109,6 +109,33 @@ public class EmailService {
 
         sendHtmlEmail(to, subject, buildBaseTemplate("Solicitud registrada", content));
     }
+    /**
+     * Traduce los estatus internos del sistema a etiquetas en español.
+     *
+     * @param status estatus interno
+     * @return texto legible en español
+     */
+    private String translateStatus(String status) {
+
+        if (status == null) {
+            return "";
+        }
+
+        return switch (status.toUpperCase()) {
+
+            case "APPROVED" -> "APROBADA";
+
+            case "REJECTED" -> "RECHAZADA";
+
+            case "PENDING_ADMIN" -> "PENDIENTE DE ADMINISTRACIÓN";
+
+            case "PENDING_LEADER" -> "PENDIENTE DE LÍDER";
+
+            case "PENDING" -> "PENDIENTE";
+
+            default -> status;
+        };
+    }
 
     /**
      * Envía correo al usuario confirmando que un administrador / RRHH
@@ -248,8 +275,7 @@ public class EmailService {
                 {"Fecha inicio", String.valueOf(request.getStartDate())},
                 {"Fecha fin", String.valueOf(request.getEndDate())},
                 {"Días solicitados", String.valueOf(request.getDays())},
-                {"Estatus", safe(request.getStatus())}
-            })
+                {"Estatus", translateStatus(request.getStatus())}            })
         );
 
         if (createdByAnotherUser) {
@@ -328,8 +354,8 @@ public class EmailService {
                 {"Fecha inicio", String.valueOf(request.getStartDate())},
                 {"Fecha fin", String.valueOf(request.getEndDate())},
                 {"Días", String.valueOf(request.getDays())},
-                {"Estatus", safe(status)}
-            }) +
+                {"Estatus", translateStatus(status)}
+                }) +
             extraComment +
             "<p>Puedes consultar el detalle en el sistema.</p>";
 
@@ -606,7 +632,7 @@ public class EmailService {
                     {"Fecha inicio", String.valueOf(request.getStartDate())},
                     {"Fecha fin", String.valueOf(request.getEndDate())},
                     {"Días solicitados", String.valueOf(request.getDays())},
-                    {"Estatus", request.getStatus()}                }) +
+                    {"Estatus", translateStatus(request.getStatus())}               }) +
 
                 "<p>Ingresa al sistema para aprobar o rechazar esta solicitud.</p>";
 

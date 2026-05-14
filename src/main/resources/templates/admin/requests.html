@@ -12,6 +12,58 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
+	.req-table {
+	  min-width: 1500px;
+	}
+
+	.req-table td,
+	.req-table th {
+	  vertical-align: middle;
+	  white-space: nowrap;
+	}
+
+	.req-table .badge {
+	  font-size: 0.78rem;
+	  padding: 8px 12px;
+	  border-radius: 999px;
+	}
+
+	.req-table .badge.bg-success {
+	  background: rgba(35,134,54,0.18) !important;
+	  color: #3fb950;
+	  border: 1px solid rgba(63,185,80,0.25);
+	}
+
+	.req-table .badge.bg-danger {
+	  background: rgba(248,81,73,0.12) !important;
+	  color: #f85149;
+	  border: 1px solid rgba(248,81,73,0.25);
+	}
+	.badge-approved{
+	  display:inline-flex;
+	  align-items:center;
+	  gap:6px;
+	  padding:6px 12px;
+	  border-radius:999px;
+	  background:rgba(63,185,80,.12);
+	  color:#3fb950;
+	  border:1px solid rgba(63,185,80,.25);
+	  font-size:.78rem;
+	  font-weight:700;
+	}
+
+	.badge-rejected{
+	  display:inline-flex;
+	  align-items:center;
+	  gap:6px;
+	  padding:6px 12px;
+	  border-radius:999px;
+	  background:rgba(248,81,73,.12);
+	  color:#f85149;
+	  border:1px solid rgba(248,81,73,.25);
+	  font-size:.78rem;
+	  font-weight:700;
+	}
 	#rejectReason {
 	  background: #0d1117;
 	  color: #e6edf3;
@@ -151,16 +203,39 @@
 
     <div class="table-responsive">
       <table class="req-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Colaborador</th>
-            <th>Rango de fechas</th>
-            <th>Días</th>
-            <th>Estatus</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
+		<thead>
+		  <tr>
+		    <th style="width:70px;">ID</th>
+
+		    <th style="min-width:240px;">
+		      Colaborador
+		    </th>
+
+		    <th style="min-width:220px;">
+		      Rango de fechas
+		    </th>
+
+		    <th style="width:90px; text-align:center;">
+		      Días
+		    </th>
+
+		    <th style="min-width:180px;">
+		      Líder
+		    </th>
+
+		    <th style="min-width:170px;">
+		      Decisión líder
+		    </th>
+
+		    <th style="min-width:220px;">
+		      Estatus
+		    </th>
+
+		    <th style="min-width:240px;">
+		      Acciones
+		    </th>
+		  </tr>
+		</thead>
         <tbody id="reqTbody">
 			<tr th:each="r : ${requests}"
 			    th:attr="
@@ -172,50 +247,199 @@
 			      data-days=${r.days},
 			      data-leader-comment=${r.leaderComment}">
 
-            <td style="color:#484f58; font-size:0.78rem;" th:text="'#' + ${r.id}"></td>
+			  <!-- ID -->
+			  <td style="color:#6e7681; font-size:0.82rem;">
+			    <span th:text="'#' + ${r.id}"></span>
+			  </td>
 
-            <td>
-              <div class="user-cell">
-                <span class="user-name" th:text="${r.user != null ? r.user.username : 'N/A'}"></span>
-                <span class="user-email" th:text="${r.user != null ? r.user.email : ''}"></span>
-              </div>
-            </td>
+			  <!-- COLABORADOR -->
+			  <td>
+			    <div class="user-cell">
+			      <span class="user-name"
+			            th:text="${r.user != null ? r.user.username : 'N/A'}">
+			      </span>
 
-            <td>
-              <div class="date-range">
-                <span th:text="${#temporals.format(r.startDate,'dd/MM/yyyy')}"></span>
-                <span class="arrow">→</span>
-                <span th:text="${#temporals.format(r.endDate,'dd/MM/yyyy')}"></span>
-              </div>
-            </td>
+			      <span class="user-email"
+			            th:text="${r.user != null ? r.user.email : ''}">
+			      </span>
+			    </div>
+			  </td>
 
-            <td>
-              <span class="days-badge" th:text="${r.days}"></span>
-            </td>
+			  <!-- FECHAS -->
+			  <td>
+			    <div class="date-range">
+			      <span th:text="${#temporals.format(r.startDate,'dd/MM/yyyy')}"></span>
 
-            <td>
-              <span class="badge-pending">PENDIENTE</span>
-            </td>
+			      <span class="arrow">→</span>
 
-            <td>
-              <div class="d-flex gap-2">
-                <button type="button"
-                        class="btn-approve"
-                        th:attr="data-id=${r.id}"
-                        onclick="openActionModal(this, 'approve')">
-                  ✓ Aprobar
-                </button>
-                <button type="button"
-                        class="btn-reject"
-                        th:attr="data-id=${r.id}"
-                        onclick="openActionModal(this, 'reject')">
-                  ✕ Rechazar
-                </button>
-              </div>
-            </td>
+			      <span th:text="${#temporals.format(r.endDate,'dd/MM/yyyy')}"></span>
+			    </div>
+			  </td>
 
-          </tr>
-        </tbody>
+			  <!-- DIAS -->
+			  <td class="text-center">
+			    <span class="days-badge"
+			          th:text="${r.days}">
+			    </span>
+			  </td>
+
+			  <!-- LIDER -->
+			  <td>
+
+			    <div class="d-flex flex-column">
+
+			      <span style="font-weight:600; color:#e6edf3;"
+			            th:text="${r.leader != null ? r.leader.username : 'Sin líder'}">
+			      </span>
+
+			      <small style="color:#8b949e;"
+			             th:if="${r.leader != null}"
+			             th:text="${r.leader.email}">
+			      </small>
+
+			    </div>
+
+			  </td>
+
+			  <!-- DECISION LIDER -->
+			  <td>
+
+			    <!-- APROBADA -->
+			    <span class="badge bg-success"
+			          th:if="${r.leaderDecision == 'APPROVED'}">
+			      ✓ Aprobada
+			    </span>
+
+			    <!-- RECHAZADA -->
+			    <span class="badge bg-danger"
+			          th:if="${r.leaderDecision == 'REJECTED'}">
+			      ✕ Rechazada
+			    </span>
+
+			    <!-- PENDIENTE -->
+			    <span class="badge-pending"
+			          th:if="${r.leaderDecision == null || r.leaderDecision == 'PENDING'}">
+			      ⏳ Pendiente
+			    </span>
+
+			    <!-- COMENTARIO -->
+			    <div th:if="${r.leaderComment != null && !#strings.isEmpty(r.leaderComment)}"
+			         style="
+			            margin-top:6px;
+			            font-size:0.78rem;
+			            color:#8b949e;
+			            line-height:1.3;
+			            max-width:220px;
+			            white-space:normal;
+			         ">
+
+			      💬 <span th:text="${r.leaderComment}"></span>
+
+			    </div>
+
+			  </td>
+
+			  <!-- ESTATUS -->
+			  <td>
+
+			    <!-- PENDIENTE LIDER -->
+			    <span class="badge-pending"
+			          th:if="${r.status == 'PENDING_LEADER'}">
+			      ⏳ Pendiente de líder
+			    </span>
+
+			    <!-- PENDIENTE ADMIN -->
+			    <span class="badge-pending"
+			          th:if="${r.status == 'PENDING_ADMIN'}">
+			      ⏳ Pendiente de administración
+			    </span>
+
+			    <!-- APROBADA FINAL -->
+			    <span class="badge bg-success"
+			          th:if="${r.status == 'APPROVED'}">
+			      ✓ Aprobada por administración
+			    </span>
+
+			    <!-- RECHAZADA -->
+			    <span class="badge bg-danger"
+			          th:if="${r.status == 'REJECTED'}">
+
+			      <span th:if="${r.leaderDecision == 'REJECTED'}">
+			        ✕ Rechazada por líder
+			      </span>
+
+			      <span th:if="${r.leaderDecision != 'REJECTED'}">
+			        ✕ Rechazada por administración
+			      </span>
+
+			    </span>
+
+			  </td>
+
+			  <!-- ACCIONES -->
+			  <td>
+
+			    <!-- SI AUN ESTA CON LIDER -->
+			    <div th:if="${r.status == 'PENDING_LEADER'}">
+
+			      <span class="badge-pending">
+			        ⏳ Esperando aprobación del líder
+			      </span>
+
+			    </div>
+
+			    <!-- SI YA PASÓ A ADMIN -->
+			    <div class="d-flex gap-2"
+			         th:if="${r.status == 'PENDING_ADMIN'}">
+
+			      <button type="button"
+			              class="btn-approve"
+			              th:attr="data-id=${r.id}"
+			              onclick="openActionModal(this, 'approve')">
+
+			        ✓ Aprobar
+
+			      </button>
+
+			      <button type="button"
+			              class="btn-reject"
+			              th:attr="data-id=${r.id}"
+			              onclick="openActionModal(this, 'reject')">
+
+			        ✕ Rechazar
+
+			      </button>
+
+			    </div>
+
+			    <!-- SI YA FUE RECHAZADA -->
+			    <div th:if="${r.status == 'REJECTED'}">
+
+			      <span class="badge bg-danger">
+
+			        <span th:if="${r.leaderDecision == 'REJECTED'}">
+			          ✕ Rechazada por líder
+			        </span>
+
+			        <span th:if="${r.leaderDecision != 'REJECTED'}">
+			          ✕ Rechazada por admin
+			        </span>
+
+			      </span>
+
+			    </div>
+
+			    <!-- SI YA FUE APROBADA -->
+			    <div th:if="${r.status == 'APPROVED'}">
+
+			      <span class="badge bg-success">
+			        ✓ Finalizada
+			      </span>
+
+			    </div>
+
+			  </td>			</tr>
+		        </tbody>
       </table>
     </div>
 
@@ -345,7 +569,7 @@
 	    modalActionHint.textContent = `Se notificará el rechazo al usuario ${email ? '(' + email + ')' : ''}.`;
 
 	    btnConfirmRequestAction.className = 'btn btn-danger';
-	    btnConfirmRequestAction.textContent = 'Rechazar';
+	    btnConfirmRequestAction.textContent = 'Aceptar';
 
 	    rejectReasonContainer.classList.remove('d-none');
 	    rejectReason.value = '';
