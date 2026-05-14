@@ -87,10 +87,45 @@ public class AdminVacationController {
     @GetMapping("/requests")
     public String viewRequests(Model model) {
 
-        List<VacationRequest> pending =
-                vacationRepository.findByStatusOrderByIdDesc("PENDING_ADMIN");
+        List<VacationRequest> all =
+                vacationRepository.findByStatusInOrderByIdDesc(
+                        List.of("PENDING_LEADER", "PENDING_ADMIN")
+                );
 
-        model.addAttribute("requests", pending);
+        List<VacationRequest> visibleForAdmin = all.stream()
+                .filter(r -> {
+
+                    /*
+                     * CASO 1:
+                     * Ya pasó aprobación del líder.
+                     */
+                    if ("PENDING_ADMIN".equals(r.getStatus())) {
+                        return true;
+                    }
+
+                    /*
+                     * CASO 2:
+                     * El usuario ES líder y no tiene líder asignado.
+                     * Entonces admin puede aprobar directo.
+                     */
+                    if ("PENDING_LEADER".equals(r.getStatus())
+                            && r.getLeader() == null) {
+
+                        r.setStatus("PENDING_ADMIN");
+
+                        vacationRepository.save(r);
+
+                        return true;
+                    }
+
+                    /*
+                     * Todo lo demás NO lo ve admin todavía.
+                     */
+                    return false;
+                })
+                .toList();
+
+        model.addAttribute("requests", visibleForAdmin);
 
         return "admin/requests";
     }

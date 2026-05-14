@@ -80,16 +80,26 @@ public class AdminUserController {
             @RequestParam String email,
             @RequestParam String role,
             @RequestParam Integer vacationDaysAvailable,
+            @RequestParam LocalDate hireDate,
             @RequestParam(defaultValue = "false") boolean enabled) {
 
         try {
-            userService.updateUser(id, name, email, role, vacationDaysAvailable, enabled);
+            userService.updateUser(
+                    id,
+                    name,
+                    email,
+                    role,
+                    vacationDaysAvailable,
+                    hireDate,
+                    enabled
+            );
+
             return "redirect:/admin/users?ok=Usuario%20actualizado";
+
         } catch (Exception e) {
             return "redirect:/admin/users?err=" + encode(e.getMessage());
         }
     }
-
     @PostMapping("/{id}/reset-password")
     public String resetPassword(@PathVariable Long id) {
         try {

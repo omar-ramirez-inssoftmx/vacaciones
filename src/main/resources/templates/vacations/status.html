@@ -80,22 +80,34 @@
               <span class="days-chip" th:text="${r.days}"></span>
             </td>
 
-            <td>
-              <span class="badge-pending"
-                    th:if="${r.status == 'PENDING'}">⏳ PENDIENTE</span>
-              <span class="badge-approved"
-                    th:if="${r.status == 'APPROVED'}">✓ APROBADA</span>
-              <span class="badge-rejected"
-                    th:if="${r.status == 'REJECTED'}">✕ RECHAZADA</span>
-              <span class="badge-other"
-                    th:if="${r.status != 'PENDING' and r.status != 'APPROVED' and r.status != 'REJECTED'}"
-                    th:text="${r.status}"></span>
-            </td>
+			<td>
 
-            <td>
-              <span class="comment-cell"
-                    th:text="${r.adminComment != null ? r.adminComment : '—'}"></span>
-            </td>
+			  <span class="badge-pending"
+			        th:if="${r.status == 'PENDING_LEADER'}">
+			        ⏳ PENDIENTE DE LÍDER
+			  </span>
+
+			  <span class="badge-pending"
+			        th:if="${r.status == 'PENDING_ADMIN'}">
+			        ⏳ PENDIENTE DE ADMINISTRACIÓN
+			  </span>
+
+			  <span class="badge-approved"
+			        th:if="${r.status == 'APPROVED'}">
+			        ✓ APROBADA
+			  </span>
+
+			  <span class="badge-rejected"
+			        th:if="${r.status == 'REJECTED'}">
+			        ✕ RECHAZADA
+			  </span>
+			  
+			  <td class="comment-column">
+			    <span class="comment-cell"
+			          th:text="${r.adminComment != null and !#strings.isEmpty(r.adminComment) ? r.adminComment : 'Sin comentario'}">
+			    </span>
+			  </td>
+			</td>
 
           </tr>
         </tbody>
