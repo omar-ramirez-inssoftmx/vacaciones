@@ -136,6 +136,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (url.origin !== window.location.origin) {
         return;
       }
+	  
+	  if (href.includes("/descargar/")) {
+	      return;
+	  }
 
       showLoader();
     });

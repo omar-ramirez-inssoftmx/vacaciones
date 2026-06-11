@@ -1,6 +1,7 @@
 package com.mx.vacaciones.controller;
 
 import java.awt.Color;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
@@ -85,7 +87,9 @@ public class AdminVacationController {
      * @return vista de solicitudes pendientes
      */
     @GetMapping("/requests")
-    public String viewRequests(Model model) {
+    public String viewRequests(Model model, Authentication auth) {
+
+        String currentAdmin = auth.getName();
 
         List<VacationRequest> all =
                 vacationRepository.findByStatusInOrderByIdDesc(
@@ -95,40 +99,30 @@ public class AdminVacationController {
         List<VacationRequest> visibleForAdmin = all.stream()
                 .filter(r -> {
 
-                    /*
-                     * CASO 1:
-                     * Ya pasó aprobación del líder.
-                     */
                     if ("PENDING_ADMIN".equals(r.getStatus())) {
                         return true;
                     }
 
-                    /*
-                     * CASO 2:
-                     * El usuario ES líder y no tiene líder asignado.
-                     * Entonces admin puede aprobar directo.
-                     */
                     if ("PENDING_LEADER".equals(r.getStatus())
                             && r.getLeader() == null) {
 
                         r.setStatus("PENDING_ADMIN");
-
                         vacationRepository.save(r);
-
                         return true;
                     }
 
-                    /*
-                     * Todo lo demás NO lo ve admin todavía.
-                     */
                     return false;
                 })
+                // Bloquea que el admin se vea a sí mismo en su propia bandeja
+                .filter(r -> !currentAdmin.equalsIgnoreCase(r.getUsername()))
                 .toList();
 
         model.addAttribute("requests", visibleForAdmin);
 
         return "admin/requests";
     }
+    
+    
     /**
      * Aprueba una solicitud de vacaciones.
      *
@@ -137,20 +131,21 @@ public class AdminVacationController {
      * @return redirección al listado de solicitudes
      */
     @PostMapping("/requests/{id}/approve")
-    public String approve(@PathVariable Long id, Authentication auth) {
+    public String approve(@PathVariable Long id, Authentication auth, RedirectAttributes ra) {
 
         VacationRequest request = vacationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+
+        if (auth.getName().equalsIgnoreCase(request.getUsername())) {
+            ra.addFlashAttribute("error", "No puedes aprobar tu propia solicitud de vacaciones.");
+            return "redirect:/admin/requests";
+        }
 
         request.setStatus("APPROVED");
         request.setDecidedBy(auth.getName());
         request.setDecidedAt(LocalDateTime.now());
 
         VacationRequest saved = vacationRepository.save(request);
-
-        /*
-         * Notifica al usuario que su solicitud fue aprobada.
-         */
         emailService.notifyUserDecision(saved);
 
         return "redirect:/admin/requests";
@@ -173,6 +168,12 @@ public class AdminVacationController {
         VacationRequest request = vacationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
+        if (auth.getName().equalsIgnoreCase(request.getUsername())) {
+            return ResponseEntity.status(403).body(
+                Map.of("error", "No puedes rechazar tu propia solicitud de vacaciones.")
+            );
+        }
+
         String motivo = body.get("motivo");
 
         request.setStatus("REJECTED");
@@ -181,12 +182,10 @@ public class AdminVacationController {
         request.setAdminComment(motivo);
 
         VacationRequest saved = vacationRepository.save(request);
-
         emailService.notifyUserDecision(saved);
 
         return ResponseEntity.ok().build();
     }
-
     /**
      * Muestra historial de solicitudes aprobadas / rechazadas con filtros.
      *

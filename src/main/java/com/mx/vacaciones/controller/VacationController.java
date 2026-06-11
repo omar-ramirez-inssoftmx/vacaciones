@@ -131,9 +131,10 @@ public class VacationController {
         
         
         List<User> leaders = userRepository.findAll()
-        	    .stream()
-        	    .filter(u -> u.getRole().name().equals("ROLE_LIDER"))
-        	    .collect(Collectors.toList());
+                .stream()
+                .filter(u -> u.getRole().name().equals("ROLE_LIDER"))
+                .filter(u -> !u.getId().equals(loggedUser.getId()))
+                .collect(Collectors.toList());
 
         model.addAttribute("leaders", leaders);
         /*
@@ -264,14 +265,14 @@ public class VacationController {
                 return "redirect:/vacations/request";
             }
         }
+        boolean isSelfRequestByAdmin = isAdmin && targetUser.getId().equals(loggedUser.getId());
         
         User leader = null;
 
         boolean isLeader = hasRole(authentication, "ROLE_LIDER");
-
-        if (!isLeader) {
+        
+        if (!isSelfRequestByAdmin) {
             leader = userRepository.findById(leaderId).orElse(null);
-
             if (leader == null) {
                 ra.addFlashAttribute("error", "Debes seleccionar un líder.");
                 return "redirect:/vacations/request";
@@ -333,12 +334,14 @@ public class VacationController {
         request.setEndDate(endDate);
         request.setDays(days);
         request.setUser(targetUser);
+        request.setRequestedByUsername(loggedUser.getUsername());
+
         if (leader != null) {
             request.setLeader(leader);
         }
         request.setUsername(targetUser.getUsername());
 
-        if (isLeader) {
+        if (isSelfRequestByAdmin) {
             request.setStatus("PENDING_ADMIN");
         } else {
             request.setStatus("PENDING_LEADER");

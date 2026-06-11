@@ -346,8 +346,8 @@
                       👁 Visualizar
                   </button>
 
-                  <a class="btn-pol btn-dl-pol"
-                     th:href="@{/admin/politicas/descargar/{id}(id=${p.idpolitica})}">
+				  <a class="btn-pol btn-dl-pol no-loader"
+				     th:href="@{/admin/politicas/descargar/{id}(id=${p.idpolitica})}">
                       ⬇ Descargar
                   </a>
               </div>
@@ -373,8 +373,11 @@
         <iframe id="modalIframe" src=""></iframe>
       </div>
       <div class="modal-footer-custom">
-        <a id="btnDescargaModal" href="#" class="btn-dl-modal" download>
-          ⬇ Descargar PDF
+		<a id="btnDescargaModal"
+		   href="#"
+		   class="btn-dl-modal no-loader"
+		   download>
+		             ⬇ Descargar PDF
         </a>
         <button class="btn-cerrar-modal" data-bs-dismiss="modal">
           Cerrar

@@ -33,7 +33,8 @@ public class VacationRequest {
     // PENDING | APPROVED | REJECTED
     @Column(nullable = false)
     private String status;
-    
+    private String requestedByUsername; // quien generó la solicitud (admin que se autosolicita)
+
     private String decidedBy;         // username del admin
     private LocalDateTime decidedAt;  // fecha/hora de decisión
     

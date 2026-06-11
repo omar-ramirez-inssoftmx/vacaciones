@@ -35,8 +35,6 @@
 
   <!-- ========================= -->
   <!-- ENCABEZADO -->
-  <!-- Ahora el texto ya no dice solo "Colaborador"
-       para que también sirva con admin -->
   <!-- ========================= -->
   <div class="admin-hero shadow-soft mb-3">
     <div>
@@ -92,7 +90,7 @@
 
       <!--
         IMPORTANTE:
-        Este formulario sirve para colaborador y admin,
+        Este formulario sirve para colaborador, líder y admin,
         siempre que el backend permita ambas rutas/roles.
       -->
       <form method="post"
@@ -101,6 +99,39 @@
 
         <div th:if="${_csrf != null}">
           <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        </div>
+
+        <!-- ========================= -->
+        <!-- SELECT DE EMPLEADO (solo admin) -->
+        <!-- ========================= -->
+        <div class="row g-3 mb-3" th:if="${isAdmin}">
+          <div class="col-md-12">
+            <label class="form-label">Empleado</label>
+            <select id="targetUserId" name="targetUserId" class="form-select" required>
+              <option value="">-- Selecciona un empleado --</option>
+              <option th:each="u : ${users}"
+                      th:value="${u.id}"
+                      th:text="${u.name != null ? u.name : u.username}"
+                      th:selected="${u.id == loggedUserId}">
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- ========================= -->
+        <!-- SELECT DE LÍDER (no aplica si el usuario logueado ES líder) -->
+        <!-- ========================= -->
+		<div class="row g-3 mb-3" id="leaderRow">
+          <div class="col-md-12">
+            <label class="form-label">Líder que aprobará</label>
+            <select id="leaderId" name="leaderId" class="form-select" required>
+              <option value="">-- Selecciona un líder --</option>
+              <option th:each="l : ${leaders}"
+                      th:value="${l.id}"
+                      th:text="${l.name != null ? l.name : l.username}">
+              </option>
+            </select>
+          </div>
         </div>
 
         <div class="row g-3">
@@ -165,11 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const weekendError = document.getElementById("weekendError");
   const submitBtn = document.getElementById("submitBtn");
 
-  // 🔥 FIX REAL AQUÍ (sin romper tu lógica)
   const holidayDates = /*[[${holidayDates}]]*/ [];
-  const holidaySet = new Set((holidayDates || []).map(String));
-
-
   const holidaySet = new Set((holidayDates || []).map(String));
 
   function formatDate(date) {
@@ -228,8 +255,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateSummary() {
     const startValue = document.getElementById("startDate").value;
     const endValue = document.getElementById("endDate").value;
-	console.log("startValue:", startValue);
-	console.log("endValue:", endValue);
 
     requestedChip.style.display = "none";
     remainingChip.style.display = "none";
@@ -244,7 +269,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const end = parseInputDate(endValue);
 
 	if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) {
-	  console.log("Fechas inválidas:", start, end);
 	  return;
 	}
     if (end < start) {
@@ -268,7 +292,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const businessDays = countBusinessDays(start, end);
-    console.log("start:", start, "end:", end, "días:", businessDays);
 
     const remainingDays = availableDays - businessDays;
 
@@ -285,7 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
     dateFormat: "d/m/Y",
     disable: [function(date) { return isBlockedDate(date); }],
     onChange: function() { updateSummary(); },
-    onClose: function() { updateSummary(); } // 👈 🔥 CLAVE
+    onClose: function() { updateSummary(); }
   };
   const startPicker = flatpickr("#startDate", {
     ...commonConfig,
@@ -313,6 +336,35 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   updateSummary();
+
+  // ========================================
+  // Ocultar el combo de líder cuando el admin
+  // se selecciona a sí mismo como empleado
+  // ========================================
+  const targetUserSelect = document.getElementById("targetUserId");
+  const leaderRow = document.getElementById("leaderRow");
+  const leaderSelect = document.getElementById("leaderId");
+  const loggedUserId = /*[[${loggedUserId}]]*/ null;
+
+  function toggleLeaderField() {
+    if (!targetUserSelect || !leaderRow) return;
+
+    const selectedId = targetUserSelect.value;
+    const isSelf = selectedId && loggedUserId && Number(selectedId) === Number(loggedUserId);
+
+    if (isSelf) {
+      leaderRow.style.display = "none";
+      if (leaderSelect) leaderSelect.removeAttribute("required");
+    } else {
+      leaderRow.style.display = "";
+      if (leaderSelect) leaderSelect.setAttribute("required", "required");
+    }
+  }
+
+  if (targetUserSelect) {
+    targetUserSelect.addEventListener("change", toggleLeaderField);
+    toggleLeaderField(); // estado inicial
+  }
 });
 </script>
 <!-- ========================= -->

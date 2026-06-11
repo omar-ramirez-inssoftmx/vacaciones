@@ -190,7 +190,28 @@
 	<!-- OPCIONES PARA ADMIN -->
 	<!-- ========================= -->
 	<div th:if="${rol == 'ROLE_ADMIN'}">
-	  <div class="list-group list-group-flush">
+	  <		<div class="list-group list-group-flush">
+
+		    <!-- Solicitar vacaciones -->
+		    <a href="/vacations/request" class="list-group-item list-group-item-action home-item">
+		      <div class="home-item__icon icon-blue">🏖️</div>
+		      <div class="home-item__body">
+		        <div class="home-item__title">Solicitar Vacaciones</div>
+		        <small class="text-muted">Crea una nueva solicitud para ti</small>
+		      </div>
+		      <span class="home-item__arrow">›</span>
+		    </a>
+
+		    <!-- Ver mis solicitudes -->
+		    <a href="/vacations/status" class="list-group-item list-group-item-action home-item">
+		      <div class="home-item__icon icon-green">📋</div>
+		      <div class="home-item__body">
+		        <div class="home-item__title">Mis Vacaciones</div>
+		        <small class="text-muted">Consulta el estatus de tus propias solicitudes</small>
+		      </div>
+		      <span class="home-item__arrow">›</span>
+		    </a>
+
 
 	    <!-- Revisar solicitudes -->
 	    <a href="/admin/requests" class="list-group-item list-group-item-action home-item">
