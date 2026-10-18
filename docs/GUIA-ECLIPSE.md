@@ -1,7 +1,7 @@
 # Guía rápida — Levantar INSSOFT PEOPLE en Eclipse
 
 > Rama actual de desarrollo: `feature/documents-module`
-> Para una base local desde cero, Flyway crea el esquema V1–V8 al arrancar.
+> Para una base local desde cero, Flyway crea el esquema V1–V9 al arrancar.
 > **No uses `ddl-auto=update`**. El proyecto ya está configurado con `ddl-auto=none` (local) y `validate` (prod).
 
 ---
@@ -70,7 +70,7 @@ CREATE DATABASE VACACIONES_DEV;
 ```
 
 > Si ya tienes una copia de la base real, úsala en lugar de crearla.
-> En ese caso Flyway hará baseline en V1 y aplicará V2–V8; **haz respaldo antes**.
+> En ese caso Flyway hará baseline en V1 y aplicará V2–V9; **haz respaldo antes**.
 
 ---
 
@@ -173,11 +173,12 @@ V5__employees.sql
 V6__vacations.sql
 V7__calendar.sql
 V8__documents.sql
+V9__onboarding.sql
 ```
 
 Si la base está vacía, V1 crea el esquema legado mínimo y las demás migraciones lo evolucionan.
 
-Si la base ya existía, Flyway hace baseline en V1 y aplica V2–V8.
+Si la base ya existía, Flyway hace baseline en V1 y aplica V2–V9.
 
 ### Si Flyway falla
 
@@ -205,6 +206,8 @@ Crea:
 | `colaborador` | `Colaborador1234` | EMPLOYEE | EMP-001 |
 
 El colaborador tiene como jefe directo al líder; el líder tiene como jefe al admin.
+
+El seed deja `onboarding_completed = 0` en los tres usuarios, por lo que al entrar verán el recorrido inicial automáticamente.
 
 > Este script es **solo para desarrollo**. No lo ejecutes en producción.
 
@@ -234,6 +237,19 @@ Guarda el `accessToken` y úsalo:
 curl http://localhost:8443/api/v1/auth/me \
   -H "Authorization: Bearer TU_TOKEN"
 ```
+
+### Recorrido inicial
+
+1. Entra como `colaborador / Colaborador1234`.
+2. Debe abrirse automáticamente el recorrido guiado.
+3. Prueba **Siguiente**, **Anterior**, **Omitir** y **Finalizar**.
+4. Verifica en SQL:
+   ```sql
+   SELECT username, onboarding_completed FROM users WHERE username = 'colaborador';
+   ```
+5. Vuelve a entrar: ya no se abre automáticamente.
+6. Pulsa **🎯 Ver recorrido** en el home: debe abrirse de nuevo.
+7. Repite con `lider` y `admin` para ver los pasos por rol.
 
 ---
 
@@ -336,9 +352,10 @@ mvn clean verify
 - [ ] Base `VACACIONES_DEV` creada.
 - [ ] `application-local.properties` con DB y `JWT_SECRET`.
 - [ ] Perfil `local` activo.
-- [ ] Aplicación arranca y Flyway aplica V1–V8.
+- [ ] Aplicación arranca y Flyway aplica V1–V9.
 - [ ] Seed local ejecutado.
 - [ ] Login `admin / Admin1234`.
 - [ ] `/api/v1/employees/me`, `/api/v1/vacations/balance`, `/api/v1/calendar/days` responden.
+- [ ] El usuario nuevo ve el recorrido inicial y puede repetirlo con «Ver recorrido».
 - [ ] Carga/descarga de documento funciona.
-- [ ] `mvn clean verify` en verde (184 tests).
+- [ ] `mvn clean verify` en verde (193 tests).

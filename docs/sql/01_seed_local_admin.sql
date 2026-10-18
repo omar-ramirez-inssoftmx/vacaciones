@@ -174,6 +174,11 @@ WHERE u.username IN ('admin', 'lider', 'colaborador')
       WHERE ur.user_id = u.id AND ur.role_id = r.id
   );
 
+-- Forzar el recorrido inicial en los usuarios de prueba local.
+UPDATE dbo.users
+SET onboarding_completed = 0
+WHERE username IN ('admin', 'lider', 'colaborador');
+
 SELECT 'Seed local aplicado' AS result,
        (SELECT COUNT(*) FROM dbo.users WHERE username IN ('admin','lider','colaborador')) AS usuarios,
        (SELECT COUNT(*) FROM dbo.emp_employee WHERE employee_number IN ('ADMIN-001','LIDER-001','EMP-001')) AS empleados;
