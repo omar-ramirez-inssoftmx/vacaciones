@@ -24,15 +24,13 @@ public interface EmployeeDocumentRepository extends JpaRepository<EmployeeDocume
               AND d.deletedAt IS NULL
               AND d.visibility = :visibility
               AND d.type.employeeVisible = true
-            ORDER BY d.createdAt DESC
             """)
     Page<EmployeeDocument> findVisibleForEmployee(
             @Param("employeeId") Long employeeId,
             @Param("visibility") DocumentVisibility visibility,
             Pageable pageable);
 
-    Page<EmployeeDocument> findByEmployee_IdAndDeletedAtIsNullOrderByCreatedAtDesc(
-            Long employeeId, Pageable pageable);
+    Page<EmployeeDocument> findByEmployee_IdAndDeletedAtIsNull(Long employeeId, Pageable pageable);
 
     long countByEmployee_IdAndDeletedAtIsNull(Long employeeId);
 
@@ -48,7 +46,6 @@ public interface EmployeeDocumentRepository extends JpaRepository<EmployeeDocume
                    OR LOWER(d.fileName) LIKE LOWER(CONCAT('%', :q, '%'))
                    OR LOWER(COALESCE(e.firstName, '')) LIKE LOWER(CONCAT('%', :q, '%'))
                    OR LOWER(COALESCE(e.lastName, '')) LIKE LOWER(CONCAT('%', :q, '%')))
-            ORDER BY d.createdAt DESC
             """)
     Page<EmployeeDocument> search(
             @Param("companyId") Long companyId,

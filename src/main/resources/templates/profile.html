@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/people-head :: head('Mi perfil')}"></head>
+<body class="people-page">
+<nav th:replace="~{fragments/people-nav :: nav('profile')}"></nav>
+
+<main class="people-container" data-tour="profile">
+  <section class="people-hero">
+    <div class="profile-hero">
+      <div class="profile-avatar" th:text="${#strings.substring(empleado.fullName, 0, 1)}">A</div>
+      <div>
+        <div class="people-hero__eyebrow">Mi expediente</div>
+        <h1 th:text="${empleado.fullName}">Nombre del empleado</h1>
+        <p>
+          <span th:text="${empleado.positionName}">Puesto</span>
+          <span> · </span>
+          <span th:text="${empleado.departmentName}">Departamento</span>
+        </p>
+      </div>
+    </div>
+    <div class="people-hero__actions">
+      <span class="people-badge" th:text="${empleado.employeeNumber}">EMP-001</span>
+      <span class="people-badge people-badge--success" th:if="${empleado.enabled}">Activo</span>
+    </div>
+  </section>
+
+  <div th:if="${ok}" class="people-message people-message--ok" th:text="${ok}"></div>
+  <div th:if="${err}" class="people-message people-message--error" th:text="${err}"></div>
+
+  <div class="people-grid people-grid--wide">
+    <section class="people-card">
+      <div class="people-card__header">
+        <h2>Datos personales</h2>
+      </div>
+      <div class="people-card__body">
+        <div class="people-data">
+          <div>
+            <div class="people-data__label">Correo corporativo</div>
+            <div class="people-data__value" th:text="${empleado.corporateEmail ?: 'No registrado'}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Correo personal</div>
+            <div class="people-data__value" th:text="${empleado.personalEmail ?: 'No registrado'}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Teléfono</div>
+            <div class="people-data__value" th:text="${empleado.phone ?: 'No registrado'}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Fecha de nacimiento</div>
+            <div class="people-data__value"
+                 th:text="${empleado.birthDate != null ? #temporals.format(empleado.birthDate, 'dd/MM/yyyy') : 'No registrada'}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Estado civil</div>
+            <div class="people-data__value" th:text="${empleado.maritalStatusName ?: 'No registrado'}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Género</div>
+            <div class="people-data__value" th:text="${empleado.genderName ?: 'No registrado'}"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="people-card">
+      <div class="people-card__header">
+        <h2>Datos laborales</h2>
+      </div>
+      <div class="people-card__body">
+        <div class="people-data">
+          <div>
+            <div class="people-data__label">Empresa</div>
+            <div class="people-data__value" th:text="${empleado.companyName}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Sucursal</div>
+            <div class="people-data__value" th:text="${empleado.branchName}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Departamento</div>
+            <div class="people-data__value" th:text="${empleado.departmentName}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Puesto</div>
+            <div class="people-data__value" th:text="${empleado.positionName}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Jefe directo</div>
+            <div class="people-data__value" th:text="${empleado.managerName ?: 'No asignado'}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Fecha de ingreso</div>
+            <div class="people-data__value"
+                 th:text="${empleado.hireDate != null ? #temporals.format(empleado.hireDate, 'dd/MM/yyyy') : '-'}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Modalidad</div>
+            <div class="people-data__value" th:text="${empleado.workModalityName ?: 'No registrada'}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Estatus</div>
+            <div class="people-data__value" th:text="${empleado.statusName ?: '-'}"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="people-card mt-4">
+    <div class="people-card__header">
+      <h2>Contactos de emergencia</h2>
+      <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="collapse"
+              data-bs-target="#addContactForm" aria-expanded="false" aria-controls="addContactForm">
+        + Agregar contacto
+      </button>
+    </div>
+
+    <div class="collapse" id="addContactForm">
+      <div class="people-card__body">
+        <form method="post" th:action="@{/profile/contacts}" class="people-form">
+          <div>
+            <label for="contactName">Nombre completo</label>
+            <input id="contactName" name="name" class="form-control" required maxlength="150">
+          </div>
+          <div>
+            <label for="contactRelationship">Parentesco</label>
+            <input id="contactRelationship" name="relationship" class="form-control" maxlength="50">
+          </div>
+          <div>
+            <label for="contactPhone">Teléfono</label>
+            <input id="contactPhone" name="phone" class="form-control" required maxlength="20">
+          </div>
+          <div>
+            <label for="contactEmail">Correo</label>
+            <input id="contactEmail" name="email" type="email" class="form-control" maxlength="150">
+          </div>
+          <div class="people-form__full">
+            <label class="form-check-label">
+              <input type="checkbox" name="primary" value="true" class="form-check-input">
+              Contacto principal
+            </label>
+          </div>
+          <div class="people-form__actions people-form__full">
+            <button type="submit" class="btn btn-primary">Guardar contacto</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse"
+                    data-bs-target="#addContactForm">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="people-card__body people-card__body--flush"
+         th:if="${empleado.emergencyContacts != null and !#lists.isEmpty(empleado.emergencyContacts)}">
+      <div th:each="contact : ${empleado.emergencyContacts}" class="profile-contact">
+        <div>
+          <div class="profile-contact__name">
+            <span th:text="${contact.name}">Contacto</span>
+            <span class="people-badge" th:if="${contact.primary}">Principal</span>
+          </div>
+          <div class="profile-contact__meta">
+            <span th:text="${contact.relationship ?: 'Sin parentesco'}"></span>
+            <span> · </span>
+            <span th:text="${contact.phone}"></span>
+            <span th:if="${contact.email != null and !#strings.isEmpty(contact.email)}">
+              · <span th:text="${contact.email}"></span>
+            </span>
+          </div>
+        </div>
+        <form method="post" th:action="@{/profile/contacts/{uuid}/delete(uuid=${contact.uuid})}"
+              onsubmit="return confirm('¿Eliminar este contacto de emergencia?');">
+          <button type="submit" class="btn btn-outline-danger btn-sm">Eliminar</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="people-empty"
+         th:if="${empleado.emergencyContacts == null or #lists.isEmpty(empleado.emergencyContacts)}">
+      <div class="people-empty__icon">🆘</div>
+      <div class="people-empty__title">Sin contactos de emergencia</div>
+      <div>Agrega al menos un contacto para tener tu expediente completo.</div>
+    </div>
+  </section>
+</main>
+
+<div id="globalLoader" class="global-loader" aria-hidden="true">
+  <div class="global-loader__box">
+    <div class="global-loader__spinner"></div>
+    <div class="global-loader__title">Cargando<span class="global-loader__dots"></span></div>
+  </div>
+</div>
+<link rel="stylesheet" href="/css/global-loader.css">
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script src="/js/global-loader.js"></script>
+</body>
+</html>

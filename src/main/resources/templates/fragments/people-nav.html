@@ -1,0 +1,74 @@
+<nav th:fragment="nav(active)" class="navbar navbar-expand-lg people-navbar"
+     xmlns:th="http://www.thymeleaf.org">
+  <div class="container-fluid people-navbar__inner">
+    <a class="navbar-brand people-navbar__brand" href="/home">
+      <span class="people-navbar__mark">IP</span>
+      <span>INSSOFT PEOPLE</span>
+    </a>
+
+    <button class="navbar-toggler people-navbar__toggler" type="button"
+            data-bs-toggle="collapse" data-bs-target="#peopleNav"
+            aria-controls="peopleNav" aria-expanded="false" aria-label="Abrir menú">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="peopleNav">
+      <ul class="navbar-nav me-auto people-navbar__links">
+        <li class="nav-item">
+          <a class="nav-link" th:classappend="${active == 'home'} ? ' active'" href="/home">Inicio</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:classappend="${active == 'profile'} ? ' active'" href="/profile">Mi perfil</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:classappend="${active == 'documents'} ? ' active'" href="/documents">Mis documentos</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:classappend="${active == 'payroll'} ? ' active'" href="/payroll">Mis recibos</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:classappend="${active == 'communications'} ? ' active'" href="/communications">Comunicados</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:classappend="${active == 'vacations'} ? ' active'" href="/vacations/status">Mis vacaciones</a>
+        </li>
+
+        <li class="nav-item" th:if="${rol == 'ROLE_LIDER'}">
+          <a class="nav-link" th:classappend="${active == 'leader-requests'} ? ' active'" href="/leader/requests">Bandeja</a>
+        </li>
+        <li class="nav-item" th:if="${rol == 'ROLE_LIDER'}">
+          <a class="nav-link" th:classappend="${active == 'team'} ? ' active'" href="/leader/team">Mi equipo</a>
+        </li>
+
+        <li class="nav-item" th:if="${rol == 'ROLE_ADMIN'}">
+          <a class="nav-link" th:classappend="${active == 'admin-employees'} ? ' active'" href="/admin/employees">Empleados</a>
+        </li>
+        <li class="nav-item" th:if="${rol == 'ROLE_ADMIN'}">
+          <a class="nav-link" th:classappend="${active == 'admin-documents'} ? ' active'" href="/admin/documents">Documentos</a>
+        </li>
+        <li class="nav-item" th:if="${rol == 'ROLE_ADMIN'}">
+          <a class="nav-link" th:classappend="${active == 'admin-payroll'} ? ' active'" href="/admin/payroll">Nómina</a>
+        </li>
+        <li class="nav-item" th:if="${rol == 'ROLE_ADMIN'}">
+          <a class="nav-link" th:classappend="${active == 'admin-communications'} ? ' active'" href="/admin/communications">Comunicados</a>
+        </li>
+        <li class="nav-item" th:if="${rol == 'ROLE_ADMIN'}">
+          <a class="nav-link" th:classappend="${active == 'admin-requests'} ? ' active'" href="/admin/requests">Solicitudes</a>
+        </li>
+        <li class="nav-item" th:if="${rol == 'ROLE_ADMIN'}">
+          <a class="nav-link" th:classappend="${active == 'admin-users'} ? ' active'" href="/admin/users">Usuarios</a>
+        </li>
+        <li class="nav-item" th:if="${rol == 'ROLE_ADMIN'}">
+          <a class="nav-link" th:classappend="${active == 'admin-calendar'} ? ' active'" href="/admin/calendar">Calendario</a>
+        </li>
+      </ul>
+
+      <div class="people-navbar__user">
+        <span class="people-navbar__username" th:text="${usuario}">usuario</span>
+        <form method="post" th:action="@{/logout}" class="d-inline">
+          <button type="submit" class="btn btn-outline-light btn-sm">Salir</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</nav>

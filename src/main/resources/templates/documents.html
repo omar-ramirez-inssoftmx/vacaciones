@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/people-head :: head('Mis documentos')}"></head>
+<body class="people-page">
+<nav th:replace="~{fragments/people-nav :: nav('documents')}"></nav>
+
+<main class="people-container" data-tour="documents">
+  <section class="people-hero">
+    <div>
+      <div class="people-hero__eyebrow">Expediente digital</div>
+      <h1>Mis documentos</h1>
+      <p>Consulta y descarga los documentos que Recursos Humanos ha compartido contigo.</p>
+    </div>
+    <div class="people-hero__actions">
+      <span class="people-badge" th:text="${documentos.totalElements} + ' documento(s)'">0 documentos</span>
+    </div>
+  </section>
+
+  <section class="people-card mt-4">
+    <div class="people-card__header">
+      <h2>Documentos disponibles</h2>
+    </div>
+
+    <div class="people-card__body people-card__body--flush"
+         th:if="${documentos.content != null and !#lists.isEmpty(documentos.content)}">
+      <div class="people-table-wrap">
+        <table class="people-table">
+          <thead>
+          <tr>
+            <th>Documento</th>
+            <th>Tipo</th>
+            <th>Archivo</th>
+            <th>Vigencia</th>
+            <th>Cargado</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="doc : ${documentos.content}">
+            <td>
+              <strong th:text="${doc.name}">Nombre</strong>
+              <div class="profile-contact__meta" th:if="${doc.description != null and !#strings.isEmpty(doc.description)}"
+                   th:text="${doc.description}"></div>
+            </td>
+            <td><span class="people-badge" th:text="${doc.typeName}">Tipo</span></td>
+            <td>
+              <span th:text="${doc.fileName}">archivo.pdf</span>
+              <div class="profile-contact__meta">
+                <span th:text="${doc.sizeBytes / 1024} + ' KB'">0 KB</span>
+              </div>
+            </td>
+            <td>
+              <span th:if="${doc.expiresAt != null}"
+                    th:text="${#temporals.format(doc.expiresAt, 'dd/MM/yyyy')}"></span>
+              <span th:if="${doc.expiresAt == null}">Sin vencimiento</span>
+            </td>
+            <td th:text="${#temporals.format(doc.createdAt, 'dd/MM/yyyy')}"></td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-primary no-loader"
+                 th:href="@{/documents/{uuid}/download(uuid=${doc.uuid})}">Descargar</a>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="people-empty"
+         th:if="${documentos.content == null or #lists.isEmpty(documentos.content)}">
+      <div class="people-empty__icon">📁</div>
+      <div class="people-empty__title">Aún no tienes documentos</div>
+      <div>Cuando Recursos Humanos cargue documentos para ti, aparecerán aquí.</div>
+    </div>
+  </section>
+
+  <div class="people-actions mt-3" th:if="${documentos.totalPages > 1}">
+    <a class="btn btn-outline-secondary btn-sm no-loader"
+       th:if="${!documentos.first}"
+       th:href="@{/documents(page=${documentos.page - 1})}">← Anterior</a>
+    <span class="people-badge" th:text="${documentos.page + 1} + ' / ' + ${documentos.totalPages}"></span>
+    <a class="btn btn-outline-secondary btn-sm no-loader"
+       th:if="${!documentos.last}"
+       th:href="@{/documents(page=${documentos.page + 1})}">Siguiente →</a>
+  </div>
+</main>
+
+<div id="globalLoader" class="global-loader" aria-hidden="true">
+  <div class="global-loader__box">
+    <div class="global-loader__spinner"></div>
+    <div class="global-loader__title">Cargando<span class="global-loader__dots"></span></div>
+  </div>
+</div>
+<link rel="stylesheet" href="/css/global-loader.css">
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script src="/js/global-loader.js"></script>
+</body>
+</html>

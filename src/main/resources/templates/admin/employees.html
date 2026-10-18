@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/people-head :: head('Empleados')}"></head>
+<body class="people-page">
+<nav th:replace="~{fragments/people-nav :: nav('admin-employees')}"></nav>
+
+<main class="people-container" data-tour="admin-employees">
+  <section class="people-hero">
+    <div>
+      <div class="people-hero__eyebrow">Recursos Humanos</div>
+      <h1>Empleados</h1>
+      <p>Consulta el directorio, el expediente laboral y el estatus de cada colaborador.</p>
+    </div>
+    <div class="people-hero__actions">
+      <span class="people-badge" th:text="${empleados.totalElements} + ' empleado(s)'"></span>
+      <a class="btn btn-primary btn-sm no-loader" th:href="@{/admin/employees/new}">+ Nuevo empleado</a>
+    </div>
+  </section>
+
+  <section class="people-card mt-4">
+    <div class="people-card__header">
+      <h2>Buscar empleados</h2>
+    </div>
+    <div class="people-card__body">
+      <form method="get" th:action="@{/admin/employees}" class="people-filters">
+        <div>
+          <label for="q">Buscar</label>
+          <input id="q" name="q" class="form-control" th:value="${q}"
+                 placeholder="Nombre, número o correo">
+        </div>
+        <div>
+          <label for="status">Estatus</label>
+          <select id="status" name="status" class="form-select">
+            <option value="">Todos</option>
+            <option value="ACTIVO" th:selected="${status == 'ACTIVO'}">Activo</option>
+            <option value="BAJA" th:selected="${status == 'BAJA'}">Baja</option>
+          </select>
+        </div>
+        <div class="people-actions">
+          <button type="submit" class="btn btn-primary">Filtrar</button>
+          <a class="btn btn-outline-secondary no-loader" th:href="@{/admin/employees}">Limpiar</a>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="people-card mt-4">
+    <div class="people-card__header">
+      <h2>Directorio</h2>
+    </div>
+
+    <div class="people-card__body people-card__body--flush"
+         th:if="${empleados.content != null and !#lists.isEmpty(empleados.content)}">
+      <div class="people-table-wrap">
+        <table class="people-table">
+          <thead>
+          <tr>
+            <th>Empleado</th>
+            <th>Número</th>
+            <th>Puesto</th>
+            <th>Departamento</th>
+            <th>Correo</th>
+            <th>Estatus</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="e : ${empleados.content}">
+            <td>
+              <strong th:text="${e.fullName}">Nombre</strong>
+              <div class="profile-contact__meta" th:text="${e.companyName}"></div>
+            </td>
+            <td th:text="${e.employeeNumber}"></td>
+            <td th:text="${e.positionName}"></td>
+            <td th:text="${e.departmentName}"></td>
+            <td th:text="${e.corporateEmail ?: '-'}"></td>
+            <td>
+              <span class="people-badge"
+                    th:classappend="${e.statusCode == 'ACTIVO'} ? ' people-badge--success' : ' people-badge--danger'"
+                    th:text="${e.statusName}"></span>
+            </td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-primary no-loader"
+                 th:href="@{/admin/employees/{uuid}(uuid=${e.uuid})}">Ver expediente</a>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="people-empty"
+         th:if="${empleados.content == null or #lists.isEmpty(empleados.content)}">
+      <div class="people-empty__icon">👥</div>
+      <div class="people-empty__title">No se encontraron empleados</div>
+      <div>Ajusta la búsqueda o el estatus.</div>
+    </div>
+  </section>
+
+  <div class="people-actions mt-3" th:if="${empleados.totalPages > 1}">
+    <a class="btn btn-outline-secondary btn-sm no-loader"
+       th:if="${!empleados.first}"
+       th:href="@{/admin/employees(page=${empleados.page - 1},q=${q},status=${status})}">← Anterior</a>
+    <span class="people-badge" th:text="${empleados.page + 1} + ' / ' + ${empleados.totalPages}"></span>
+    <a class="btn btn-outline-secondary btn-sm no-loader"
+       th:if="${!empleados.last}"
+       th:href="@{/admin/employees(page=${empleados.page + 1},q=${q},status=${status})}">Siguiente →</a>
+  </div>
+</main>
+
+<div id="globalLoader" class="global-loader" aria-hidden="true">
+  <div class="global-loader__box">
+    <div class="global-loader__spinner"></div>
+    <div class="global-loader__title">Cargando<span class="global-loader__dots"></span></div>
+  </div>
+</div>
+<link rel="stylesheet" href="/css/global-loader.css">
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script src="/js/global-loader.js"></script>
+</body>
+</html>

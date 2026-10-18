@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/people-head :: head('Administración de comunicados')}"></head>
+<body class="people-page">
+<nav th:replace="~{fragments/people-nav :: nav('admin-communications')}"></nav>
+
+<main class="people-container" data-tour="admin-communications">
+  <section class="people-hero">
+    <div>
+      <div class="people-hero__eyebrow">Recursos Humanos</div>
+      <h1>Administración de comunicados</h1>
+      <p>Publica avisos internos y consulta los comunicados vigentes o históricos.</p>
+    </div>
+    <div class="people-hero__actions">
+      <button type="button" class="btn btn-primary" data-bs-toggle="collapse"
+              data-bs-target="#announcementForm" aria-expanded="false" aria-controls="announcementForm">
+        + Nuevo comunicado
+      </button>
+    </div>
+  </section>
+
+  <div th:if="${ok}" class="people-message people-message--ok" th:text="${ok}"></div>
+  <div th:if="${err}" class="people-message people-message--error" th:text="${err}"></div>
+
+  <section class="people-card mt-4 collapse" id="announcementForm">
+    <div class="people-card__header"><h2>Publicar comunicado</h2></div>
+    <div class="people-card__body">
+      <form method="post" th:action="@{/admin/communications}" class="people-form">
+        <div class="people-form__full">
+          <label for="title">Título</label>
+          <input id="title" name="title" class="form-control" maxlength="200" required>
+        </div>
+        <div class="people-form__full">
+          <label for="body">Contenido</label>
+          <textarea id="body" name="body" class="form-control" rows="6" required></textarea>
+        </div>
+        <div>
+          <label for="priority">Prioridad</label>
+          <select id="priority" name="priority" class="form-select">
+            <option value="NORMAL">Normal</option>
+            <option value="IMPORTANT">Importante</option>
+            <option value="URGENT">Urgente</option>
+          </select>
+        </div>
+        <div>
+          <label for="expiresAt">Vigencia hasta (opcional)</label>
+          <input id="expiresAt" name="expiresAt" type="datetime-local" class="form-control">
+        </div>
+        <div class="people-form__actions people-form__full">
+          <button type="submit" class="btn btn-primary">Publicar</button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse"
+                  data-bs-target="#announcementForm">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="people-card mt-4">
+    <div class="people-card__header"><h2>Buscar comunicados</h2></div>
+    <div class="people-card__body">
+      <form method="get" th:action="@{/admin/communications}" class="people-filters">
+        <div>
+          <label for="q">Buscar</label>
+          <input id="q" name="q" class="form-control" th:value="${q}" placeholder="Título o contenido">
+        </div>
+        <div class="people-actions">
+          <button type="submit" class="btn btn-primary">Filtrar</button>
+          <a class="btn btn-outline-secondary no-loader" th:href="@{/admin/communications}">Limpiar</a>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="people-card mt-4">
+    <div class="people-card__header">
+      <h2>Comunicados</h2>
+      <span class="people-badge" th:text="${comunicados.totalElements} + ' resultado(s)'"></span>
+    </div>
+
+    <div class="people-card__body people-card__body--flush"
+         th:if="${comunicados.content != null and !#lists.isEmpty(comunicados.content)}">
+      <div class="people-table-wrap">
+        <table class="people-table">
+          <thead>
+          <tr>
+            <th>Título</th>
+            <th>Prioridad</th>
+            <th>Publicado</th>
+            <th>Vigencia</th>
+            <th>Estado</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="a : ${comunicados.content}">
+            <td>
+              <strong th:text="${a.title}"></strong>
+              <div class="profile-contact__meta" th:text="${#strings.abbreviate(a.body, 120)}"></div>
+            </td>
+            <td>
+              <span class="people-badge"
+                    th:classappend="${a.priority == 'URGENT'} ? ' people-badge--danger' : (${a.priority == 'IMPORTANT'} ? ' people-badge--warning' : '')"
+                    th:text="${a.priority}"></span>
+            </td>
+            <td th:text="${a.publishedAt != null ? #temporals.format(a.publishedAt, 'dd/MM/yyyy HH:mm') : '-'}"></td>
+            <td th:text="${a.expiresAt != null ? #temporals.format(a.expiresAt, 'dd/MM/yyyy HH:mm') : 'Sin vencimiento'}"></td>
+            <td>
+              <span class="people-badge" th:classappend="${a.active} ? ' people-badge--success' : ' people-badge--danger'"
+                    th:text="${a.active ? 'Activo' : 'Inactivo'}"></span>
+            </td>
+            <td class="text-end">
+              <form method="post" th:action="@{/admin/communications/{uuid}/delete(uuid=${a.uuid})}"
+                    onsubmit="return confirm('¿Eliminar este comunicado?');">
+                <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+              </form>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="people-empty" th:if="${comunicados.content == null or #lists.isEmpty(comunicados.content)}">
+      <div class="people-empty__icon">📣</div>
+      <div class="people-empty__title">No hay comunicados</div>
+      <div>Publica el primer aviso para tu equipo.</div>
+    </div>
+  </section>
+
+  <div class="people-actions mt-3" th:if="${comunicados.totalPages > 1}">
+    <a class="btn btn-outline-secondary btn-sm no-loader"
+       th:if="${!comunicados.first}"
+       th:href="@{/admin/communications(page=${comunicados.page - 1},q=${q})}">← Anterior</a>
+    <span class="people-badge" th:text="${comunicados.page + 1} + ' / ' + ${comunicados.totalPages}"></span>
+    <a class="btn btn-outline-secondary btn-sm no-loader"
+       th:if="${!comunicados.last}"
+       th:href="@{/admin/communications(page=${comunicados.page + 1},q=${q})}">Siguiente →</a>
+  </div>
+</main>
+
+<div id="globalLoader" class="global-loader" aria-hidden="true">
+  <div class="global-loader__box">
+    <div class="global-loader__spinner"></div>
+    <div class="global-loader__title">Cargando<span class="global-loader__dots"></span></div>
+  </div>
+</div>
+<link rel="stylesheet" href="/css/global-loader.css">
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script src="/js/global-loader.js"></script>
+</body>
+</html>

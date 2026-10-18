@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/people-head :: head('Mis recibos de nómina')}"></head>
+<body class="people-page">
+<nav th:replace="~{fragments/people-nav :: nav('payroll')}"></nav>
+
+<main class="people-container" data-tour="payroll">
+  <section class="people-hero">
+    <div>
+      <div class="people-hero__eyebrow">Nómina</div>
+      <h1>Mis recibos de nómina</h1>
+      <p>Descarga los recibos PDF que Recursos Humanos ha publicado para ti.</p>
+    </div>
+    <div class="people-hero__actions">
+      <span class="people-badge" th:text="${recibos.totalElements} + ' recibo(s)'"></span>
+    </div>
+  </section>
+
+  <section class="people-card mt-4">
+    <div class="people-card__header"><h2>Recibos disponibles</h2></div>
+
+    <div class="people-card__body people-card__body--flush"
+         th:if="${recibos.content != null and !#lists.isEmpty(recibos.content)}">
+      <div class="people-table-wrap">
+        <table class="people-table">
+          <thead>
+          <tr>
+            <th>Periodo</th>
+            <th>Archivo</th>
+            <th>Tamaño</th>
+            <th>Publicado</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="r : ${recibos.content}">
+            <td><span class="people-badge" th:text="${r.periodLabel}"></span></td>
+            <td th:text="${r.fileName}"></td>
+            <td th:text="${r.sizeBytes / 1024} + ' KB'"></td>
+            <td th:text="${#temporals.format(r.createdAt, 'dd/MM/yyyy')}"></td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-primary no-loader"
+                 th:href="@{/payroll/{uuid}/download(uuid=${r.uuid})}">Descargar PDF</a>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="people-empty" th:if="${recibos.content == null or #lists.isEmpty(recibos.content)}">
+      <div class="people-empty__icon">🧾</div>
+      <div class="people-empty__title">Aún no tienes recibos</div>
+      <div>Cuando Recursos Humanos publique tu nómina, aparecerá aquí.</div>
+    </div>
+  </section>
+
+  <div class="people-actions mt-3" th:if="${recibos.totalPages > 1}">
+    <a class="btn btn-outline-secondary btn-sm no-loader"
+       th:if="${!recibos.first}"
+       th:href="@{/payroll(page=${recibos.page - 1})}">← Anterior</a>
+    <span class="people-badge" th:text="${recibos.page + 1} + ' / ' + ${recibos.totalPages}"></span>
+    <a class="btn btn-outline-secondary btn-sm no-loader"
+       th:if="${!recibos.last}"
+       th:href="@{/payroll(page=${recibos.page + 1})}">Siguiente →</a>
+  </div>
+</main>
+
+<div id="globalLoader" class="global-loader" aria-hidden="true">
+  <div class="global-loader__box">
+    <div class="global-loader__spinner"></div>
+    <div class="global-loader__title">Cargando<span class="global-loader__dots"></span></div>
+  </div>
+</div>
+<link rel="stylesheet" href="/css/global-loader.css">
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script src="/js/global-loader.js"></script>
+</body>
+</html>

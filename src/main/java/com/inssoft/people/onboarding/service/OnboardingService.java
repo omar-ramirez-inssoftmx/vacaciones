@@ -43,6 +43,26 @@ public class OnboardingService {
                 "Desde aquí ves tu resumen y accedes a las funciones disponibles según tu rol."));
 
         steps.add(new TourStep(
+                "a[href=\"/profile\"]",
+                "Mi perfil",
+                "Consulta tus datos personales y laborales, y mantén actualizados tus contactos de emergencia."));
+
+        steps.add(new TourStep(
+                "a[href=\"/documents\"]",
+                "Mis documentos",
+                "Descarga los documentos de tu expediente que Recursos Humanos haya compartido contigo."));
+
+        steps.add(new TourStep(
+                "a[href=\"/payroll\"]",
+                "Mis recibos de nómina",
+                "Consulta y descarga los recibos PDF publicados para ti."));
+
+        steps.add(new TourStep(
+                "a[href=\"/communications\"]",
+                "Comunicados",
+                "Revisa los avisos y noticias internas publicados por Recursos Humanos."));
+
+        steps.add(new TourStep(
                 "a[href=\"/vacations/request\"]",
                 "Solicitar vacaciones",
                 "Captura un rango de fechas; el sistema calcula los días hábiles con el calendario de tu empresa y valida tu saldo."));
@@ -57,6 +77,22 @@ public class OnboardingService {
                     "a[href=\"/admin/requests\"]",
                     "Revisar solicitudes",
                     "Aprueba o rechaza solicitudes pendientes de administración."));
+            steps.add(new TourStep(
+                    "a[href=\"/admin/employees\"]",
+                    "Empleados",
+                    "Consulta el directorio, los expedientes laborales y registra bajas."));
+            steps.add(new TourStep(
+                    "a[href=\"/admin/documents\"]",
+                    "Documentos de empleados",
+                    "Carga y descarga documentos del expediente de cada colaborador."));
+            steps.add(new TourStep(
+                    "a[href=\"/admin/payroll\"]",
+                    "Nómina",
+                    "Crea periodos y publica los recibos PDF de los empleados."));
+            steps.add(new TourStep(
+                    "a[href=\"/admin/communications\"]",
+                    "Comunicados",
+                    "Publica avisos internos para todo el equipo."));
             steps.add(new TourStep(
                     "a[href=\"/admin/users\"]",
                     "Administración de usuarios",
@@ -84,6 +120,10 @@ public class OnboardingService {
                     "Consulta los documentos y reglamentos internos que publica Recursos Humanos."));
 
             if (role == Role.ROLE_LIDER) {
+                steps.add(new TourStep(
+                        "a[href=\"/leader/team\"]",
+                        "Mi equipo",
+                        "Consulta a los colaboradores que reportan directamente contigo."));
                 steps.add(new TourStep(
                         "a[href=\"/leader/requests\"]",
                         "Revisar solicitudes de tu equipo",

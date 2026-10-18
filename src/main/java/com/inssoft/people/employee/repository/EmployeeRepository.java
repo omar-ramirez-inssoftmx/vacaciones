@@ -23,6 +23,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     List<Employee> findByDeletedAtIsNullAndEnabledTrue();
 
+    @EntityGraph(attributePaths = {"company", "branch", "department", "position", "status"})
+    List<Employee> findByManager_User_UsernameAndDeletedAtIsNullOrderByLastNameAsc(String username);
+
     boolean existsByUser_IdAndDeletedAtIsNull(Long userId);
 
     boolean existsByUser_IdAndUuidNotAndDeletedAtIsNull(Long userId, UUID uuid);

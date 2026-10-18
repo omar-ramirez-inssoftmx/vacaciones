@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/people-head :: head('Comunicados')}"></head>
+<body class="people-page">
+<nav th:replace="~{fragments/people-nav :: nav('communications')}"></nav>
+
+<main class="people-container" data-tour="communications">
+  <section class="people-hero">
+    <div>
+      <div class="people-hero__eyebrow">Comunicación interna</div>
+      <h1>Comunicados</h1>
+      <p>Avisos y noticias publicados por Recursos Humanos para todo el equipo.</p>
+    </div>
+    <div class="people-hero__actions">
+      <span class="people-badge" th:text="${comunicados.totalElements} + ' comunicado(s)'"></span>
+    </div>
+  </section>
+
+  <div class="people-grid people-grid--wide mt-4"
+       th:if="${comunicados.content != null and !#lists.isEmpty(comunicados.content)}">
+    <article class="people-card" th:each="a : ${comunicados.content}">
+      <div class="people-card__header">
+        <h2 th:text="${a.title}">Título</h2>
+        <span class="people-badge"
+              th:classappend="${a.priority == 'URGENT'} ? ' people-badge--danger' : (${a.priority == 'IMPORTANT'} ? ' people-badge--warning' : '')"
+              th:text="${a.priority}"></span>
+      </div>
+      <div class="people-card__body">
+        <p class="comunicado-body" th:text="${a.body}"></p>
+        <div class="profile-contact__meta mt-3">
+          <span th:if="${a.publishedAt != null}"
+                th:text="${#temporals.format(a.publishedAt, 'dd/MM/yyyy HH:mm')}"></span>
+          <span th:if="${a.createdBy != null}"> · Publicado por </span>
+          <span th:if="${a.createdBy != null}" th:text="${a.createdBy}"></span>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div class="people-card mt-4"
+       th:if="${comunicados.content == null or #lists.isEmpty(comunicados.content)}">
+    <div class="people-empty">
+      <div class="people-empty__icon">📣</div>
+      <div class="people-empty__title">No hay comunicados activos</div>
+      <div>Cuando Recursos Humanos publique un aviso aparecerá aquí.</div>
+    </div>
+  </div>
+
+  <div class="people-actions mt-3" th:if="${comunicados.totalPages > 1}">
+    <a class="btn btn-outline-secondary btn-sm no-loader"
+       th:if="${!comunicados.first}"
+       th:href="@{/communications(page=${comunicados.page - 1})}">← Anterior</a>
+    <span class="people-badge" th:text="${comunicados.page + 1} + ' / ' + ${comunicados.totalPages}"></span>
+    <a class="btn btn-outline-secondary btn-sm no-loader"
+       th:if="${!comunicados.last}"
+       th:href="@{/communications(page=${comunicados.page + 1})}">Siguiente →</a>
+  </div>
+</main>
+
+<div id="globalLoader" class="global-loader" aria-hidden="true">
+  <div class="global-loader__box">
+    <div class="global-loader__spinner"></div>
+    <div class="global-loader__title">Cargando<span class="global-loader__dots"></span></div>
+  </div>
+</div>
+<link rel="stylesheet" href="/css/global-loader.css">
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script src="/js/global-loader.js"></script>
+</body>
+</html>

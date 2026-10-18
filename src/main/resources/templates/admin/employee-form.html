@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/people-head :: head(${editing ? 'Editar empleado' : 'Nuevo empleado'})}"></head>
+<body class="people-page">
+<nav th:replace="~{fragments/people-nav :: nav('admin-employees')}"></nav>
+
+<main class="people-container" data-tour="admin-employee-form">
+  <section class="people-hero">
+    <div>
+      <div class="people-hero__eyebrow">Recursos Humanos</div>
+      <h1 th:text="${editing ? 'Editar empleado' : 'Nuevo empleado'}">Nuevo empleado</h1>
+      <p th:text="${editing ? 'Actualiza los datos del expediente.' : 'Captura los datos base del expediente laboral.'}"></p>
+    </div>
+    <div class="people-hero__actions">
+      <a class="btn btn-outline-secondary btn-sm no-loader" th:href="${backUrl}">← Volver</a>
+    </div>
+  </section>
+
+  <div th:if="${error}" class="people-message people-message--error" th:text="${error}"></div>
+
+  <form method="post" th:action="${formAction}" th:object="${form}">
+    <section class="people-card mt-4">
+      <div class="people-card__header"><h2>Datos laborales</h2></div>
+      <div class="people-card__body">
+        <div class="people-form">
+          <div>
+            <label for="employeeNumber">Número de empleado *</label>
+            <input id="employeeNumber" th:field="*{employeeNumber}" class="form-control" maxlength="30" required>
+          </div>
+          <div>
+            <label for="companyUuid">Empresa *</label>
+            <select id="companyUuid" th:field="*{companyUuid}" class="form-select" required>
+              <option value="">Selecciona</option>
+              <option th:each="c : ${empresas}" th:value="${c.uuid}"
+                      th:text="${c.tradeName ?: c.legalName}"></option>
+            </select>
+          </div>
+          <div>
+            <label for="branchUuid">Sucursal *</label>
+            <select id="branchUuid" th:field="*{branchUuid}" class="form-select" required>
+              <option value="">Selecciona</option>
+              <option th:each="b : ${sucursales}" th:value="${b.uuid}" th:text="${b.name}"></option>
+            </select>
+          </div>
+          <div>
+            <label for="departmentUuid">Departamento *</label>
+            <select id="departmentUuid" th:field="*{departmentUuid}" class="form-select" required>
+              <option value="">Selecciona</option>
+              <option th:each="d : ${departamentos}" th:value="${d.uuid}" th:text="${d.name}"></option>
+            </select>
+          </div>
+          <div>
+            <label for="positionUuid">Puesto *</label>
+            <select id="positionUuid" th:field="*{positionUuid}" class="form-select" required>
+              <option value="">Selecciona</option>
+              <option th:each="p : ${puestos}" th:value="${p.uuid}" th:text="${p.name}"></option>
+            </select>
+          </div>
+          <div>
+            <label for="managerUuid">Jefe directo</label>
+            <select id="managerUuid" th:field="*{managerUuid}" class="form-select">
+              <option value="">Sin jefe directo</option>
+              <option th:each="m : ${gerentes}" th:value="${m.uuid}"
+                      th:text="${m.firstName + ' ' + m.lastName + ' · ' + m.employeeNumber}"></option>
+            </select>
+          </div>
+          <div>
+            <label for="hireDate">Fecha de ingreso *</label>
+            <input id="hireDate" th:field="*{hireDate}" type="date" class="form-control" required>
+          </div>
+          <div>
+            <label for="statusCode">Estatus</label>
+            <select id="statusCode" th:field="*{statusCode}" class="form-select">
+              <option th:each="s : ${estatusLaboral}" th:value="${s.code}" th:text="${s.name}"></option>
+            </select>
+          </div>
+          <div>
+            <label for="workModalityCode">Modalidad</label>
+            <select id="workModalityCode" th:field="*{workModalityCode}" class="form-select">
+              <option th:each="m : ${modalidades}" th:value="${m.code}" th:text="${m.name}"></option>
+            </select>
+          </div>
+          <div class="people-form__full">
+            <label class="form-check-label">
+              <input th:field="*{enabled}" type="checkbox" class="form-check-input">
+              Empleado activo
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="people-card mt-4">
+      <div class="people-card__header"><h2>Datos personales</h2></div>
+      <div class="people-card__body">
+        <div class="people-form">
+          <div>
+            <label for="firstName">Nombre *</label>
+            <input id="firstName" th:field="*{firstName}" class="form-control" maxlength="100" required>
+          </div>
+          <div>
+            <label for="middleName">Segundo nombre</label>
+            <input id="middleName" th:field="*{middleName}" class="form-control" maxlength="100">
+          </div>
+          <div>
+            <label for="lastName">Apellido paterno *</label>
+            <input id="lastName" th:field="*{lastName}" class="form-control" maxlength="100" required>
+          </div>
+          <div>
+            <label for="secondLastName">Apellido materno</label>
+            <input id="secondLastName" th:field="*{secondLastName}" class="form-control" maxlength="100">
+          </div>
+          <div>
+            <label for="birthDate">Fecha de nacimiento</label>
+            <input id="birthDate" th:field="*{birthDate}" type="date" class="form-control">
+          </div>
+          <div>
+            <label for="genderCode">Género</label>
+            <select id="genderCode" th:field="*{genderCode}" class="form-select">
+              <option value="">Sin especificar</option>
+              <option th:each="g : ${generos}" th:value="${g.code}" th:text="${g.name}"></option>
+            </select>
+          </div>
+          <div>
+            <label for="maritalStatusCode">Estado civil</label>
+            <select id="maritalStatusCode" th:field="*{maritalStatusCode}" class="form-select">
+              <option value="">Sin especificar</option>
+              <option th:each="e : ${estadosCiviles}" th:value="${e.code}" th:text="${e.name}"></option>
+            </select>
+          </div>
+          <div>
+            <label for="curp">CURP</label>
+            <input id="curp" th:field="*{curp}" class="form-control" maxlength="18">
+          </div>
+          <div>
+            <label for="rfc">RFC</label>
+            <input id="rfc" th:field="*{rfc}" class="form-control" maxlength="13">
+          </div>
+          <div>
+            <label for="nss">NSS</label>
+            <input id="nss" th:field="*{nss}" class="form-control" maxlength="11">
+          </div>
+          <div>
+            <label for="corporateEmail">Correo corporativo</label>
+            <input id="corporateEmail" th:field="*{corporateEmail}" type="email" class="form-control" maxlength="150">
+          </div>
+          <div>
+            <label for="personalEmail">Correo personal</label>
+            <input id="personalEmail" th:field="*{personalEmail}" type="email" class="form-control" maxlength="150">
+          </div>
+          <div>
+            <label for="phone">Teléfono</label>
+            <input id="phone" th:field="*{phone}" class="form-control" maxlength="20">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="people-card mt-4">
+      <div class="people-card__header"><h2>Dirección</h2></div>
+      <div class="people-card__body">
+        <div class="people-form">
+          <div class="people-form__full">
+            <label for="addressLine1">Calle y número</label>
+            <input id="addressLine1" th:field="*{addressLine1}" class="form-control" maxlength="200">
+          </div>
+          <div class="people-form__full">
+            <label for="addressLine2">Colonia / interior</label>
+            <input id="addressLine2" th:field="*{addressLine2}" class="form-control" maxlength="200">
+          </div>
+          <div>
+            <label for="city">Ciudad</label>
+            <input id="city" th:field="*{city}" class="form-control" maxlength="100">
+          </div>
+          <div>
+            <label for="state">Estado</label>
+            <input id="state" th:field="*{state}" class="form-control" maxlength="100">
+          </div>
+          <div>
+            <label for="postalCode">Código postal</label>
+            <input id="postalCode" th:field="*{postalCode}" class="form-control" maxlength="10">
+          </div>
+          <div>
+            <label for="country">País</label>
+            <input id="country" th:field="*{country}" class="form-control" maxlength="100">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="people-form__actions mt-3">
+      <button type="submit" class="btn btn-primary"
+              th:text="${editing ? 'Guardar cambios' : 'Crear empleado'}">Guardar</button>
+      <a class="btn btn-outline-secondary no-loader" th:href="${backUrl}">Cancelar</a>
+    </div>
+  </form>
+</main>
+
+<div id="globalLoader" class="global-loader" aria-hidden="true">
+  <div class="global-loader__box">
+    <div class="global-loader__spinner"></div>
+    <div class="global-loader__title">Cargando<span class="global-loader__dots"></span></div>
+  </div>
+</div>
+<link rel="stylesheet" href="/css/global-loader.css">
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script src="/js/global-loader.js"></script>
+</body>
+</html>

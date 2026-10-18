@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/people-head :: head('Administración de nómina')}"></head>
+<body class="people-page">
+<nav th:replace="~{fragments/people-nav :: nav('admin-payroll')}"></nav>
+
+<main class="people-container" data-tour="admin-payroll">
+  <section class="people-hero">
+    <div>
+      <div class="people-hero__eyebrow">Recursos Humanos</div>
+      <h1>Administración de nómina</h1>
+      <p>Crea periodos, carga recibos PDF y consulta la nómina de los empleados.</p>
+    </div>
+    <div class="people-hero__actions">
+      <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse"
+              data-bs-target="#periodForm" aria-expanded="false" aria-controls="periodForm">
+        + Nuevo periodo
+      </button>
+      <button type="button" class="btn btn-primary" data-bs-toggle="collapse"
+              data-bs-target="#uploadReceiptForm" aria-expanded="false" aria-controls="uploadReceiptForm">
+        + Cargar recibo
+      </button>
+    </div>
+  </section>
+
+  <div th:if="${ok}" class="people-message people-message--ok" th:text="${ok}"></div>
+  <div th:if="${err}" class="people-message people-message--error" th:text="${err}"></div>
+
+  <section class="people-card mt-4 collapse" id="periodForm">
+    <div class="people-card__header"><h2>Nuevo periodo de nómina</h2></div>
+    <div class="people-card__body">
+      <form method="post" th:action="@{/admin/payroll/periods}" class="people-form">
+        <div>
+          <label for="year">Año</label>
+          <input id="year" name="year" type="number" min="2000" max="2100" class="form-control"
+                 th:value="${hoy.year}" required>
+        </div>
+        <div>
+          <label for="month">Mes</label>
+          <input id="month" name="month" type="number" min="1" max="12" class="form-control"
+                 th:value="${hoy.monthValue}" required>
+        </div>
+        <div>
+          <label for="periodType">Tipo</label>
+          <select id="periodType" name="periodType" class="form-select" required>
+            <option value="MONTHLY">Mensual</option>
+            <option value="BIWEEKLY">Quincenal</option>
+            <option value="EXTRA">Extraordinario</option>
+          </select>
+        </div>
+        <div>
+          <label for="startDate">Fecha inicial</label>
+          <input id="startDate" name="startDate" type="date" class="form-control" th:value="${hoy}" required>
+        </div>
+        <div>
+          <label for="endDate">Fecha final</label>
+          <input id="endDate" name="endDate" type="date" class="form-control" th:value="${hoy}" required>
+        </div>
+        <div class="people-form__actions people-form__full">
+          <button type="submit" class="btn btn-primary">Crear periodo</button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse"
+                  data-bs-target="#periodForm">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="people-card mt-4 collapse" id="uploadReceiptForm">
+    <div class="people-card__header"><h2>Cargar recibo PDF</h2></div>
+    <div class="people-card__body">
+      <form method="post" th:action="@{/admin/payroll/upload}" enctype="multipart/form-data" class="people-form">
+        <div>
+          <label for="employeeUuid">Empleado</label>
+          <select id="employeeUuid" name="employeeUuid" class="form-select" required>
+            <option value="">Selecciona un empleado</option>
+            <option th:each="e : ${empleados}" th:value="${e.uuid}"
+                    th:text="${e.firstName + ' ' + e.lastName + ' · ' + e.employeeNumber}"></option>
+          </select>
+        </div>
+        <div>
+          <label for="periodUuid">Periodo</label>
+          <select id="periodUuid" name="periodUuid" class="form-select" required>
+            <option value="">Selecciona un periodo</option>
+            <option th:each="p : ${periodos}" th:value="${p.uuid}"
+                    th:text="${p.label + ' (' + p.status + ')'}"></option>
+          </select>
+        </div>
+        <div>
+          <label for="file">Recibo PDF</label>
+          <input id="file" name="file" type="file" class="form-control" accept="application/pdf" required>
+        </div>
+        <div class="people-form__actions people-form__full">
+          <button type="submit" class="btn btn-primary">Guardar recibo</button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse"
+                  data-bs-target="#uploadReceiptForm">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="people-card mt-4">
+    <div class="people-card__header"><h2>Buscar recibos</h2></div>
+    <div class="people-card__body">
+      <form method="get" th:action="@{/admin/payroll}" class="people-filters">
+        <div>
+          <label for="q">Buscar</label>
+          <input id="q" name="q" class="form-control" th:value="${q}" placeholder="Empleado o archivo">
+        </div>
+        <div>
+          <label for="filterPeriod">Periodo</label>
+          <select id="filterPeriod" name="periodUuid" class="form-select">
+            <option value="">Todos</option>
+            <option th:each="p : ${periodos}" th:value="${p.uuid}" th:text="${p.label}"
+                    th:selected="${periodUuid != null and p.uuid == periodUuid}"></option>
+          </select>
+        </div>
+        <div>
+          <label for="filterEmployee">Empleado</label>
+          <select id="filterEmployee" name="employeeUuid" class="form-select">
+            <option value="">Todos</option>
+            <option th:each="e : ${empleados}" th:value="${e.uuid}"
+                    th:text="${e.firstName + ' ' + e.lastName}"
+                    th:selected="${employeeUuid != null and e.uuid == employeeUuid}"></option>
+          </select>
+        </div>
+        <div class="people-actions">
+          <button type="submit" class="btn btn-primary">Filtrar</button>
+          <a class="btn btn-outline-secondary no-loader" th:href="@{/admin/payroll}">Limpiar</a>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="people-card mt-4">
+    <div class="people-card__header">
+      <h2>Recibos cargados</h2>
+      <span class="people-badge" th:text="${recibos.totalElements} + ' resultado(s)'"></span>
+    </div>
+
+    <div class="people-card__body people-card__body--flush"
+         th:if="${recibos.content != null and !#lists.isEmpty(recibos.content)}">
+      <div class="people-table-wrap">
+        <table class="people-table">
+          <thead>
+          <tr>
+            <th>Empleado</th>
+            <th>Periodo</th>
+            <th>Archivo</th>
+            <th>Tamaño</th>
+            <th>Publicado</th>
+            <th class="text-end">Acciones</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="r : ${recibos.content}">
+            <td><strong th:text="${r.employeeName}"></strong></td>
+            <td><span class="people-badge" th:text="${r.periodLabel}"></span></td>
+            <td th:text="${r.fileName}"></td>
+            <td th:text="${r.sizeBytes / 1024} + ' KB'"></td>
+            <td th:text="${#temporals.format(r.createdAt, 'dd/MM/yyyy')}"></td>
+            <td class="text-end">
+              <div class="people-actions justify-content-end">
+                <a class="btn btn-sm btn-primary no-loader"
+                   th:href="@{/admin/payroll/{uuid}/download(uuid=${r.uuid})}">Descargar</a>
+                <form method="post" th:action="@{/admin/payroll/{uuid}/delete(uuid=${r.uuid})}"
+                      onsubmit="return confirm('¿Eliminar este recibo?');">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="people-empty" th:if="${recibos.content == null or #lists.isEmpty(recibos.content)}">
+      <div class="people-empty__icon">🧾</div>
+      <div class="people-empty__title">No hay recibos cargados</div>
+      <div>Crea un periodo y carga el primer recibo PDF.</div>
+    </div>
+  </section>
+
+  <div class="people-actions mt-3" th:if="${recibos.totalPages > 1}">
+    <a class="btn btn-outline-secondary btn-sm no-loader"
+       th:if="${!recibos.first}"
+       th:href="@{/admin/payroll(page=${recibos.page - 1},q=${q},employeeUuid=${employeeUuid},periodUuid=${periodUuid})}">← Anterior</a>
+    <span class="people-badge" th:text="${recibos.page + 1} + ' / ' + ${recibos.totalPages}"></span>
+    <a class="btn btn-outline-secondary btn-sm no-loader"
+       th:if="${!recibos.last}"
+       th:href="@{/admin/payroll(page=${recibos.page + 1},q=${q},employeeUuid=${employeeUuid},periodUuid=${periodUuid})}">Siguiente →</a>
+  </div>
+</main>
+
+<div id="globalLoader" class="global-loader" aria-hidden="true">
+  <div class="global-loader__box">
+    <div class="global-loader__spinner"></div>
+    <div class="global-loader__title">Cargando<span class="global-loader__dots"></span></div>
+  </div>
+</div>
+<link rel="stylesheet" href="/css/global-loader.css">
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script src="/js/global-loader.js"></script>
+</body>
+</html>

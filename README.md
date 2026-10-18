@@ -10,6 +10,7 @@ Plataforma interna de administración de empleados. Evoluciona el sistema de vac
 > Estado del Bloque 5 (Documents): [`docs/BLOQUE-5-DOCUMENTOS.md`](docs/BLOQUE-5-DOCUMENTOS.md)
 > Estado del Bloque 6 (Onboarding): [`docs/BLOQUE-6-ONBOARDING.md`](docs/BLOQUE-6-ONBOARDING.md)
 > Estado del Bloque 7 (Tema claro/oscuro y UI): [`docs/BLOQUE-7-TEMA-Y-UI.md`](docs/BLOQUE-7-TEMA-Y-UI.md)
+> Estado del Bloque 8 (Roles, nómina y comunicados): [`docs/BLOQUE-8-ROLES-NOMINA-COMUNICADOS.md`](docs/BLOQUE-8-ROLES-NOMINA-COMUNICADOS.md)
 > Guía para levantar en Eclipse: [`docs/GUIA-ECLIPSE.md`](docs/GUIA-ECLIPSE.md)
 
 ## Stack
@@ -38,6 +39,8 @@ com.inssoft.people       # nuevos módulos API-first
   documents/             # tipos, metadatos, almacenamiento y descarga autorizada
   onboarding/            # recorrido inicial por rol
   profile/               # preferencias del usuario (tema claro/oscuro)
+  payroll/               # periodos de nómina y recibos PDF
+  communication/         # comunicados internos
   ...
 src/main/resources/db/migration   # Flyway (SQL Server)
 ```
@@ -122,7 +125,7 @@ curl http://localhost:8443/api/v1/auth/me \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-Endpoints de los Bloques 1–5:
+Endpoints de los Bloques 1–13:
 
 | Método | Ruta | Permiso |
 |---|---|---|
@@ -182,6 +185,18 @@ Endpoints de los Bloques 1–5:
 | POST | `/api/v1/onboarding/complete` | autenticado |
 | GET | `/api/v1/profile/theme` | autenticado |
 | PUT | `/api/v1/profile/theme` | autenticado |
+| GET/POST | `/api/v1/employees/me/emergency-contacts` | `EMPLOYEE_VIEW_SELF` |
+| PUT/DELETE | `/api/v1/employees/me/emergency-contacts/{uuid}` | `EMPLOYEE_VIEW_SELF` |
+| GET | `/api/v1/payroll/periods` | `PAYROLL_VIEW` / `PAYROLL_UPLOAD` |
+| POST | `/api/v1/payroll/periods` | `PAYROLL_UPLOAD` |
+| GET | `/api/v1/payroll/me` | `PAYROLL_VIEW_SELF` |
+| GET | `/api/v1/payroll` | `PAYROLL_VIEW` |
+| POST | `/api/v1/payroll/receipts` | `PAYROLL_UPLOAD` |
+| GET | `/api/v1/payroll/receipts/{uuid}/download` | `PAYROLL_VIEW` / `PAYROLL_VIEW_SELF` |
+| DELETE | `/api/v1/payroll/receipts/{uuid}` | `PAYROLL_UPLOAD` |
+| GET | `/api/v1/communications` | `COMMUNICATION_VIEW` |
+| POST | `/api/v1/communications` | `COMMUNICATION_PUBLISH` |
+| DELETE | `/api/v1/communications/{uuid}` | `COMMUNICATION_PUBLISH` |
 
 Convenciones:
 
@@ -206,9 +221,12 @@ V7__calendar.sql           # calendario, festivos oficiales/empresa y días espe
 V8__documents.sql          # tipos de documento, contenido y metadatos
 V9__onboarding.sql         # recorrido inicial para usuarios nuevos
 V10__theme_preference.sql  # preferencia de tema claro/oscuro por usuario
+V11__payroll.sql           # periodos y recibos de nómina
+V12__leader_payroll_permission.sql  # permiso de autoservicio para líderes
+V13__communications.sql    # comunicados internos
 ```
 
-> **Importante:** `V1` fue inferido del mapeo JPA. Antes de producción, ejecutar `docs/sql/00_introspection_sqlserver.sql` sobre una copia y reemplazar `V1` por el DDL real (o confirmar que coincide). En bases existentes Flyway hace baseline en V1 y aplica V2–V10.
+> **Importante:** `V1` fue inferido del mapeo JPA. Antes de producción, ejecutar `docs/sql/00_introspection_sqlserver.sql` sobre una copia y reemplazar `V1` por el DDL real (o confirmar que coincide). En bases existentes Flyway hace baseline en V1 y aplica V2–V13.
 >
 > `V5` crea una organización mínima (`INSSOFT / MATRIZ / GENERAL / GENERAL`) y migra los usuarios existentes a empleados con número `LEG-<id>` y nombre dividido de forma aproximada. RRHH debe revisar/corregir esos datos.
 
@@ -218,7 +236,7 @@ V10__theme_preference.sql  # preferencia de tema claro/oscuro por usuario
 mvn clean verify
 ```
 
-- 203 pruebas unitarias/de contrato.
+- 212 pruebas unitarias/de contrato.
 - Cobertura de código nuevo: **76.1%** (ver `target/site/jacoco/index.html`).
 - No requieren base de datos.
 
@@ -235,6 +253,11 @@ mvn clean verify
 - Documentos: metadatos + contenido con abstracción de almacenamiento, descarga autorizada, auditoría y MIME/tamaño validados; líderes sin acceso a documentos de empleados.
 - Onboarding: recorrido guiado por rol para usuarios nuevos, repetible desde el home, con marcado persistente de completado y un solo botón visible.
 - Tema claro/oscuro por usuario (`users.theme_preference`), persistido por web y API, con detección temprana para evitar destellos.
+- Nómina: periodos y recibos PDF con autorización por empleado, hash, storage y descarga auditada.
+- Comunicados internos: publicación por RH, vigencia, prioridad y consulta por todos los roles.
+- Autoservicio: perfil, contactos de emergencia, documentos, recibos y comunicados para todos los roles.
+- Administración: empleados (alta/edición/baja), documentos, nómina y comunicados.
+- Liderazgo: equipo directo, bandeja de solicitudes e historial.
 - CSRF activo en la cadena web; el cliente `fetch` envía `X-XSRF-TOKEN` usando el valor crudo de la cookie.
 - Auto-aprobación/rechazo administrativo bloqueado.
 - Correcciones aplicadas: IDOR líder/admin, rechazo de líder, saldo liberado al rechazar, `GET` sin efectos secundarios, cambio de contraseña con contraseña actual.

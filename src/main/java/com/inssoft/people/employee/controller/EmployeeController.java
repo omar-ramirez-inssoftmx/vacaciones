@@ -81,6 +81,38 @@ public class EmployeeController {
                 employeeService.getMyContacts(authentication.getName()));
     }
 
+    @PostMapping("/me/emergency-contacts")
+    @PreAuthorize("@accessGuard.has('EMPLOYEE_VIEW_SELF')")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Agrega un contacto de emergencia propio")
+    public ApiResponse<EmergencyContactResponse> addMyContact(
+            Authentication authentication,
+            @Valid @RequestBody EmergencyContactRequest request) {
+        return ApiResponse.ok("Contacto creado",
+                employeeService.addMyContact(authentication.getName(), request));
+    }
+
+    @PutMapping("/me/emergency-contacts/{contactUuid}")
+    @PreAuthorize("@accessGuard.has('EMPLOYEE_VIEW_SELF')")
+    @Operation(summary = "Actualiza un contacto de emergencia propio")
+    public ApiResponse<EmergencyContactResponse> updateMyContact(
+            Authentication authentication,
+            @PathVariable UUID contactUuid,
+            @Valid @RequestBody EmergencyContactRequest request) {
+        return ApiResponse.ok("Contacto actualizado",
+                employeeService.updateMyContact(authentication.getName(), contactUuid, request));
+    }
+
+    @DeleteMapping("/me/emergency-contacts/{contactUuid}")
+    @PreAuthorize("@accessGuard.has('EMPLOYEE_VIEW_SELF')")
+    @Operation(summary = "Deshabilita un contacto de emergencia propio")
+    public ApiResponse<Void> deleteMyContact(
+            Authentication authentication,
+            @PathVariable UUID contactUuid) {
+        employeeService.deleteMyContact(authentication.getName(), contactUuid);
+        return ApiResponse.ok("Contacto deshabilitado");
+    }
+
     @GetMapping("/{uuid}")
     @PreAuthorize("@accessGuard.has('EMPLOYEE_VIEW')")
     @Operation(summary = "Obtiene un empleado por UUID; los datos sensibles se enmascaran sin permiso")

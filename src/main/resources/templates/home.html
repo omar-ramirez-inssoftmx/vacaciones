@@ -41,6 +41,7 @@
   </style>
   <script src="/js/theme-init.js"></script>
   <link rel="stylesheet" href="/css/theme-light.css" data-theme-styles="true">
+  <link rel="stylesheet" href="/css/responsive.css">
 </head>
 <body>
 
@@ -143,6 +144,8 @@
 		  </div>
 		  <span class="home-item__arrow">›</span>
 		</a>
+
+        <th:block th:replace="~{fragments/self-service-links :: links}"></th:block>
       </div>
     </div>
 	<!-- ========================= -->
@@ -180,6 +183,17 @@
 	      </div>
 	      <span class="home-item__arrow">›</span>
 	    </a>
+
+        <th:block th:replace="~{fragments/self-service-links :: links}"></th:block>
+
+        <a href="/leader/team" class="list-group-item list-group-item-action home-item">
+          <div class="home-item__icon icon-teal">👥</div>
+          <div class="home-item__body">
+            <div class="home-item__title">Mi equipo</div>
+            <small class="text-muted">Consulta a tus colaboradores directos</small>
+          </div>
+          <span class="home-item__arrow">›</span>
+        </a>
 
 	    <!-- Revisar solicitudes (con badge) -->
 		<a href="/leader/requests" class="list-group-item list-group-item-action home-item">
@@ -293,6 +307,44 @@
 	      </div>
 	      <span class="home-item__arrow">›</span>
 	    </a>
+
+        <th:block th:replace="~{fragments/self-service-links :: links}"></th:block>
+
+        <a href="/admin/employees" class="list-group-item list-group-item-action home-item">
+          <div class="home-item__icon icon-teal">👥</div>
+          <div class="home-item__body">
+            <div class="home-item__title">Empleados</div>
+            <small class="text-muted">Directorio, expedientes y bajas</small>
+          </div>
+          <span class="home-item__arrow">›</span>
+        </a>
+
+        <a href="/admin/documents" class="list-group-item list-group-item-action home-item">
+          <div class="home-item__icon icon-teal">🗂️</div>
+          <div class="home-item__body">
+            <div class="home-item__title">Administración de Documentos</div>
+            <small class="text-muted">Carga y consulta expedientes de empleados</small>
+          </div>
+          <span class="home-item__arrow">›</span>
+        </a>
+
+        <a href="/admin/payroll" class="list-group-item list-group-item-action home-item">
+          <div class="home-item__icon icon-green">🧾</div>
+          <div class="home-item__body">
+            <div class="home-item__title">Administración de Nómina</div>
+            <small class="text-muted">Periodos y recibos PDF de empleados</small>
+          </div>
+          <span class="home-item__arrow">›</span>
+        </a>
+
+        <a href="/admin/communications" class="list-group-item list-group-item-action home-item">
+          <div class="home-item__icon icon-orange">📣</div>
+          <div class="home-item__body">
+            <div class="home-item__title">Administración de Comunicados</div>
+            <small class="text-muted">Publica avisos internos para el equipo</small>
+          </div>
+          <span class="home-item__arrow">›</span>
+        </a>
 
 	    <!-- Dashboard -->
 	    <a href="/admin/dashboard" class="list-group-item list-group-item-action home-item">

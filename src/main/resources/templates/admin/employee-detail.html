@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/people-head :: head('Expediente del empleado')}"></head>
+<body class="people-page">
+<nav th:replace="~{fragments/people-nav :: nav('admin-employees')}"></nav>
+
+<main class="people-container" data-tour="admin-employee-detail">
+  <section class="people-hero">
+    <div class="profile-hero">
+      <div class="profile-avatar" th:text="${#strings.substring(empleado.fullName, 0, 1)}">A</div>
+      <div>
+        <div class="people-hero__eyebrow">Expediente del empleado</div>
+        <h1 th:text="${empleado.fullName}">Nombre</h1>
+        <p>
+          <span th:text="${empleado.employeeNumber}"></span>
+          <span> · </span>
+          <span th:text="${empleado.positionName}"></span>
+          <span> · </span>
+          <span th:text="${empleado.departmentName}"></span>
+        </p>
+      </div>
+    </div>
+    <div class="people-hero__actions">
+      <span class="people-badge"
+            th:classappend="${empleado.statusCode == 'ACTIVO'} ? ' people-badge--success' : ' people-badge--danger'"
+            th:text="${empleado.statusName}"></span>
+      <a class="btn btn-primary btn-sm no-loader"
+         th:if="${empleado.enabled}"
+         th:href="@{/admin/employees/{uuid}/edit(uuid=${empleado.uuid})}">Editar</a>
+      <a class="btn btn-outline-secondary btn-sm no-loader" th:href="@{/admin/employees}">← Volver</a>
+    </div>
+  </section>
+
+  <div th:if="${ok}" class="people-message people-message--ok" th:text="${ok}"></div>
+  <div th:if="${err}" class="people-message people-message--error" th:text="${err}"></div>
+
+  <div class="people-grid people-grid--wide mt-4">
+    <section class="people-card">
+      <div class="people-card__header"><h2>Datos personales</h2></div>
+      <div class="people-card__body">
+        <div class="people-data">
+          <div>
+            <div class="people-data__label">Correo corporativo</div>
+            <div class="people-data__value" th:text="${empleado.corporateEmail ?: '-'}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Correo personal</div>
+            <div class="people-data__value" th:text="${empleado.personalEmail ?: '-'}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Teléfono</div>
+            <div class="people-data__value" th:text="${empleado.phone ?: '-'}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">CURP</div>
+            <div class="people-data__value" th:text="${empleado.curp ?: '-'}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">RFC</div>
+            <div class="people-data__value" th:text="${empleado.rfc ?: '-'}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">NSS</div>
+            <div class="people-data__value" th:text="${empleado.nss ?: '-'}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Fecha de nacimiento</div>
+            <div class="people-data__value"
+                 th:text="${empleado.birthDate != null ? #temporals.format(empleado.birthDate, 'dd/MM/yyyy') : '-'}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Género</div>
+            <div class="people-data__value" th:text="${empleado.genderName ?: '-'}"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="people-card">
+      <div class="people-card__header"><h2>Datos laborales</h2></div>
+      <div class="people-card__body">
+        <div class="people-data">
+          <div>
+            <div class="people-data__label">Empresa</div>
+            <div class="people-data__value" th:text="${empleado.companyName}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Sucursal</div>
+            <div class="people-data__value" th:text="${empleado.branchName}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Departamento</div>
+            <div class="people-data__value" th:text="${empleado.departmentName}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Puesto</div>
+            <div class="people-data__value" th:text="${empleado.positionName}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Jefe directo</div>
+            <div class="people-data__value" th:text="${empleado.managerName ?: 'No asignado'}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Fecha de ingreso</div>
+            <div class="people-data__value"
+                 th:text="${empleado.hireDate != null ? #temporals.format(empleado.hireDate, 'dd/MM/yyyy') : '-'}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Modalidad</div>
+            <div class="people-data__value" th:text="${empleado.workModalityName ?: '-'}"></div>
+          </div>
+          <div>
+            <div class="people-data__label">Fecha de baja</div>
+            <div class="people-data__value"
+                 th:text="${empleado.terminationDate != null ? #temporals.format(empleado.terminationDate, 'dd/MM/yyyy') : '-'}"></div>
+          </div>
+        </div>
+        <div class="people-form__actions">
+          <a class="btn btn-primary btn-sm no-loader"
+             th:href="@{/admin/documents(employeeUuid=${empleado.uuid})}">Ver documentos</a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="people-card mt-4"
+           th:if="${empleado.emergencyContacts != null and !#lists.isEmpty(empleado.emergencyContacts)}">
+    <div class="people-card__header"><h2>Contactos de emergencia</h2></div>
+    <div class="people-card__body people-card__body--flush">
+      <div th:each="contact : ${empleado.emergencyContacts}" class="profile-contact">
+        <div>
+          <div class="profile-contact__name">
+            <span th:text="${contact.name}"></span>
+            <span class="people-badge" th:if="${contact.primary}">Principal</span>
+          </div>
+          <div class="profile-contact__meta">
+            <span th:text="${contact.relationship ?: 'Sin parentesco'}"></span>
+            <span> · </span>
+            <span th:text="${contact.phone}"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="people-card mt-4" th:if="${empleado.enabled}">
+    <div class="people-card__header">
+      <h2>Baja laboral</h2>
+      <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="collapse"
+              data-bs-target="#terminateForm" aria-expanded="false" aria-controls="terminateForm">
+        Registrar baja
+      </button>
+    </div>
+    <div class="collapse" id="terminateForm">
+      <div class="people-card__body">
+        <form method="post" th:action="@{/admin/employees/{uuid}/terminate(uuid=${empleado.uuid})}"
+              class="people-form" onsubmit="return confirm('¿Confirmas la baja de este empleado?');">
+          <div>
+            <label for="terminationDate">Fecha de baja</label>
+            <input id="terminationDate" name="terminationDate" type="date" class="form-control" required>
+          </div>
+          <div class="people-form__full">
+            <label for="reason">Motivo</label>
+            <input id="reason" name="reason" class="form-control" maxlength="500">
+          </div>
+          <div class="people-form__actions people-form__full">
+            <button type="submit" class="btn btn-danger">Confirmar baja</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse"
+                    data-bs-target="#terminateForm">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="globalLoader" class="global-loader" aria-hidden="true">
+  <div class="global-loader__box">
+    <div class="global-loader__spinner"></div>
+    <div class="global-loader__title">Cargando<span class="global-loader__dots"></span></div>
+  </div>
+</div>
+<link rel="stylesheet" href="/css/global-loader.css">
+<script src="/js/bootstrap.bundle.min.js"></script>
+<script src="/js/global-loader.js"></script>
+</body>
+</html>

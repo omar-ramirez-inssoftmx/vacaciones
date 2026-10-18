@@ -125,6 +125,15 @@ public class EmployeeService {
     }
 
     @Transactional(readOnly = true)
+    public List<EmployeeSummaryResponse> listTeam(String username) {
+        return employeeRepository
+                .findByManager_User_UsernameAndDeletedAtIsNullOrderByLastNameAsc(username)
+                .stream()
+                .map(EmployeeMapper::toSummary)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public EmployeeResponse getMe(String username) {
         Employee employee = employeeRepository.findByUser_UsernameAndDeletedAtIsNull(username)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -336,12 +345,26 @@ public class EmployeeService {
 
     @Transactional(readOnly = true)
     public List<EmergencyContactResponse> getMyContacts(String username) {
-        Employee employee = employeeRepository.findByUser_UsernameAndDeletedAtIsNull(username)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "No existe un empleado vinculado al usuario " + username));
+        Employee employee = findMyEmployee(username);
         return contactRepository.findActiveByEmployeeId(employee.getId()).stream()
                 .map(EmployeeMapper::toContactResponse)
                 .toList();
+    }
+
+    @Transactional
+    public EmergencyContactResponse addMyContact(String username, EmergencyContactRequest request) {
+        return addContact(findMyEmployee(username).getUuid(), request);
+    }
+
+    @Transactional
+    public EmergencyContactResponse updateMyContact(
+            String username, UUID contactUuid, EmergencyContactRequest request) {
+        return updateContact(findMyEmployee(username).getUuid(), contactUuid, request);
+    }
+
+    @Transactional
+    public void deleteMyContact(String username, UUID contactUuid) {
+        deleteContact(findMyEmployee(username).getUuid(), contactUuid);
     }
 
     @Transactional
@@ -419,6 +442,12 @@ public class EmployeeService {
     private Employee findEmployee(UUID uuid) {
         return employeeRepository.findByUuidAndDeletedAtIsNull(uuid)
                 .orElseThrow(() -> new ResourceNotFoundException("Empleado", uuid));
+    }
+
+    private Employee findMyEmployee(String username) {
+        return employeeRepository.findByUser_UsernameAndDeletedAtIsNull(username)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No existe un empleado vinculado al usuario " + username));
     }
 
     private Employee resolveManager(UUID managerUuid) {

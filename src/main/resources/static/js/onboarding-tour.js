@@ -96,6 +96,18 @@
     card.innerHTML = "";
     card.classList.remove("tour-card--center");
 
+    const progress = document.createElement("div");
+    progress.className = "tour-card__progress";
+    progress.setAttribute("role", "progressbar");
+    progress.setAttribute("aria-valuemin", "1");
+    progress.setAttribute("aria-valuemax", String(steps.length));
+    progress.setAttribute("aria-valuenow", String(index + 1));
+
+    const progressBar = document.createElement("div");
+    progressBar.className = "tour-card__progress-bar";
+    progressBar.style.width = (((index + 1) / steps.length) * 100) + "%";
+    progress.appendChild(progressBar);
+
     const stepLabel = document.createElement("div");
     stepLabel.className = "tour-card__step";
     stepLabel.textContent = "Paso " + (index + 1) + " de " + steps.length;
@@ -146,9 +158,32 @@
     actions.appendChild(previous);
     actions.appendChild(next);
 
+    const menu = document.createElement("div");
+    menu.className = "tour-card__menu";
+    menu.setAttribute("aria-label", "Pasos del recorrido");
+    steps.forEach(function (item, itemIndex) {
+      const dot = document.createElement("button");
+      dot.type = "button";
+      dot.className = "tour-dot";
+      if (itemIndex === index) {
+        dot.classList.add("active");
+        dot.setAttribute("aria-current", "step");
+      }
+      dot.setAttribute("aria-label", "Ir al paso " + (itemIndex + 1) + ": " + (item.title || ""));
+      dot.title = item.title || ("Paso " + (itemIndex + 1));
+      dot.textContent = String(itemIndex + 1);
+      dot.addEventListener("click", function () {
+        index = itemIndex;
+        render();
+      });
+      menu.appendChild(dot);
+    });
+
+    card.appendChild(progress);
     card.appendChild(stepLabel);
     card.appendChild(title);
     card.appendChild(description);
+    card.appendChild(menu);
     card.appendChild(actions);
 
     const hint = document.createElement("div");
