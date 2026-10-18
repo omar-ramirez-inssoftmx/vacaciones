@@ -18,8 +18,6 @@
     steps = [];
   }
 
-  const completed = config.dataset.completed === "true";
-  const startButton = document.getElementById("startTourButton");
   let index = 0;
   let highlight = null;
   let card = null;
@@ -56,10 +54,18 @@
     document.body.classList.remove("tour-open");
   }
 
+  function hideWelcome() {
+    const welcome = document.getElementById("onboardingWelcome");
+    if (welcome) {
+      welcome.style.display = "none";
+    }
+  }
+
   function startTour() {
     if (!steps.length) {
       return;
     }
+    hideWelcome();
     removeElements();
     ensureElements();
     document.body.classList.add("tour-open");
@@ -68,6 +74,7 @@
   }
 
   function finish(markCompleted) {
+    hideWelcome();
     removeElements();
     if (markCompleted) {
       fetch("/onboarding/complete", {
@@ -211,11 +218,14 @@
     }
   });
 
-  if (startButton) {
-    startButton.addEventListener("click", startTour);
-  }
+  document.querySelectorAll("[data-start-tour]").forEach(function (button) {
+    button.addEventListener("click", startTour);
+  });
 
-  if (!completed && steps.length > 0) {
-    window.setTimeout(startTour, 600);
+  const dismissButton = document.getElementById("dismissOnboardingButton");
+  if (dismissButton) {
+    dismissButton.addEventListener("click", function () {
+      finish(true);
+    });
   }
 })();

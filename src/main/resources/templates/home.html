@@ -73,13 +73,26 @@
                     (rol == 'ROLE_ADMIN' ? '⚡ Administrador' : rol)}">
       </div>
 
-      <button type="button" id="startTourButton" class="btn btn-light btn-sm mt-3">
+      <button type="button" id="startTourButton" data-start-tour class="btn btn-light btn-sm mt-3">
         🎯 Ver recorrido
       </button>
     </div>
 
     <div class="home-hero__img">
       <img src="/images/sg7t68nrdnkdvoop4iak.avif" alt="Sistema de Vacaciones">
+    </div>
+  </div>
+
+  <!-- BIENVENIDA / ONBOARDING PARA USUARIOS NUEVOS -->
+  <div id="onboardingWelcome" class="onboarding-welcome shadow-soft mt-3"
+       th:if="${!onboardingCompleted}">
+    <div class="onboarding-welcome__text">
+      <strong>Bienvenido a INSSOFT PEOPLE</strong>
+      <p>Te damos un recorrido rápido por las funciones de tu rol.</p>
+    </div>
+    <div class="onboarding-welcome__actions">
+      <button type="button" data-start-tour class="btn btn-primary btn-sm">Ver recorrido</button>
+      <button type="button" id="dismissOnboardingButton" class="btn btn-outline-secondary btn-sm">Omitir</button>
     </div>
   </div>
 

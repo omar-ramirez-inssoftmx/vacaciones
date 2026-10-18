@@ -211,7 +211,7 @@ Crea:
 
 El colaborador tiene como jefe directo al líder; el líder tiene como jefe al admin.
 
-El seed deja `onboarding_completed = 0` en los tres usuarios, por lo que al entrar verán el recorrido inicial automáticamente.
+El seed deja `onboarding_completed = 0` en los tres usuarios, por lo que al entrar verán el banner de bienvenida con la opción **Ver recorrido**.
 
 > Este script es **solo para desarrollo**. No lo ejecutes en producción.
 
@@ -245,13 +245,13 @@ curl http://localhost:8443/api/v1/auth/me \
 ### Recorrido inicial
 
 1. Entra como `colaborador / Colaborador1234`.
-2. Debe abrirse automáticamente el recorrido guiado.
+2. Debe mostrarse el banner de bienvenida; pulsa **Ver recorrido**.
 3. Prueba **Siguiente**, **Anterior**, **Omitir** y **Finalizar**.
 4. Verifica en SQL:
    ```sql
    SELECT username, onboarding_completed FROM users WHERE username = 'colaborador';
    ```
-5. Vuelve a entrar: ya no se abre automáticamente.
+5. Vuelve a entrar: ya no aparece el banner automáticamente.
 6. Pulsa **🎯 Ver recorrido** en el home: debe abrirse de nuevo.
 7. Repite con `lider` y `admin` para ver los pasos por rol.
 

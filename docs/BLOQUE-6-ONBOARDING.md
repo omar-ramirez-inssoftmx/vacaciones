@@ -13,7 +13,7 @@
 
 ## 1. Comportamiento
 
-- Todo usuario nuevo (`onboarding_completed = 0`) ve automáticamente un recorrido guiado al entrar a `/home`.
+- Todo usuario nuevo (`onboarding_completed = 0`) ve un **banner de bienvenida no bloqueante** al entrar a `/home`, con opciones para iniciar u omitir el recorrido.
 - El recorrido se puede **omitir**, avanzar, retroceder o finalizar.
 - Al omitir/finalizar, se marca como completado en base de datos.
 - El botón **«Ver recorrido»** queda siempre visible en el home para repetirlo.
@@ -98,7 +98,7 @@ Funciones:
 - Overlay/spotlight sobre el elemento actual.
 - Tarjeta con paso, título, descripción y acciones.
 - Navegación con botones, flechas y `Esc`.
-- Auto-inicio si `onboardingCompleted = false`.
+- Banner de bienvenida para usuarios nuevos; el recorrido solo inicia al pulsar «Ver recorrido».
 - Botón permanente `#startTourButton`.
 - Marcado de completado vía `POST /onboarding/complete`.
 
@@ -117,10 +117,10 @@ Prueba manual en local:
 1. Ejecutar la app con perfil `local`.
 2. Ejecutar `docs/sql/01_seed_local_admin.sql`.
 3. Entrar como `colaborador / Colaborador1234`.
-4. El recorrido debe abrirse automáticamente.
+4. Debe mostrarse el banner de bienvenida; pulsa **Ver recorrido**.
 5. Recorrerlo, omitirlo o finalizarlo.
 6. Verificar `users.onboarding_completed = 1` para `colaborador`.
-7. Cerrar sesión y volver a entrar: ya no debe abrirse automáticamente.
+7. Cerrar sesión y volver a entrar: ya no debe aparecer el banner.
 8. Pulsar **Ver recorrido**: debe abrirse de nuevo.
 9. Repetir con `lider` y `admin` para validar los pasos por rol.
 
