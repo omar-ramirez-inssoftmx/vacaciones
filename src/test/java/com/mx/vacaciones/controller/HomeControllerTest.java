@@ -71,4 +71,60 @@ class HomeControllerTest {
         assertThat(String.valueOf(model.get("tourStepsJson"))).contains("Usuarios");
         assertThat(model.get("pendingRequestsCount")).isEqualTo(3L);
     }
+
+    @Test
+    void resolvesAdminRoleWhenPermissionsComeFirst() {
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("admin");
+        user.setName("Administrador");
+        user.setPassword("hash");
+        user.setRole(Role.ROLE_ADMIN);
+        user.setEnabled(true);
+        user.setOnboardingCompleted(true);
+
+        when(userRepository.findByUsername("admin")).thenReturn(Optional.of(user));
+        when(onboardingService.stepsFor(user)).thenReturn(List.of());
+        when(vacationRepository.countByStatusIn(anyList())).thenReturn(2L);
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        "admin", null, List.of(
+                                new SimpleGrantedAuthority("PERM_MASTERDATA_VIEW"),
+                                new SimpleGrantedAuthority("PERM_ORG_VIEW"),
+                                new SimpleGrantedAuthority("ROLE_ADMIN")));
+
+        ExtendedModelMap model = new ExtendedModelMap();
+        controller.home(authentication, model);
+
+        assertThat(model.get("rol")).isEqualTo("ROLE_ADMIN");
+        assertThat(model.get("pendingRequestsCount")).isEqualTo(2L);
+    }
+
+    @Test
+    void resolvesLeaderRoleWhenPermissionsComeFirst() {
+        User user = new User();
+        user.setId(2L);
+        user.setUsername("lider");
+        user.setName("Líder");
+        user.setPassword("hash");
+        user.setRole(Role.ROLE_LIDER);
+        user.setEnabled(true);
+        user.setOnboardingCompleted(true);
+
+        when(userRepository.findByUsername("lider")).thenReturn(Optional.of(user));
+        when(onboardingService.stepsFor(user)).thenReturn(List.of());
+        when(vacationRepository.countByStatusIn(anyList())).thenReturn(1L);
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        "lider", null, List.of(
+                                new SimpleGrantedAuthority("PERM_VACATION_APPROVE"),
+                                new SimpleGrantedAuthority("ROLE_LIDER")));
+
+        ExtendedModelMap model = new ExtendedModelMap();
+        controller.home(authentication, model);
+
+        assertThat(model.get("rol")).isEqualTo("ROLE_LIDER");
+    }
 }

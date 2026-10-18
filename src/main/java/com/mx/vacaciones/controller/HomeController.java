@@ -48,11 +48,12 @@ public class HomeController {
 
         String username = authentication.getName();
 
-        String rol = authentication.getAuthorities()
-                .stream()
-                .findFirst()
-                .map(authority -> authority.getAuthority())
-                .orElse("ROLE_COLABORADOR");
+        /*
+         * Spring Security ordena las authorities alfabéticamente. Como ahora
+         * también existen permisos PERM_*, la primera authority puede no ser
+         * el rol. Se resuelve el rol explícitamente.
+         */
+        String rol = resolveRole(authentication);
 
         long pendingRequestsCount = 0L;
 
@@ -83,5 +84,23 @@ public class HomeController {
         model.addAttribute("tourStepsJson", tourStepsJson);
 
         return "home";
+    }
+
+    private String resolveRole(Authentication authentication) {
+        if (hasAuthority(authentication, "ROLE_ADMIN")
+                || hasAuthority(authentication, "ROLE_SUPER_ADMIN")
+                || hasAuthority(authentication, "ROLE_HR")) {
+            return "ROLE_ADMIN";
+        }
+        if (hasAuthority(authentication, "ROLE_LIDER")) {
+            return "ROLE_LIDER";
+        }
+        return "ROLE_COLABORADOR";
+    }
+
+    private boolean hasAuthority(Authentication authentication, String authority) {
+        return authentication.getAuthorities()
+                .stream()
+                .anyMatch(granted -> authority.equals(granted.getAuthority()));
     }
 }
