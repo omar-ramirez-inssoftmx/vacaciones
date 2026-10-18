@@ -68,7 +68,7 @@ class VacationWorkflowServiceTest {
         VacationPeriod period = period(employee);
 
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-        when(validator.businessDays(any(), any())).thenReturn(5);
+        when(validator.businessDays(any(), any(), any())).thenReturn(5);
         when(vacationRepository.existsOverlappingByEmployee(eq(1L), any(), any(), any()))
                 .thenReturn(false);
         when(balanceService.lockCurrentPeriod(employee)).thenReturn(period);
@@ -105,7 +105,7 @@ class VacationWorkflowServiceTest {
         Employee employee = employee();
         VacationPeriod period = period(employee);
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-        when(validator.businessDays(any(), any())).thenReturn(20);
+        when(validator.businessDays(any(), any(), any())).thenReturn(20);
         when(vacationRepository.existsOverlappingByEmployee(eq(1L), any(), any(), any()))
                 .thenReturn(false);
         when(balanceService.lockCurrentPeriod(employee)).thenReturn(period);

@@ -6,6 +6,7 @@ Plataforma interna de administración de empleados. Evoluciona el sistema de vac
 > Estado del Bloque 1: [`docs/BLOQUE-1-IMPLEMENTACION.md`](docs/BLOQUE-1-IMPLEMENTACION.md)
 > Estado del Bloque 2 (Employees + RBAC): [`docs/BLOQUE-2-EMPLEADOS.md`](docs/BLOQUE-2-EMPLEADOS.md)
 > Estado del Bloque 3 (Vacations + ledger): [`docs/BLOQUE-3-VACACIONES.md`](docs/BLOQUE-3-VACACIONES.md)
+> Estado del Bloque 4 (Calendar): [`docs/BLOQUE-4-CALENDARIO.md`](docs/BLOQUE-4-CALENDARIO.md)
 
 ## Stack
 
@@ -29,6 +30,7 @@ com.inssoft.people       # nuevos módulos API-first
   organization/          # Company → Branch → Department → Position
   employee/              # empleados, /me, contactos de emergencia
   vacation/              # políticas, periodos, ledger, workflow y job de acumulación
+  calendar/              # calendario laboral, festivos, cierres y eventos
   ...
 src/main/resources/db/migration   # Flyway (SQL Server)
 ```
@@ -113,7 +115,7 @@ curl http://localhost:8443/api/v1/auth/me \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-Endpoints de los Bloques 1, 2 y 3:
+Endpoints de los Bloques 1, 2, 3 y 4:
 
 | Método | Ruta | Permiso |
 |---|---|---|
@@ -154,6 +156,14 @@ Endpoints de los Bloques 1, 2 y 3:
 | GET | `/api/v1/vacations/employees/{uuid}/balance` | `VACATION_ADJUST` |
 | POST | `/api/v1/vacations/employees/{uuid}/adjust` | `VACATION_ADJUST` |
 | GET | `/api/v1/vacations/policies` | `VACATION_POLICY_MANAGE` / `VACATION_VIEW` |
+| GET | `/api/v1/calendar/days` | `CALENDAR_VIEW` |
+| GET | `/api/v1/calendar/events` | `CALENDAR_VIEW` |
+| GET | `/api/v1/calendar/holidays` | `CALENDAR_VIEW` |
+| GET | `/api/v1/calendar/special-days` | `CALENDAR_VIEW` |
+| GET/PUT | `/api/v1/calendar/config` | `CALENDAR_VIEW` / `CALENDAR_MANAGE` |
+| POST/PUT/DELETE | `/api/v1/calendar/holidays` | `CALENDAR_MANAGE` |
+| POST/PUT/DELETE | `/api/v1/calendar/special-days` | `CALENDAR_MANAGE` |
+| POST | `/api/v1/calendar/official-holidays/{year}` | `CALENDAR_MANAGE` |
 
 Convenciones:
 
@@ -174,9 +184,10 @@ V3__organization.sql
 V4__masterdata.sql
 V5__employees.sql          # empleados, contactos, migración users → employees
 V6__vacations.sql          # políticas, periodos, ledger, eventos y workflow
+V7__calendar.sql           # calendario, festivos oficiales/empresa y días especiales
 ```
 
-> **Importante:** `V1` fue inferido del mapeo JPA. Antes de producción, ejecutar `docs/sql/00_introspection_sqlserver.sql` sobre una copia y reemplazar `V1` por el DDL real (o confirmar que coincide). En bases existentes Flyway hace baseline en V1 y aplica V2–V6.
+> **Importante:** `V1` fue inferido del mapeo JPA. Antes de producción, ejecutar `docs/sql/00_introspection_sqlserver.sql` sobre una copia y reemplazar `V1` por el DDL real (o confirmar que coincide). En bases existentes Flyway hace baseline en V1 y aplica V2–V7.
 >
 > `V5` crea una organización mínima (`INSSOFT / MATRIZ / GENERAL / GENERAL`) y migra los usuarios existentes a empleados con número `LEG-<id>` y nombre dividido de forma aproximada. RRHH debe revisar/corregir esos datos.
 
@@ -186,8 +197,8 @@ V6__vacations.sql          # políticas, periodos, ledger, eventos y workflow
 mvn clean verify
 ```
 
-- 151 pruebas unitarias/de contrato.
-- Cobertura de código nuevo: **78.4%** (ver `target/site/jacoco/index.html`).
+- 170 pruebas unitarias/de contrato.
+- Cobertura de código nuevo: **76.7%** (ver `target/site/jacoco/index.html`).
 - No requieren base de datos.
 
 ## Seguridad
@@ -199,6 +210,7 @@ mvn clean verify
 - RBAC efectivo desde base de datos (`sec_role_permission`); el mapa estático queda solo como respaldo pre-migración.
 - Datos sensibles (CURP/RFC/NSS) enmascarados en detalle si el usuario no tiene `EMPLOYEE_VIEW_SENSITIVE`.
 - Vacaciones: ledger firmado, periodos por aniversario, retención/consumo/liberación y workflow con validación de etapa administrativa (`VACATION_ADJUST`).
+- Calendario: días hábiles por empresa, festivos oficiales/empresa, cierres y eventos; Vacations ya usa el calendario para calcular días hábiles.
 - Auto-aprobación/rechazo administrativo bloqueado.
 - Correcciones aplicadas: IDOR líder/admin, rechazo de líder, saldo liberado al rechazar, `GET` sin efectos secundarios, cambio de contraseña con contraseña actual.
 - **Rotar** cualquier credencial que haya estado en el historial de git (ver auditoría).

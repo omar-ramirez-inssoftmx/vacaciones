@@ -35,20 +35,20 @@ class VacationValidatorTest {
 
     @Test
     void acceptsFutureWorkingRange() {
-        when(workingDayCalculator.isWorkingDay(any())).thenReturn(true);
-        when(workingDayCalculator.businessDays(any(), any())).thenReturn(5);
+        when(workingDayCalculator.isWorkingDay(any(), any())).thenReturn(true);
+        when(workingDayCalculator.businessDays(any(), any(), any())).thenReturn(5);
 
         LocalDate start = LocalDate.now().plusDays(1);
         assertThatCode(() -> {
-            validator.validateRequestDates(start, start.plusDays(6));
-            validator.businessDays(start, start.plusDays(6));
+            validator.validateRequestDates(1L, start, start.plusDays(6));
+            validator.businessDays(1L, start, start.plusDays(6));
         }).doesNotThrowAnyException();
     }
 
     @Test
     void rejectsReversedRange() {
         assertThatThrownBy(() -> validator.validateRequestDates(
-                LocalDate.now().plusDays(5), LocalDate.now().plusDays(1)))
+                1L, LocalDate.now().plusDays(5), LocalDate.now().plusDays(1)))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("menor");
     }
@@ -56,27 +56,27 @@ class VacationValidatorTest {
     @Test
     void rejectsPastStart() {
         assertThatThrownBy(() -> validator.validateRequestDates(
-                LocalDate.now().minusDays(1), LocalDate.now().plusDays(1)))
+                1L, LocalDate.now().minusDays(1), LocalDate.now().plusDays(1)))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("pasada");
     }
 
     @Test
     void rejectsNonWorkingStart() {
-        when(workingDayCalculator.isWorkingDay(any())).thenReturn(false);
+        when(workingDayCalculator.isWorkingDay(any(), any())).thenReturn(false);
 
         assertThatThrownBy(() -> validator.validateRequestDates(
-                LocalDate.now().plusDays(1), LocalDate.now().plusDays(2)))
+                1L, LocalDate.now().plusDays(1), LocalDate.now().plusDays(2)))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("día hábil");
     }
 
     @Test
     void rejectsRangeWithoutWorkingDays() {
-        when(workingDayCalculator.businessDays(any(), any())).thenReturn(0);
+        when(workingDayCalculator.businessDays(any(), any(), any())).thenReturn(0);
 
         assertThatThrownBy(() -> validator.businessDays(
-                LocalDate.now().plusDays(1), LocalDate.now().plusDays(2)))
+                1L, LocalDate.now().plusDays(1), LocalDate.now().plusDays(2)))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("días hábiles");
     }
