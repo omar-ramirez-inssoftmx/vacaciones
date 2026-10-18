@@ -21,7 +21,7 @@ public class VacationValidator {
         this.workingDayCalculator = workingDayCalculator;
     }
 
-    public void validateRequestDates(LocalDate startDate, LocalDate endDate) {
+    public void validateRequestDates(Long companyId, LocalDate startDate, LocalDate endDate) {
         if (startDate == null || endDate == null) {
             throw new BusinessException("Las fechas de inicio y fin son obligatorias");
         }
@@ -31,16 +31,16 @@ public class VacationValidator {
         if (startDate.isBefore(LocalDate.now())) {
             throw new BusinessException("No se pueden solicitar vacaciones con fecha de inicio pasada");
         }
-        if (!workingDayCalculator.isWorkingDay(startDate)) {
+        if (!workingDayCalculator.isWorkingDay(companyId, startDate)) {
             throw new BusinessException("La fecha de inicio debe ser un día hábil");
         }
-        if (!workingDayCalculator.isWorkingDay(endDate)) {
+        if (!workingDayCalculator.isWorkingDay(companyId, endDate)) {
             throw new BusinessException("La fecha de fin debe ser un día hábil");
         }
     }
 
-    public int businessDays(LocalDate startDate, LocalDate endDate) {
-        int days = workingDayCalculator.businessDays(startDate, endDate);
+    public int businessDays(Long companyId, LocalDate startDate, LocalDate endDate) {
+        int days = workingDayCalculator.businessDays(companyId, startDate, endDate);
         if (days <= 0) {
             throw new BusinessException("El rango no contiene días hábiles");
         }

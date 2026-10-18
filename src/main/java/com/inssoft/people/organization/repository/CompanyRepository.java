@@ -16,6 +16,8 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
 
     Optional<Company> findByCodeIgnoreCaseAndDeletedAtIsNull(String code);
 
+    Optional<Company> findFirstByDeletedAtIsNullOrderByIdAsc();
+
     boolean existsByCodeIgnoreCaseAndDeletedAtIsNull(String code);
 
     boolean existsByCodeIgnoreCaseAndUuidNotAndDeletedAtIsNull(String code, UUID uuid);

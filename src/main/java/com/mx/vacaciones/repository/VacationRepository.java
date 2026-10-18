@@ -311,6 +311,21 @@ public interface VacationRepository extends JpaRepository<VacationRequest, Long>
     List<VacationRequest> findByLeader_UsernameAndStatusOrderByStartDateAsc(
             String username, String status);
 
+    @Query("""
+            SELECT r FROM VacationRequest r
+            JOIN r.employee e
+            WHERE r.status = 'APPROVED'
+              AND r.deletedAt IS NULL
+              AND e.company.id = :companyId
+              AND r.startDate <= :to
+              AND r.endDate >= :from
+            ORDER BY r.startDate ASC
+            """)
+    List<VacationRequest> findApprovedForCalendarByCompany(
+            @Param("companyId") Long companyId,
+            @Param("from") LocalDate from,
+            @Param("to") LocalDate to);
+
     Optional<VacationRequest> findByUuidAndDeletedAtIsNull(UUID uuid);
 
     Optional<VacationRequest> findByIdAndDeletedAtIsNull(Long id);

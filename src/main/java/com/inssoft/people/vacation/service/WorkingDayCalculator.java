@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 public interface WorkingDayCalculator {
 
-    int businessDays(LocalDate start, LocalDate end);
+    int businessDays(Long companyId, LocalDate start, LocalDate end);
 
-    boolean isWorkingDay(LocalDate date);
+    boolean isWorkingDay(Long companyId, LocalDate date);
 }

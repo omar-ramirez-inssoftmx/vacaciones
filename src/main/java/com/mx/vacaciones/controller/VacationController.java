@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.inssoft.people.calendar.service.CalendarService;
 import com.inssoft.people.common.exception.BusinessException;
 import com.inssoft.people.employee.entity.Employee;
 import com.inssoft.people.employee.repository.EmployeeRepository;
@@ -72,6 +73,7 @@ public class VacationController {
     private final EmailService emailService;
     private final VacationCalculator vacationCalculator;
     private final VacationWorkflowService vacationWorkflowService;
+    private final CalendarService calendarService;
 
     public VacationController(
             VacationRepository vacationRepository,
@@ -79,7 +81,8 @@ public class VacationController {
             EmployeeRepository employeeRepository,
             EmailService emailService,
             VacationCalculator vacationCalculator,
-            VacationWorkflowService vacationWorkflowService) {
+            VacationWorkflowService vacationWorkflowService,
+            CalendarService calendarService) {
 
         this.vacationRepository = vacationRepository;
         this.userRepository = userRepository;
@@ -87,6 +90,7 @@ public class VacationController {
         this.emailService = emailService;
         this.vacationCalculator = vacationCalculator;
         this.vacationWorkflowService = vacationWorkflowService;
+        this.calendarService = calendarService;
     }
 
     /**
@@ -117,9 +121,16 @@ public class VacationController {
 
         int currentYear = LocalDate.now().getYear();
 
-        List<String> holidayDates = vacationCalculator
-                .getMexHolidaysBetweenYears(currentYear - 1, currentYear + 1)
-                .stream()
+        Employee employee = employeeRepository
+                .findByUser_UsernameAndDeletedAtIsNull(username)
+                .orElse(null);
+
+        List<LocalDate> holidays = employee == null
+                ? vacationCalculator.getMexHolidaysBetweenYears(currentYear - 1, currentYear + 1)
+                : calendarService.holidayDatesBetween(
+                        employee.getCompany().getId(), currentYear - 1, currentYear + 1);
+
+        List<String> holidayDates = holidays.stream()
                 .map(LocalDate::toString)
                 .collect(Collectors.toList());
 
@@ -231,22 +242,6 @@ public class VacationController {
 
         if (endDate.isBefore(startDate)) {
             ra.addFlashAttribute("error", "La fecha fin no puede ser menor que la fecha inicio.");
-            return "redirect:/vacations/request";
-        }
-
-        if (vacationCalculator.isBlockedDate(startDate)) {
-            ra.addFlashAttribute(
-                    "error",
-                    "La fecha de inicio no puede ser sábado, domingo o día festivo."
-            );
-            return "redirect:/vacations/request";
-        }
-
-        if (vacationCalculator.isBlockedDate(endDate)) {
-            ra.addFlashAttribute(
-                    "error",
-                    "La fecha de fin no puede ser sábado, domingo o día festivo."
-            );
             return "redirect:/vacations/request";
         }
 

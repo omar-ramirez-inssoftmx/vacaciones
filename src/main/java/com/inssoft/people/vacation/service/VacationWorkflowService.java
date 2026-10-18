@@ -78,8 +78,8 @@ public class VacationWorkflowService {
         employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new BusinessException("Empleado no encontrado: " + employeeId));
 
-        validator.validateRequestDates(startDate, endDate);
-        int days = validator.businessDays(startDate, endDate);
+        validator.validateRequestDates(employee.getCompany().getId(), startDate, endDate);
+        int days = validator.businessDays(employee.getCompany().getId(), startDate, endDate);
 
         List<String> blockingStatuses = List.of(
                 VacationStatus.PENDING_LEADER.name(),
