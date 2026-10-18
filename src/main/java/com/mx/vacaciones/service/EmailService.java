@@ -43,16 +43,15 @@ public class EmailService {
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
     /**
-     * Remitente configurado para todos los correos del sistema.
-     */
-    private static final String FROM_EMAIL = "ci.admin@inssoftmx.com";
-    /**
      * Nombre del sistema mostrado en correos.
      */
-    private static final String SYSTEM_NAME = "Sistema de Vacaciones";
+    private static final String SYSTEM_NAME = "INSSOFT PEOPLE";
 
     @Value("${app.system.url}")
     private String systemUrl;
+
+    @Value("${app.mail.from:ci.admin@inssoftmx.com}")
+    private String fromEmail;
 
     private final JavaMailSender mailSender;
     private final UserRepository userRepository;
@@ -464,7 +463,7 @@ public class EmailService {
             );
 
             helper.setTo(to);
-            helper.setFrom(FROM_EMAIL);
+            helper.setFrom(fromEmail);
             helper.setSubject(subject);
             helper.setText(htmlBody, true);
 

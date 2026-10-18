@@ -1,6 +1,7 @@
 package com.mx.vacaciones.controller;
 
 import java.awt.Color;
+import java.io.InputStream;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,6 +23,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.transaction.annotation.Transactional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
@@ -35,9 +40,11 @@ import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
+import com.inssoft.people.common.api.ApiResponse;
 import com.mx.vacaciones.model.VacationRequest;
 import com.mx.vacaciones.repository.VacationRepository;
 import com.mx.vacaciones.service.EmailService;
+import com.mx.vacaciones.service.VacationBalanceService;
 
 import jakarta.servlet.http.HttpServletResponse;
 /**
@@ -66,18 +73,26 @@ public class AdminVacationController {
      * Si el archivo no existe, el PDF se genera sin logo y no falla.
      * </p>
      */
+    private static final Logger log = LoggerFactory.getLogger(AdminVacationController.class);
+
     private final VacationRepository vacationRepository;
     private final EmailService emailService;
+    private final VacationBalanceService vacationBalanceService;
 
     /**
      * Constructor principal del controller.
      *
      * @param vacationRepository repositorio de solicitudes de vacaciones
      * @param emailService servicio de correos
+     * @param vacationBalanceService liberación de saldo en rechazos
      */
-    public AdminVacationController(VacationRepository vacationRepository, EmailService emailService) {
+    public AdminVacationController(
+            VacationRepository vacationRepository,
+            EmailService emailService,
+            VacationBalanceService vacationBalanceService) {
         this.vacationRepository = vacationRepository;
         this.emailService = emailService;
+        this.vacationBalanceService = vacationBalanceService;
     }
 
     /**
@@ -96,23 +111,14 @@ public class AdminVacationController {
                         List.of("PENDING_LEADER", "PENDING_ADMIN")
                 );
 
+        /*
+         * Un GET nunca debe modificar datos. Las solicitudes PENDING_LEADER
+         * sin líder asignado se muestran al admin como accionables, pero el
+         * cambio de estatus ocurre solo al aprobar o rechazar.
+         */
         List<VacationRequest> visibleForAdmin = all.stream()
-                .filter(r -> {
-
-                    if ("PENDING_ADMIN".equals(r.getStatus())) {
-                        return true;
-                    }
-
-                    if ("PENDING_LEADER".equals(r.getStatus())
-                            && r.getLeader() == null) {
-
-                        r.setStatus("PENDING_ADMIN");
-                        vacationRepository.save(r);
-                        return true;
-                    }
-
-                    return false;
-                })
+                .filter(r -> "PENDING_ADMIN".equals(r.getStatus())
+                        || ("PENDING_LEADER".equals(r.getStatus()) && r.getLeader() == null))
                 // Bloquea que el admin se vea a sí mismo en su propia bandeja
                 .filter(r -> !currentAdmin.equalsIgnoreCase(r.getUsername()))
                 .toList();
@@ -131,6 +137,7 @@ public class AdminVacationController {
      * @return redirección al listado de solicitudes
      */
     @PostMapping("/requests/{id}/approve")
+    @Transactional
     public String approve(@PathVariable Long id, Authentication auth, RedirectAttributes ra) {
 
         VacationRequest request = vacationRepository.findById(id)
@@ -141,12 +148,22 @@ public class AdminVacationController {
             return "redirect:/admin/requests";
         }
 
+        if (!isActionableByAdmin(request)) {
+            ra.addFlashAttribute("error", "La solicitud ya fue decidida o no está disponible para administración.");
+            return "redirect:/admin/requests";
+        }
+
         request.setStatus("APPROVED");
         request.setDecidedBy(auth.getName());
         request.setDecidedAt(LocalDateTime.now());
 
         VacationRequest saved = vacationRepository.save(request);
-        emailService.notifyUserDecision(saved);
+
+        try {
+            emailService.notifyUserDecision(saved);
+        } catch (Exception ex) {
+            log.warn("Solicitud {} aprobada, pero no se pudo enviar correo: {}", id, ex.getMessage());
+        }
 
         return "redirect:/admin/requests";
     }
@@ -160,31 +177,55 @@ public class AdminVacationController {
      */
     @PostMapping("/requests/{id}/reject")
     @ResponseBody
-    public ResponseEntity<?> reject(
+    @Transactional
+    public ResponseEntity<ApiResponse<Void>> reject(
             @PathVariable Long id,
             @RequestBody Map<String, String> body,
             Authentication auth) {
 
-        VacationRequest request = vacationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+        VacationRequest request = vacationRepository.findById(id).orElse(null);
+        if (request == null) {
+            return ResponseEntity.status(404).body(ApiResponse.error("Solicitud no encontrada"));
+        }
 
         if (auth.getName().equalsIgnoreCase(request.getUsername())) {
             return ResponseEntity.status(403).body(
-                Map.of("error", "No puedes rechazar tu propia solicitud de vacaciones.")
-            );
+                    ApiResponse.error("No puedes rechazar tu propia solicitud de vacaciones."));
         }
 
-        String motivo = body.get("motivo");
+        if (!isActionableByAdmin(request)) {
+            return ResponseEntity.status(409).body(
+                    ApiResponse.error("La solicitud ya fue decidida o no está disponible para administración."));
+        }
+
+        String motivo = body == null ? null : body.get("motivo");
+        if (motivo == null || motivo.isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Debes indicar el motivo del rechazo"));
+        }
 
         request.setStatus("REJECTED");
         request.setDecidedBy(auth.getName());
         request.setDecidedAt(LocalDateTime.now());
-        request.setAdminComment(motivo);
+        request.setAdminComment(motivo.trim());
 
         VacationRequest saved = vacationRepository.save(request);
-        emailService.notifyUserDecision(saved);
 
-        return ResponseEntity.ok().build();
+        // El sistema legado descuenta al crear; al rechazar se libera el saldo.
+        vacationBalanceService.release(saved.getUser().getId(), saved.getDays());
+
+        try {
+            emailService.notifyUserDecision(saved);
+        } catch (Exception ex) {
+            log.warn("Solicitud {} rechazada, pero no se pudo enviar correo: {}", id, ex.getMessage());
+        }
+
+        return ResponseEntity.ok(ApiResponse.ok("Solicitud rechazada"));
+    }
+
+    private boolean isActionableByAdmin(VacationRequest request) {
+        return "PENDING_ADMIN".equals(request.getStatus())
+                || ("PENDING_LEADER".equals(request.getStatus()) && request.getLeader() == null);
     }
     /**
      * Muestra historial de solicitudes aprobadas / rechazadas con filtros.
@@ -250,8 +291,8 @@ public class AdminVacationController {
     @ResponseBody
     public List<Map<String, Object>> calendarEvents() {
 
-    	List<String> statuses = List.of("APPROVED", "PENDING_ADMIN");
-    	List<VacationRequest> list = vacationRepository.findForCalendar(statuses);
+        List<String> statuses = List.of("APPROVED", "PENDING_LEADER", "PENDING_ADMIN");
+        List<VacationRequest> list = vacationRepository.findForCalendar(statuses);
 
         return list.stream().map(v -> {
             Map<String, Object> event = new HashMap<>();
@@ -266,7 +307,8 @@ public class AdminVacationController {
              */
             if ("APPROVED".equalsIgnoreCase(v.getStatus())) {
                 event.put("color", "#198754");
-            } else if ("PENDING_ADMIN".equalsIgnoreCase(v.getStatus())) {
+            } else if ("PENDING_ADMIN".equalsIgnoreCase(v.getStatus())
+                    || "PENDING_LEADER".equalsIgnoreCase(v.getStatus())) {
                 event.put("color", "#ffc107");
                 event.put("textColor", "#000");
             }
@@ -316,8 +358,8 @@ public class AdminVacationController {
          * Se incluyen solicitudes aprobadas y pendientes
          * para construir el reporte del calendario administrativo.
          */
-    	List<String> statuses = List.of("PENDING_ADMIN", "APPROVED");
-    	List<VacationRequest> list = vacationRepository.findForCalendarRange(statuses, from, to);
+        List<String> statuses = List.of("PENDING_LEADER", "PENDING_ADMIN", "APPROVED");
+        List<VacationRequest> list = vacationRepository.findForCalendarRange(statuses, from, to);
 
         /*
          * Configuración de la respuesta HTTP para mostrar el PDF en navegador.
@@ -366,8 +408,11 @@ public class AdminVacationController {
         logoCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
         logoCell.setPadding(0f);
 
-        try {
-            Image logo = Image.getInstance("src/main/resources/static/images/logo.png");
+        try (InputStream logoStream = getClass().getResourceAsStream("/static/images/logo.png")) {
+            if (logoStream == null) {
+                throw new IllegalStateException("Logo no encontrado en classpath");
+            }
+            Image logo = Image.getInstance(logoStream.readAllBytes());
             logo.scaleToFit(58, 58);
             logoCell.addElement(logo);
         } catch (Exception e) {
@@ -506,8 +551,9 @@ public class AdminVacationController {
 
             if ("APPROVED".equalsIgnoreCase(safeStatus)) {
                 labelStatus = "APROBADA";
-            } else if ("PENDING_ADMIN".equalsIgnoreCase(safeStatus)) {
-                labelStatus = "PENDIENTE ADMIN";
+            } else if ("PENDING_ADMIN".equalsIgnoreCase(safeStatus)
+                    || "PENDING_LEADER".equalsIgnoreCase(safeStatus)) {
+                labelStatus = "PENDIENTE";
             } else if ("REJECTED".equalsIgnoreCase(safeStatus)) {
                 labelStatus = "RECHAZADA";
             }
@@ -520,7 +566,9 @@ public class AdminVacationController {
 
             if ("APPROVED".equalsIgnoreCase(safeStatus)) {
                 statusCell.setBackgroundColor(new Color(220, 252, 231));
-            } else if ("PENDING".equalsIgnoreCase(safeStatus)) {
+            } else if ("PENDING".equalsIgnoreCase(safeStatus)
+                    || "PENDING_ADMIN".equalsIgnoreCase(safeStatus)
+                    || "PENDING_LEADER".equalsIgnoreCase(safeStatus)) {
                 statusCell.setBackgroundColor(new Color(254, 243, 199));
             } else if ("REJECTED".equalsIgnoreCase(safeStatus)) {
                 statusCell.setBackgroundColor(new Color(254, 226, 226));

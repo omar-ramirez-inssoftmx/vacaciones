@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.inssoft.people.common.api.ErrorCode;
+import com.inssoft.people.common.exception.BusinessException;
+import com.inssoft.people.common.security.PasswordPolicy;
 import com.mx.vacaciones.model.Role;
 import com.mx.vacaciones.model.User;
 import com.mx.vacaciones.repository.UserRepository;
@@ -140,9 +143,21 @@ public class UserService {
         log.info("Password temporal generado para usuario: {}", savedUser.getUsername()); // ← faltaba
         return savedUser; // ← faltaba
     }
-    public User changeOwnPassword(String username, String newPassword) {
+    public User changeOwnPassword(String username, String currentPassword, String newPassword) {
         User u = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        if (currentPassword == null || !passwordEncoder.matches(currentPassword, u.getPassword())) {
+            throw new BusinessException(ErrorCode.VALIDATION_ERROR,
+                    "La contraseña actual no es correcta");
+        }
+
+        PasswordPolicy.validate(newPassword);
+
+        if (passwordEncoder.matches(newPassword, u.getPassword())) {
+            throw new BusinessException(ErrorCode.VALIDATION_ERROR,
+                    "La nueva contraseña debe ser diferente a la actual");
+        }
 
         u.setPassword(passwordEncoder.encode(newPassword));
         u.setTemporaryPassword(false);

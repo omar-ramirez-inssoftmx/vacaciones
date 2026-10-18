@@ -1,4 +1,38 @@
 /*
+ * CSRF para fetch: Spring Security expone el token en la cookie XSRF-TOKEN.
+ * Cualquier POST/PUT/PATCH/DELETE agrega automáticamente el header X-XSRF-TOKEN.
+ */
+(function () {
+  if (window.__csrfFetchInstalled) {
+    return;
+  }
+  window.__csrfFetchInstalled = true;
+
+  const originalFetch = window.fetch.bind(window);
+
+  window.fetch = function (input, init) {
+    const method =
+      (init && init.method) ||
+      (typeof input === "object" && input.method) ||
+      "GET";
+
+    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(method)) {
+      const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+      if (match) {
+        init = init || {};
+        const headers = new Headers(init.headers || {});
+        if (!headers.has("X-XSRF-TOKEN")) {
+          headers.set("X-XSRF-TOKEN", decodeURIComponent(match[1]));
+        }
+        init.headers = headers;
+      }
+    }
+
+    return originalFetch(input, init);
+  };
+})();
+
+/*
  * Loader global del sistema.
  *
  * Mejora aplicada:

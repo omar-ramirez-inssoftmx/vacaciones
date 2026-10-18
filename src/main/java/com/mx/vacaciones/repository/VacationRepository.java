@@ -90,6 +90,14 @@ public interface VacationRepository extends JpaRepository<VacationRequest, Long>
     long countByStatus(String status);
 
     /**
+     * Cuenta solicitudes cuyo estatus esté dentro de la lista indicada.
+     *
+     * @param statuses estatus a contar
+     * @return total de solicitudes
+     */
+    long countByStatusIn(List<String> statuses);
+
+    /**
      * Valida si existe alguna solicitud que se traslape con el rango indicado
      * para un usuario y con estatus bloqueantes.
      *

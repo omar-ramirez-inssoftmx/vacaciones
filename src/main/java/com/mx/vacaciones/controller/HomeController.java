@@ -1,5 +1,7 @@
 package com.mx.vacaciones.controller;
 
+import java.util.List;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -63,7 +65,8 @@ public class HomeController {
         long pendingRequestsCount = 0L;
 
         if ("ROLE_ADMIN".equals(rol) || "ROLE_LIDER".equals(rol)) {
-            pendingRequestsCount = vacationRepository.countByStatus("PENDING");
+            pendingRequestsCount = vacationRepository.countByStatusIn(
+                    List.of("PENDING_LEADER", "PENDING_ADMIN"));
         }
 
         model.addAttribute("usuario", username);

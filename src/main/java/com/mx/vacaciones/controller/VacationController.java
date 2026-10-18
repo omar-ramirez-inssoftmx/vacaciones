@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.mx.vacaciones.model.Role;
 import com.mx.vacaciones.model.User;
 import com.mx.vacaciones.model.VacationRequest;
 import com.mx.vacaciones.repository.UserRepository;
@@ -265,34 +266,46 @@ public class VacationController {
                 return "redirect:/vacations/request";
             }
         }
+
         boolean isSelfRequestByAdmin = isAdmin && targetUser.getId().equals(loggedUser.getId());
-        
+
+        /*
+         * Bloqueo pesimista del usuario objetivo: serializa solicitudes del
+         * mismo usuario y evita que dos peticiones concurrentes sobregiren
+         * el saldo disponible.
+         */
+        targetUser = userRepository.findByIdForUpdate(targetUser.getId()).orElse(null);
+        if (targetUser == null) {
+            ra.addFlashAttribute("error", "El usuario objetivo no existe.");
+            return "redirect:/vacations/request";
+        }
+
         User leader = null;
 
-        boolean isLeader = hasRole(authentication, "ROLE_LIDER");
-        
         if (!isSelfRequestByAdmin) {
-            leader = userRepository.findById(leaderId).orElse(null);
+            leader = leaderId == null ? null : userRepository.findById(leaderId).orElse(null);
             if (leader == null) {
                 ra.addFlashAttribute("error", "Debes seleccionar un líder.");
                 return "redirect:/vacations/request";
             }
-        }
-        /*
-         * Si es admin y no selecciona usuario en modo RRHH,
-         * se evita registrar accidentalmente para un usuario nulo.
-         */
-        if (isAdmin && targetUserId == null) {
-            ra.addFlashAttribute("error", "Debes seleccionar un empleado.");
-            return "redirect:/vacations/request";
+            if (leader.getRole() != Role.ROLE_LIDER) {
+                ra.addFlashAttribute("error", "El autorizador seleccionado no tiene rol de líder.");
+                return "redirect:/vacations/request";
+            }
+            if (leader.getId().equals(targetUser.getId())) {
+                ra.addFlashAttribute("error", "El líder no puede ser el mismo usuario que solicita.");
+                return "redirect:/vacations/request";
+            }
         }
 
         // Evitar traslapes con solicitudes pendientes o aprobadas
         List<String> blockingStatuses = List.of(
-        	    "PENDING_LEADER",
-        	    "PENDING_ADMIN",
-        	    "APPROVED"
-        	);        boolean overlap = vacationRepository.existsOverlapping(
+                "PENDING_LEADER",
+                "PENDING_ADMIN",
+                "APPROVED"
+        );
+
+        boolean overlap = vacationRepository.existsOverlapping(
                 targetUser.getId(),
                 startDate,
                 endDate,
@@ -324,8 +337,8 @@ public class VacationController {
             return "redirect:/vacations/request";
         }
 
-        // Descontar saldo del usuario objetivo
-        targetUser.setVacationDaysAvailable(available - days);
+        // Descontar saldo del usuario objetivo (con validación de negocio)
+        targetUser.deductVacationDays(days);
         userRepository.save(targetUser);
 
         // Guardar solicitud vinculada al usuario objetivo
@@ -341,14 +354,7 @@ public class VacationController {
         }
         request.setUsername(targetUser.getUsername());
 
-        if (isSelfRequestByAdmin) {
-            request.setStatus("PENDING_ADMIN");
-        } else {
-            request.setStatus("PENDING_LEADER");
-        }
-
-        System.out.println("¿Es líder?: " + isLeader);
-        System.out.println("Status asignado: " + request.getStatus());
+        request.setStatus(isSelfRequestByAdmin ? "PENDING_ADMIN" : "PENDING_LEADER");
 
         VacationRequest saved = vacationRepository.save(request);        /*
          * Envío de correos:
@@ -357,10 +363,11 @@ public class VacationController {
          * - Si un admin la registró para otro usuario, se envía correo especial RRHH.
          */
         try {
-        	emailService.notifyLeaderVacationRequest(saved, leader);
-        	emailService.notifyAdminVacationRequest(saved, leader);
-        	
-        	
+            emailService.notifyLeaderVacationRequest(saved, leader);
+            if (leader != null) {
+                emailService.notifyAdminVacationRequest(saved, leader);
+            }
+
             boolean requestCreatedByAdminForAnotherUser =
                     isAdmin && !targetUser.getUsername().equals(loggedUser.getUsername());
 
