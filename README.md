@@ -5,6 +5,7 @@ Plataforma interna de administración de empleados. Evoluciona el sistema de vac
 > Documentación de la evolución: [`docs/AUDITORIA-TECNICA-INSSOFT-PEOPLE.md`](docs/AUDITORIA-TECNICA-INSSOFT-PEOPLE.md)
 > Estado del Bloque 1: [`docs/BLOQUE-1-IMPLEMENTACION.md`](docs/BLOQUE-1-IMPLEMENTACION.md)
 > Estado del Bloque 2 (Employees + RBAC): [`docs/BLOQUE-2-EMPLEADOS.md`](docs/BLOQUE-2-EMPLEADOS.md)
+> Estado del Bloque 3 (Vacations + ledger): [`docs/BLOQUE-3-VACACIONES.md`](docs/BLOQUE-3-VACACIONES.md)
 
 ## Stack
 
@@ -27,6 +28,7 @@ com.inssoft.people       # nuevos módulos API-first
   masterdata/            # catálogos reutilizables
   organization/          # Company → Branch → Department → Position
   employee/              # empleados, /me, contactos de emergencia
+  vacation/              # políticas, periodos, ledger, workflow y job de acumulación
   ...
 src/main/resources/db/migration   # Flyway (SQL Server)
 ```
@@ -111,7 +113,7 @@ curl http://localhost:8443/api/v1/auth/me \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-Endpoints de los Bloques 1 y 2:
+Endpoints de los Bloques 1, 2 y 3:
 
 | Método | Ruta | Permiso |
 |---|---|---|
@@ -138,6 +140,20 @@ Endpoints de los Bloques 1 y 2:
 | DELETE | `/api/v1/employees/{uuid}` | `EMPLOYEE_TERMINATE` |
 | GET/POST | `/api/v1/employees/{uuid}/emergency-contacts` | `EMPLOYEE_VIEW` / `EMPLOYEE_UPDATE` |
 | PUT/DELETE | `/api/v1/employees/{uuid}/emergency-contacts/{contactUuid}` | `EMPLOYEE_UPDATE` |
+| GET | `/api/v1/vacations/balance` | `VACATION_VIEW_SELF` |
+| GET | `/api/v1/vacations/periods` | `VACATION_VIEW_SELF` |
+| GET | `/api/v1/vacations/ledger` | `VACATION_VIEW_SELF` |
+| GET/POST | `/api/v1/vacations` | `VACATION_VIEW_SELF` / `VACATION_CREATE` |
+| GET | `/api/v1/vacations/{uuid}` | `VACATION_VIEW` / `VACATION_VIEW_SELF` |
+| GET | `/api/v1/vacations/{uuid}/events` | `VACATION_VIEW` / `VACATION_VIEW_SELF` |
+| POST | `/api/v1/vacations/{uuid}/approve` | `VACATION_APPROVE` (+ `VACATION_ADJUST` en etapa admin) |
+| POST | `/api/v1/vacations/{uuid}/reject` | `VACATION_APPROVE` (+ `VACATION_ADJUST` en etapa admin) |
+| POST | `/api/v1/vacations/{uuid}/cancel` | `VACATION_CANCEL` |
+| GET | `/api/v1/vacations/pending` | `VACATION_APPROVE` |
+| GET | `/api/v1/vacations/search` | `VACATION_ADJUST` |
+| GET | `/api/v1/vacations/employees/{uuid}/balance` | `VACATION_ADJUST` |
+| POST | `/api/v1/vacations/employees/{uuid}/adjust` | `VACATION_ADJUST` |
+| GET | `/api/v1/vacations/policies` | `VACATION_POLICY_MANAGE` / `VACATION_VIEW` |
 
 Convenciones:
 
@@ -157,9 +173,10 @@ V2__common_security_audit.sql
 V3__organization.sql
 V4__masterdata.sql
 V5__employees.sql          # empleados, contactos, migración users → employees
+V6__vacations.sql          # políticas, periodos, ledger, eventos y workflow
 ```
 
-> **Importante:** `V1` fue inferido del mapeo JPA. Antes de producción, ejecutar `docs/sql/00_introspection_sqlserver.sql` sobre una copia y reemplazar `V1` por el DDL real (o confirmar que coincide). En bases existentes Flyway hace baseline en V1 y aplica V2–V5.
+> **Importante:** `V1` fue inferido del mapeo JPA. Antes de producción, ejecutar `docs/sql/00_introspection_sqlserver.sql` sobre una copia y reemplazar `V1` por el DDL real (o confirmar que coincide). En bases existentes Flyway hace baseline en V1 y aplica V2–V6.
 >
 > `V5` crea una organización mínima (`INSSOFT / MATRIZ / GENERAL / GENERAL`) y migra los usuarios existentes a empleados con número `LEG-<id>` y nombre dividido de forma aproximada. RRHH debe revisar/corregir esos datos.
 
@@ -169,8 +186,8 @@ V5__employees.sql          # empleados, contactos, migración users → employee
 mvn clean verify
 ```
 
-- 100 pruebas unitarias/de contrato.
-- Cobertura de código nuevo: **80.2%** (ver `target/site/jacoco/index.html`).
+- 151 pruebas unitarias/de contrato.
+- Cobertura de código nuevo: **78.4%** (ver `target/site/jacoco/index.html`).
 - No requieren base de datos.
 
 ## Seguridad
@@ -181,6 +198,8 @@ mvn clean verify
 - Autorización backend con `@PreAuthorize` y `AccessGuard`.
 - RBAC efectivo desde base de datos (`sec_role_permission`); el mapa estático queda solo como respaldo pre-migración.
 - Datos sensibles (CURP/RFC/NSS) enmascarados en detalle si el usuario no tiene `EMPLOYEE_VIEW_SENSITIVE`.
+- Vacaciones: ledger firmado, periodos por aniversario, retención/consumo/liberación y workflow con validación de etapa administrativa (`VACATION_ADJUST`).
+- Auto-aprobación/rechazo administrativo bloqueado.
 - Correcciones aplicadas: IDOR líder/admin, rechazo de líder, saldo liberado al rechazar, `GET` sin efectos secundarios, cambio de contraseña con contraseña actual.
 - **Rotar** cualquier credencial que haya estado en el historial de git (ver auditoría).
 
