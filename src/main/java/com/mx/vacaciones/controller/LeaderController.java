@@ -1,6 +1,5 @@
 package com.mx.vacaciones.controller;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -9,24 +8,22 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import com.inssoft.people.common.api.ApiResponse;
+import com.inssoft.people.common.api.ErrorCode;
+import com.inssoft.people.common.exception.BusinessException;
+import com.inssoft.people.vacation.service.VacationWorkflowService;
 import com.mx.vacaciones.model.User;
 import com.mx.vacaciones.model.VacationRequest;
 import com.mx.vacaciones.repository.UserRepository;
 import com.mx.vacaciones.repository.VacationRepository;
 import com.mx.vacaciones.service.EmailService;
-import com.mx.vacaciones.service.VacationBalanceService;
 
 /**
- * Bandeja del líder.
- *
- * <p>Corrección de seguridad: el líder solo puede decidir solicitudes donde
- * él es el líder asignado y que estén en estado {@code PENDING_LEADER}.
- * El rechazo deja la solicitud en {@code REJECTED} y libera el saldo.</p>
+ * Bandeja del líder. La lógica de estado, ownership y ledger vive en
+ * {@link VacationWorkflowService}; este controlador solo adapta la UI legada.
  */
 @Controller
 @RequestMapping("/leader")
@@ -36,23 +33,22 @@ public class LeaderController {
 
     private final VacationRepository vacationRepository;
     private final UserRepository userRepository;
-    private final VacationBalanceService vacationBalanceService;
+    private final VacationWorkflowService workflowService;
     private final EmailService emailService;
 
     public LeaderController(
             VacationRepository vacationRepository,
             UserRepository userRepository,
-            VacationBalanceService vacationBalanceService,
+            VacationWorkflowService workflowService,
             EmailService emailService) {
         this.vacationRepository = vacationRepository;
         this.userRepository = userRepository;
-        this.vacationBalanceService = vacationBalanceService;
+        this.workflowService = workflowService;
         this.emailService = emailService;
     }
 
     @GetMapping("/requests")
     public String viewRequests(Authentication authentication, Model model) {
-
         User leader = currentLeaderOrNull(authentication);
         if (leader == null) {
             return "redirect:/login";
@@ -60,14 +56,12 @@ public class LeaderController {
 
         List<VacationRequest> requests =
                 vacationRepository.findByLeaderAndStatus(leader, "PENDING_LEADER");
-
         model.addAttribute("requests", requests);
         return "leader/requests";
     }
 
     @PostMapping("/approve/{id}")
     @ResponseBody
-    @Transactional
     public ResponseEntity<ApiResponse<Void>> approveRequest(
             @PathVariable Long id,
             Authentication authentication) {
@@ -77,33 +71,16 @@ public class LeaderController {
             return unauthorized();
         }
 
-        VacationRequest request = vacationRepository.findById(id).orElse(null);
-        if (request == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ApiResponse.error("Solicitud no encontrada"));
+        try {
+            workflowService.approveByLeader(id, leader);
+            return ResponseEntity.ok(ApiResponse.ok("Solicitud aprobada por el líder"));
+        } catch (BusinessException ex) {
+            return error(ex);
         }
-
-        ResponseEntity<ApiResponse<Void>> ownershipError = validateOwnership(request, leader);
-        if (ownershipError != null) {
-            return ownershipError;
-        }
-
-        if (!"PENDING_LEADER".equals(request.getStatus())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(ApiResponse.error("La solicitud ya no está pendiente del líder"));
-        }
-
-        request.setStatus("PENDING_ADMIN");
-        request.setLeaderDecision("APPROVED");
-        request.setLeaderDecidedAt(LocalDateTime.now());
-        vacationRepository.save(request);
-
-        return ResponseEntity.ok(ApiResponse.ok("Solicitud aprobada por el líder"));
     }
 
     @PostMapping("/reject/{id}")
     @ResponseBody
-    @Transactional
     public ResponseEntity<ApiResponse<Void>> rejectRequest(
             @PathVariable Long id,
             @RequestBody java.util.Map<String, String> body,
@@ -114,43 +91,23 @@ public class LeaderController {
             return unauthorized();
         }
 
-        VacationRequest request = vacationRepository.findById(id).orElse(null);
-        if (request == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ApiResponse.error("Solicitud no encontrada"));
-        }
-
-        ResponseEntity<ApiResponse<Void>> ownershipError = validateOwnership(request, leader);
-        if (ownershipError != null) {
-            return ownershipError;
-        }
-
-        if (!"PENDING_LEADER".equals(request.getStatus())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(ApiResponse.error("La solicitud ya no está pendiente del líder"));
-        }
-
         String motivo = body == null ? null : body.get("motivo");
         if (motivo == null || motivo.isBlank()) {
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error("Debes indicar el motivo del rechazo"));
         }
 
-        request.setStatus("REJECTED");
-        request.setLeaderDecision("REJECTED");
-        request.setLeaderComment(motivo.trim());
-        request.setLeaderDecidedAt(LocalDateTime.now());
-        VacationRequest saved = vacationRepository.save(request);
-
-        vacationBalanceService.release(saved.getUser().getId(), saved.getDays());
-
         try {
-            emailService.notifyUserDecision(saved);
-        } catch (Exception ex) {
-            log.warn("Solicitud {} rechazada, pero no se pudo enviar correo: {}", id, ex.getMessage());
+            VacationRequest saved = workflowService.rejectByLeader(id, leader, motivo);
+            try {
+                emailService.notifyUserDecision(saved);
+            } catch (Exception ex) {
+                log.warn("Solicitud {} rechazada, pero no se pudo enviar correo: {}", id, ex.getMessage());
+            }
+            return ResponseEntity.ok(ApiResponse.ok("Solicitud rechazada por el líder"));
+        } catch (BusinessException ex) {
+            return error(ex);
         }
-
-        return ResponseEntity.ok(ApiResponse.ok("Solicitud rechazada por el líder"));
     }
 
     private User currentLeaderOrNull(Authentication authentication) {
@@ -160,17 +117,15 @@ public class LeaderController {
         return userRepository.findByUsername(authentication.getName()).orElse(null);
     }
 
-    private ResponseEntity<ApiResponse<Void>> validateOwnership(VacationRequest request, User leader) {
-        if (request.getLeader() == null
-                || !request.getLeader().getId().equals(leader.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(ApiResponse.error("No puedes decidir una solicitud que no te fue asignada"));
-        }
-        return null;
-    }
-
     private ResponseEntity<ApiResponse<Void>> unauthorized() {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.error("Autenticación requerida"));
+    }
+
+    private ResponseEntity<ApiResponse<Void>> error(BusinessException ex) {
+        HttpStatus status = ex.getErrorCode() == ErrorCode.FORBIDDEN
+                ? HttpStatus.FORBIDDEN
+                : HttpStatus.CONFLICT;
+        return ResponseEntity.status(status).body(ApiResponse.error(ex.getMessage()));
     }
 }

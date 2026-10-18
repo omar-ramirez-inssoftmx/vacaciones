@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.io.InputStream;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.transaction.annotation.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,10 +39,14 @@ import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import com.inssoft.people.common.api.ApiResponse;
+import com.inssoft.people.common.api.ErrorCode;
+import com.inssoft.people.common.exception.BusinessException;
+import com.inssoft.people.vacation.service.VacationWorkflowService;
+import com.mx.vacaciones.model.User;
 import com.mx.vacaciones.model.VacationRequest;
+import com.mx.vacaciones.repository.UserRepository;
 import com.mx.vacaciones.repository.VacationRepository;
 import com.mx.vacaciones.service.EmailService;
-import com.mx.vacaciones.service.VacationBalanceService;
 
 import jakarta.servlet.http.HttpServletResponse;
 /**
@@ -76,23 +78,19 @@ public class AdminVacationController {
     private static final Logger log = LoggerFactory.getLogger(AdminVacationController.class);
 
     private final VacationRepository vacationRepository;
+    private final UserRepository userRepository;
     private final EmailService emailService;
-    private final VacationBalanceService vacationBalanceService;
+    private final VacationWorkflowService workflowService;
 
-    /**
-     * Constructor principal del controller.
-     *
-     * @param vacationRepository repositorio de solicitudes de vacaciones
-     * @param emailService servicio de correos
-     * @param vacationBalanceService liberación de saldo en rechazos
-     */
     public AdminVacationController(
             VacationRepository vacationRepository,
+            UserRepository userRepository,
             EmailService emailService,
-            VacationBalanceService vacationBalanceService) {
+            VacationWorkflowService workflowService) {
         this.vacationRepository = vacationRepository;
+        this.userRepository = userRepository;
         this.emailService = emailService;
-        this.vacationBalanceService = vacationBalanceService;
+        this.workflowService = workflowService;
     }
 
     /**
@@ -137,32 +135,29 @@ public class AdminVacationController {
      * @return redirección al listado de solicitudes
      */
     @PostMapping("/requests/{id}/approve")
-    @Transactional
     public String approve(@PathVariable Long id, Authentication auth, RedirectAttributes ra) {
 
-        VacationRequest request = vacationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+        VacationRequest request = vacationRepository.findById(id).orElse(null);
+        if (request == null) {
+            ra.addFlashAttribute("error", "Solicitud no encontrada.");
+            return "redirect:/admin/requests";
+        }
 
         if (auth.getName().equalsIgnoreCase(request.getUsername())) {
             ra.addFlashAttribute("error", "No puedes aprobar tu propia solicitud de vacaciones.");
             return "redirect:/admin/requests";
         }
 
-        if (!isActionableByAdmin(request)) {
-            ra.addFlashAttribute("error", "La solicitud ya fue decidida o no está disponible para administración.");
-            return "redirect:/admin/requests";
-        }
-
-        request.setStatus("APPROVED");
-        request.setDecidedBy(auth.getName());
-        request.setDecidedAt(LocalDateTime.now());
-
-        VacationRequest saved = vacationRepository.save(request);
-
         try {
-            emailService.notifyUserDecision(saved);
-        } catch (Exception ex) {
-            log.warn("Solicitud {} aprobada, pero no se pudo enviar correo: {}", id, ex.getMessage());
+            User admin = userRepository.findByUsername(auth.getName()).orElse(null);
+            VacationRequest saved = workflowService.approveByAdmin(id, admin);
+            try {
+                emailService.notifyUserDecision(saved);
+            } catch (Exception ex) {
+                log.warn("Solicitud {} aprobada, pero no se pudo enviar correo: {}", id, ex.getMessage());
+            }
+        } catch (BusinessException ex) {
+            ra.addFlashAttribute("error", ex.getMessage());
         }
 
         return "redirect:/admin/requests";
@@ -177,7 +172,6 @@ public class AdminVacationController {
      */
     @PostMapping("/requests/{id}/reject")
     @ResponseBody
-    @Transactional
     public ResponseEntity<ApiResponse<Void>> reject(
             @PathVariable Long id,
             @RequestBody Map<String, String> body,
@@ -193,39 +187,27 @@ public class AdminVacationController {
                     ApiResponse.error("No puedes rechazar tu propia solicitud de vacaciones."));
         }
 
-        if (!isActionableByAdmin(request)) {
-            return ResponseEntity.status(409).body(
-                    ApiResponse.error("La solicitud ya fue decidida o no está disponible para administración."));
-        }
-
         String motivo = body == null ? null : body.get("motivo");
         if (motivo == null || motivo.isBlank()) {
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error("Debes indicar el motivo del rechazo"));
         }
 
-        request.setStatus("REJECTED");
-        request.setDecidedBy(auth.getName());
-        request.setDecidedAt(LocalDateTime.now());
-        request.setAdminComment(motivo.trim());
-
-        VacationRequest saved = vacationRepository.save(request);
-
-        // El sistema legado descuenta al crear; al rechazar se libera el saldo.
-        vacationBalanceService.release(saved.getUser().getId(), saved.getDays());
-
         try {
-            emailService.notifyUserDecision(saved);
-        } catch (Exception ex) {
-            log.warn("Solicitud {} rechazada, pero no se pudo enviar correo: {}", id, ex.getMessage());
+            User admin = userRepository.findByUsername(auth.getName()).orElse(null);
+            VacationRequest saved = workflowService.rejectByAdmin(id, admin, motivo);
+            try {
+                emailService.notifyUserDecision(saved);
+            } catch (Exception ex) {
+                log.warn("Solicitud {} rechazada, pero no se pudo enviar correo: {}", id, ex.getMessage());
+            }
+            return ResponseEntity.ok(ApiResponse.ok("Solicitud rechazada"));
+        } catch (BusinessException ex) {
+            if (ex.getErrorCode() == ErrorCode.FORBIDDEN) {
+                return ResponseEntity.status(403).body(ApiResponse.error(ex.getMessage()));
+            }
+            return ResponseEntity.status(409).body(ApiResponse.error(ex.getMessage()));
         }
-
-        return ResponseEntity.ok(ApiResponse.ok("Solicitud rechazada"));
-    }
-
-    private boolean isActionableByAdmin(VacationRequest request) {
-        return "PENDING_ADMIN".equals(request.getStatus())
-                || ("PENDING_LEADER".equals(request.getStatus()) && request.getLeader() == null);
     }
     /**
      * Muestra historial de solicitudes aprobadas / rechazadas con filtros.

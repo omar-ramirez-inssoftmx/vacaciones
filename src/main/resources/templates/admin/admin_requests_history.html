@@ -423,8 +423,8 @@
 
             <td>
               <div class="user-cell">
-                <span class="user-name" th:text="${r.user.username}"></span>
-                <span class="user-email" th:text="${r.user.email}"></span>
+                <span class="user-name" th:text="${r.user != null ? r.user.username : r.username}"></span>
+                <span class="user-email" th:text="${r.user != null ? r.user.email : ''}"></span>
               </div>
             </td>
 

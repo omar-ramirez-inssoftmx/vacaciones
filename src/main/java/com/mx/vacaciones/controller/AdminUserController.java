@@ -1,8 +1,10 @@
 package com.mx.vacaciones.controller;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.inssoft.people.vacation.service.VacationAdminService;
 import com.mx.vacaciones.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class AdminUserController {
 
     private final UserService userService;
+    private final VacationAdminService vacationAdminService;
 
     @GetMapping
     public String usersList(
@@ -74,7 +78,12 @@ public class AdminUserController {
             @RequestParam String role,
             @RequestParam Integer vacationDaysAvailable,
             @RequestParam LocalDate hireDate,
-            @RequestParam(defaultValue = "false") boolean enabled) {
+            @RequestParam(defaultValue = "false") boolean enabled,
+            Authentication authentication) {
+
+        if (vacationDaysAvailable == null || vacationDaysAvailable < 0) {
+            return "redirect:/admin/users?err=" + encode("El saldo no puede ser negativo");
+        }
 
         try {
             userService.updateUser(
@@ -86,6 +95,14 @@ public class AdminUserController {
                     hireDate,
                     enabled
             );
+
+            // Si el usuario tiene empleado, el cambio de saldo se registra como
+            // movimiento de ledger; la columna legada queda solo como caché.
+            vacationAdminService.adjustForUser(
+                    id,
+                    BigDecimal.valueOf(vacationDaysAvailable),
+                    "Ajuste desde administración de usuarios",
+                    authentication == null ? null : authentication.getName());
 
             return "redirect:/admin/users?ok=Usuario%20actualizado";
 

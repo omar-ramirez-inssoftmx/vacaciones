@@ -17,6 +17,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.inssoft.people.common.exception.BusinessException;
+import com.inssoft.people.employee.entity.Employee;
+import com.inssoft.people.employee.repository.EmployeeRepository;
+import com.inssoft.people.vacation.service.VacationWorkflowService;
 import com.mx.vacaciones.model.Role;
 import com.mx.vacaciones.model.User;
 import com.mx.vacaciones.model.VacationRequest;
@@ -64,19 +68,25 @@ public class VacationController {
 
     private final VacationRepository vacationRepository;
     private final UserRepository userRepository;
+    private final EmployeeRepository employeeRepository;
     private final EmailService emailService;
     private final VacationCalculator vacationCalculator;
+    private final VacationWorkflowService vacationWorkflowService;
 
     public VacationController(
             VacationRepository vacationRepository,
             UserRepository userRepository,
+            EmployeeRepository employeeRepository,
             EmailService emailService,
-            VacationCalculator vacationCalculator) {
+            VacationCalculator vacationCalculator,
+            VacationWorkflowService vacationWorkflowService) {
 
         this.vacationRepository = vacationRepository;
         this.userRepository = userRepository;
+        this.employeeRepository = employeeRepository;
         this.emailService = emailService;
         this.vacationCalculator = vacationCalculator;
+        this.vacationWorkflowService = vacationWorkflowService;
     }
 
     /**
@@ -269,14 +279,11 @@ public class VacationController {
 
         boolean isSelfRequestByAdmin = isAdmin && targetUser.getId().equals(loggedUser.getId());
 
-        /*
-         * Bloqueo pesimista del usuario objetivo: serializa solicitudes del
-         * mismo usuario y evita que dos peticiones concurrentes sobregiren
-         * el saldo disponible.
-         */
-        targetUser = userRepository.findByIdForUpdate(targetUser.getId()).orElse(null);
-        if (targetUser == null) {
-            ra.addFlashAttribute("error", "El usuario objetivo no existe.");
+        Employee employee = employeeRepository.findByUser_IdAndDeletedAtIsNull(targetUser.getId())
+                .orElse(null);
+        if (employee == null) {
+            ra.addFlashAttribute("error",
+                    "El usuario no tiene un empleado vinculado. Contacta a Recursos Humanos.");
             return "redirect:/vacations/request";
         }
 
@@ -298,65 +305,14 @@ public class VacationController {
             }
         }
 
-        // Evitar traslapes con solicitudes pendientes o aprobadas
-        List<String> blockingStatuses = List.of(
-                "PENDING_LEADER",
-                "PENDING_ADMIN",
-                "APPROVED"
-        );
-
-        boolean overlap = vacationRepository.existsOverlapping(
-                targetUser.getId(),
-                startDate,
-                endDate,
-                blockingStatuses
-        );
-
-        if (overlap) {
-            ra.addFlashAttribute(
-                    "error",
-                    "El usuario seleccionado ya tiene una solicitud que se traslapa con esas fechas."
-            );
+        VacationRequest saved;
+        try {
+            saved = vacationWorkflowService.submit(
+                    employee, startDate, endDate, leader, loggedUser, null, !isSelfRequestByAdmin);
+        } catch (BusinessException ex) {
+            ra.addFlashAttribute("error", ex.getMessage());
             return "redirect:/vacations/request";
-        }
-
-        // Calcular días hábiles
-        int days = vacationCalculator.businessDaysInclusive(startDate, endDate);
-
-        if (days <= 0) {
-            ra.addFlashAttribute("error", "El rango no contiene días hábiles.");
-            return "redirect:/vacations/request";
-        }
-
-        int available = targetUser.getVacationDaysAvailable();
-        if (available < days) {
-            ra.addFlashAttribute(
-                    "error",
-                    "El usuario seleccionado no tiene días suficientes. Disponibles: " + available
-            );
-            return "redirect:/vacations/request";
-        }
-
-        // Descontar saldo del usuario objetivo (con validación de negocio)
-        targetUser.deductVacationDays(days);
-        userRepository.save(targetUser);
-
-        // Guardar solicitud vinculada al usuario objetivo
-        VacationRequest request = new VacationRequest();
-        request.setStartDate(startDate);
-        request.setEndDate(endDate);
-        request.setDays(days);
-        request.setUser(targetUser);
-        request.setRequestedByUsername(loggedUser.getUsername());
-
-        if (leader != null) {
-            request.setLeader(leader);
-        }
-        request.setUsername(targetUser.getUsername());
-
-        request.setStatus(isSelfRequestByAdmin ? "PENDING_ADMIN" : "PENDING_LEADER");
-
-        VacationRequest saved = vacationRepository.save(request);        /*
+        }        /*
          * Envío de correos:
          * - Siempre se notifica a admins indicando quién capturó la solicitud.
          * - Si el usuario se la registró a sí mismo, se envía correo normal.
@@ -381,7 +337,7 @@ public class VacationController {
                             targetUser.getUsername(),
                             startDate.format(ES_FORMAT),
                             endDate.format(ES_FORMAT),
-                            days,
+                            saved.getDays(),
                             safeName(loggedUser),
                             loggedUser.getUsername()
                     );
@@ -392,7 +348,7 @@ public class VacationController {
                             targetUser.getUsername(),
                             startDate.format(ES_FORMAT),
                             endDate.format(ES_FORMAT),
-                            days
+                            saved.getDays()
                     );
                 }
             }
@@ -409,12 +365,12 @@ public class VacationController {
             ra.addFlashAttribute(
                     "success",
                     "Solicitud registrada para " + safeName(targetUser)
-                            + ". Se descontaron " + days + " días."
+                            + ". Se reservaron " + saved.getDays() + " días."
             );
         } else {
             ra.addFlashAttribute(
                     "success",
-                    "Solicitud enviada. Se descontaron " + days + " días."
+                    "Solicitud enviada. Se reservaron " + saved.getDays() + " días."
             );
         }
 
