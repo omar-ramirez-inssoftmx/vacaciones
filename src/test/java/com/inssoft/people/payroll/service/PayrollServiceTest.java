@@ -2,6 +2,7 @@ package com.inssoft.people.payroll.service;
 
 import com.inssoft.people.common.audit.AuditService;
 import com.inssoft.people.common.exception.BusinessException;
+import com.inssoft.people.common.security.AuthorizationService;
 import com.inssoft.people.common.exception.ConflictException;
 import com.inssoft.people.documents.storage.FileStorageService;
 import com.inssoft.people.documents.storage.StoredFile;
@@ -55,6 +56,9 @@ class PayrollServiceTest {
 
     @Mock
     private AuditService auditService;
+
+    @Mock
+    private AuthorizationService authorizationService;
 
     @InjectMocks
     private PayrollService service;
@@ -141,6 +145,8 @@ class PayrollServiceTest {
         PayPeriod period = period(company);
         PayReceipt receipt = receipt(company, employee, period);
         when(receiptRepository.findByUuidAndDeletedAtIsNull(receipt.getUuid())).thenReturn(Optional.of(receipt));
+        when(authorizationService.canViewPayroll(actor, employee)).thenReturn(true);
+        when(authorizationService.hasPermission("PAYROLL_MANAGE")).thenReturn(false);
         when(storageService.open(receipt.getStorageKey()))
                 .thenReturn(new ByteArrayInputStream("pdf".getBytes(StandardCharsets.UTF_8)));
 

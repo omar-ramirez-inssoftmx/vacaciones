@@ -35,6 +35,12 @@ public class AuditServiceImpl implements AuditService {
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void record(String action, String entity, String entityId, Object oldValue, Object newValue) {
+        record(action, entity, entityId, oldValue, newValue, "SUCCESS");
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void record(String action, String entity, String entityId, Object oldValue, Object newValue, String result) {
         try {
             AuditLog entry = new AuditLog();
             entry.setActorUsername(currentUsername());
@@ -44,6 +50,7 @@ public class AuditServiceImpl implements AuditService {
             entry.setOldValue(toJson(oldValue));
             entry.setNewValue(toJson(newValue));
             entry.setCorrelationId(MDC.get("requestId"));
+            entry.setResult(result == null ? "SUCCESS" : result);
 
             HttpServletRequest request = currentRequest();
             if (request != null) {

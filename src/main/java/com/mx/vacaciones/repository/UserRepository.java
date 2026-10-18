@@ -54,6 +54,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     List<User> findByRoleAndEnabledTrue(Role roleAdmin);
 
+    long countByRoleInAndEnabledTrue(List<Role> roles);
+
     /**
      * Busca un usuario por id aplicando bloqueo pesimista de escritura.
      *

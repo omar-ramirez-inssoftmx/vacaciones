@@ -1,5 +1,6 @@
 package com.mx.vacaciones.config;
 
+import com.inssoft.people.common.audit.AuditService;
 import com.inssoft.people.common.security.RestAccessDeniedHandler;
 import com.inssoft.people.common.security.RestAuthenticationEntryPoint;
 import com.mx.vacaciones.security.CustomAuthenticationSuccessHandler;
@@ -49,16 +50,19 @@ public class SecurityConfig {
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private final RestAccessDeniedHandler restAccessDeniedHandler;
     private final JwtAuthenticationConverter jwtAuthenticationConverter;
+    private final AuditService auditService;
 
     public SecurityConfig(
             CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler,
             RestAuthenticationEntryPoint restAuthenticationEntryPoint,
             RestAccessDeniedHandler restAccessDeniedHandler,
-            JwtAuthenticationConverter jwtAuthenticationConverter) {
+            JwtAuthenticationConverter jwtAuthenticationConverter,
+            AuditService auditService) {
         this.customAuthenticationSuccessHandler = customAuthenticationSuccessHandler;
         this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
         this.restAccessDeniedHandler = restAccessDeniedHandler;
         this.jwtAuthenticationConverter = jwtAuthenticationConverter;
+        this.auditService = auditService;
     }
 
     @Bean
@@ -131,6 +135,8 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/login")
                         .failureHandler((request, response, exception) -> {
+                            auditService.record("LOGIN_FAILURE", "User",
+                                    request.getParameter("username"), null, null, "FAILED");
                             if (exception instanceof org.springframework.security.authentication.DisabledException) {
                                 response.sendRedirect("/login?err=INACTIVO");
                             } else {

@@ -34,7 +34,7 @@ import java.util.UUID;
 
 @Controller
 @RequestMapping("/admin/employees")
-@PreAuthorize("@accessGuard.has('EMPLOYEE_VIEW')")
+@PreAuthorize("@accessGuard.has('EMPLOYEE_VIEW_ALL')")
 public class EmployeeAdminController {
 
     private final EmployeeService employeeService;

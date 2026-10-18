@@ -5,6 +5,7 @@ import com.inssoft.people.common.api.PageRequestFactory;
 import com.inssoft.people.common.api.PageResponse;
 import com.inssoft.people.common.exception.BusinessException;
 import com.inssoft.people.common.exception.ResourceNotFoundException;
+import com.inssoft.people.common.security.AuthorizationService;
 import com.inssoft.people.employee.entity.Employee;
 import com.inssoft.people.employee.repository.EmployeeRepository;
 import com.inssoft.people.vacation.dto.VacationBalanceResponse;
@@ -31,14 +32,17 @@ public class VacationQueryService {
     private final EmployeeRepository employeeRepository;
     private final VacationRepository vacationRepository;
     private final VacationBalanceService balanceService;
+    private final AuthorizationService authorizationService;
 
     public VacationQueryService(
             EmployeeRepository employeeRepository,
             VacationRepository vacationRepository,
-            VacationBalanceService balanceService) {
+            VacationBalanceService balanceService,
+            AuthorizationService authorizationService) {
         this.employeeRepository = employeeRepository;
         this.vacationRepository = vacationRepository;
         this.balanceService = balanceService;
+        this.authorizationService = authorizationService;
     }
 
     @Transactional
@@ -103,6 +107,14 @@ public class VacationQueryService {
                     "No puedes consultar una solicitud que no te pertenece");
         }
 
+        return VacationMapper.toResponse(request);
+    }
+
+    @Transactional(readOnly = true)
+    public VacationRequestResponse getScoped(UUID uuid, com.mx.vacaciones.model.User actor) {
+        VacationRequest request = vacationRepository.findByUuidAndDeletedAtIsNull(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Solicitud de vacaciones", uuid));
+        authorizationService.assertCanViewVacation(actor, request);
         return VacationMapper.toResponse(request);
     }
 

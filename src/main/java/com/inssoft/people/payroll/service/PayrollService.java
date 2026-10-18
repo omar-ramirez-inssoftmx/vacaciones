@@ -7,6 +7,7 @@ import com.inssoft.people.common.audit.AuditService;
 import com.inssoft.people.common.exception.BusinessException;
 import com.inssoft.people.common.exception.ConflictException;
 import com.inssoft.people.common.exception.ResourceNotFoundException;
+import com.inssoft.people.common.security.AuthorizationService;
 import com.inssoft.people.common.util.CodeNormalizer;
 import com.inssoft.people.documents.storage.FileStorageService;
 import com.inssoft.people.documents.storage.StoredFile;
@@ -45,18 +46,21 @@ public class PayrollService {
     private final EmployeeRepository employeeRepository;
     private final FileStorageService storageService;
     private final AuditService auditService;
+    private final AuthorizationService authorizationService;
 
     public PayrollService(
             PayPeriodRepository periodRepository,
             PayReceiptRepository receiptRepository,
             EmployeeRepository employeeRepository,
             FileStorageService storageService,
-            AuditService auditService) {
+            AuditService auditService,
+            AuthorizationService authorizationService) {
         this.periodRepository = periodRepository;
         this.receiptRepository = receiptRepository;
         this.employeeRepository = employeeRepository;
         this.storageService = storageService;
         this.auditService = auditService;
+        this.authorizationService = authorizationService;
     }
 
     @Transactional(readOnly = true)
@@ -219,17 +223,15 @@ public class PayrollService {
             throw new BusinessException(ErrorCode.FORBIDDEN,
                     "No puedes consultar recibos de otra empresa");
         }
-        if (canViewAll) {
+        if (canViewAll || authorizationService.hasPermission("PAYROLL_MANAGE")) {
             return;
         }
-        boolean owner = receipt.getEmployee() != null
-                && receipt.getEmployee().getUser() != null
-                && actor != null
-                && receipt.getEmployee().getUser().getId().equals(actor.getId());
-        if (!owner) {
-            throw new BusinessException(ErrorCode.FORBIDDEN,
-                    "No puedes consultar este recibo");
+        if (receipt.getEmployee() != null
+                && authorizationService.canViewPayroll(actor, receipt.getEmployee())) {
+            return;
         }
+        throw new BusinessException(ErrorCode.FORBIDDEN,
+                "No puedes consultar este recibo");
     }
 
     private PayReceipt findReceipt(UUID uuid) {

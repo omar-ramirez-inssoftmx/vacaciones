@@ -6,6 +6,7 @@ import com.inssoft.people.common.api.PageResponse;
 import com.inssoft.people.common.exception.BusinessException;
 import com.inssoft.people.common.exception.ResourceNotFoundException;
 import com.inssoft.people.common.security.AccessGuard;
+import com.inssoft.people.common.security.AuthorizationService;
 import com.inssoft.people.employee.entity.Employee;
 import com.inssoft.people.vacation.dto.VacationAdjustmentRequest;
 import com.inssoft.people.vacation.dto.VacationBalanceResponse;
@@ -58,6 +59,7 @@ public class VacationApiController {
     private final VacationPolicyService policyService;
     private final UserRepository userRepository;
     private final AccessGuard accessGuard;
+    private final AuthorizationService authorizationService;
 
     public VacationApiController(
             VacationQueryService queryService,
@@ -65,13 +67,15 @@ public class VacationApiController {
             VacationAdminService adminService,
             VacationPolicyService policyService,
             UserRepository userRepository,
-            AccessGuard accessGuard) {
+            AccessGuard accessGuard,
+            AuthorizationService authorizationService) {
         this.queryService = queryService;
         this.workflowService = workflowService;
         this.adminService = adminService;
         this.policyService = policyService;
         this.userRepository = userRepository;
         this.accessGuard = accessGuard;
+        this.authorizationService = authorizationService;
     }
 
     @GetMapping("/balance")
@@ -125,44 +129,44 @@ public class VacationApiController {
                 employee, request.startDate(), request.endDate(), leader, actor, request.comment());
 
         return ApiResponse.ok("Solicitud creada",
-                queryService.get(saved.getUuid(), authentication.getName(), true));
+                queryService.getScoped(saved.getUuid(), actor));
     }
 
     @GetMapping("/{uuid}")
-    @PreAuthorize("@accessGuard.hasAny('VACATION_VIEW', 'VACATION_VIEW_SELF')")
-    @Operation(summary = "Obtiene una solicitud por UUID")
+    @PreAuthorize("@accessGuard.hasAny('VACATION_VIEW', 'VACATION_VIEW_SELF', 'VACATION_VIEW_TEAM')")
+    @Operation(summary = "Obtiene una solicitud por UUID validando propiedad/equipo/alcance")
     public ApiResponse<VacationRequestResponse> get(
             Authentication authentication,
             @PathVariable UUID uuid) {
         return ApiResponse.ok("Solicitud obtenida",
-                queryService.get(uuid, authentication.getName(), accessGuard.has("VACATION_ADJUST")));
+                queryService.getScoped(uuid, currentUser(authentication)));
     }
 
     @GetMapping("/{uuid}/events")
-    @PreAuthorize("@accessGuard.hasAny('VACATION_VIEW', 'VACATION_VIEW_SELF')")
+    @PreAuthorize("@accessGuard.hasAny('VACATION_VIEW', 'VACATION_VIEW_SELF', 'VACATION_VIEW_TEAM')")
     @Operation(summary = "Historial de eventos de una solicitud")
     public ApiResponse<List<VacationRequestEventResponse>> events(
             Authentication authentication,
             @PathVariable UUID uuid) {
-        queryService.get(uuid, authentication.getName(), accessGuard.has("VACATION_ADJUST"));
+        queryService.getScoped(uuid, currentUser(authentication));
         return ApiResponse.ok("Eventos obtenidos", workflowService.events(uuid));
     }
 
     @PostMapping("/{uuid}/approve")
-    @PreAuthorize("@accessGuard.has('VACATION_APPROVE')")
+    @PreAuthorize("@accessGuard.hasAny('VACATION_APPROVE', 'VACATION_APPROVE_TEAM', 'VACATION_MANAGE_ALL')")
     @Operation(summary = "Aprueba una solicitud (líder o administración según el estado)")
     public ApiResponse<VacationRequestResponse> approve(
             Authentication authentication,
             @PathVariable UUID uuid) {
         User actor = currentUser(authentication);
         VacationRequest saved = workflowService.approve(
-                uuid, actor, accessGuard.has("VACATION_ADJUST"));
+                uuid, actor, accessGuard.hasAny("VACATION_ADJUST", "VACATION_MANAGE_ALL"));
         return ApiResponse.ok("Solicitud aprobada",
-                queryService.get(saved.getUuid(), authentication.getName(), true));
+                queryService.getScoped(saved.getUuid(), actor));
     }
 
     @PostMapping("/{uuid}/reject")
-    @PreAuthorize("@accessGuard.has('VACATION_APPROVE')")
+    @PreAuthorize("@accessGuard.hasAny('VACATION_APPROVE', 'VACATION_APPROVE_TEAM', 'VACATION_MANAGE_ALL')")
     @Operation(summary = "Rechaza una solicitud (líder o administración según el estado)")
     public ApiResponse<VacationRequestResponse> reject(
             Authentication authentication,
@@ -170,13 +174,13 @@ public class VacationApiController {
             @Valid @RequestBody VacationDecisionRequest request) {
         User actor = currentUser(authentication);
         VacationRequest saved = workflowService.reject(
-                uuid, actor, request.comment(), accessGuard.has("VACATION_ADJUST"));
+                uuid, actor, request.comment(), accessGuard.hasAny("VACATION_ADJUST", "VACATION_MANAGE_ALL"));
         return ApiResponse.ok("Solicitud rechazada",
-                queryService.get(saved.getUuid(), authentication.getName(), true));
+                queryService.getScoped(saved.getUuid(), actor));
     }
 
     @PostMapping("/{uuid}/cancel")
-    @PreAuthorize("@accessGuard.has('VACATION_CANCEL')")
+    @PreAuthorize("@accessGuard.hasAny('VACATION_CANCEL', 'VACATION_CANCEL_SELF', 'VACATION_MANAGE_ALL')")
     @Operation(summary = "Cancela una solicitud pendiente o aprobada no iniciada")
     public ApiResponse<VacationRequestResponse> cancel(
             Authentication authentication,
@@ -184,13 +188,13 @@ public class VacationApiController {
             @Valid @RequestBody VacationCancelRequest request) {
         User actor = currentUser(authentication);
         VacationRequest saved = workflowService.cancel(
-                uuid, actor, request.reason(), accessGuard.has("VACATION_ADJUST"));
+                uuid, actor, request.reason(), accessGuard.hasAny("VACATION_ADJUST", "VACATION_MANAGE_ALL"));
         return ApiResponse.ok("Solicitud cancelada",
-                queryService.get(saved.getUuid(), authentication.getName(), true));
+                queryService.getScoped(saved.getUuid(), actor));
     }
 
     @GetMapping("/pending")
-    @PreAuthorize("@accessGuard.has('VACATION_APPROVE')")
+    @PreAuthorize("@accessGuard.hasAny('VACATION_APPROVE', 'VACATION_APPROVE_TEAM', 'VACATION_MANAGE_ALL')")
     @Operation(summary = "Solicitudes pendientes del líder autenticado")
     public ApiResponse<List<VacationRequestResponse>> pending(Authentication authentication) {
         return ApiResponse.ok("Pendientes obtenidas",
@@ -198,7 +202,7 @@ public class VacationApiController {
     }
 
     @GetMapping("/search")
-    @PreAuthorize("@accessGuard.has('VACATION_ADJUST')")
+    @PreAuthorize("@accessGuard.hasAny('VACATION_ADJUST', 'VACATION_MANAGE_ALL')")
     @Operation(summary = "Búsqueda administrativa de solicitudes")
     public ApiResponse<PageResponse<VacationRequestResponse>> search(
             @RequestParam(required = false) UUID employeeUuid,
@@ -213,14 +217,14 @@ public class VacationApiController {
     }
 
     @GetMapping("/employees/{employeeUuid}/balance")
-    @PreAuthorize("@accessGuard.has('VACATION_ADJUST')")
+    @PreAuthorize("@accessGuard.hasAny('VACATION_ADJUST', 'VACATION_MANAGE_ALL')")
     @Operation(summary = "Saldo de vacaciones de un empleado")
     public ApiResponse<VacationBalanceResponse> employeeBalance(@PathVariable UUID employeeUuid) {
         return ApiResponse.ok("Saldo obtenido", adminService.balance(employeeUuid));
     }
 
     @PostMapping("/employees/{employeeUuid}/adjust")
-    @PreAuthorize("@accessGuard.has('VACATION_ADJUST')")
+    @PreAuthorize("@accessGuard.hasAny('VACATION_ADJUST', 'VACATION_MANAGE_ALL')")
     @Operation(summary = "Ajusta el saldo disponible de un empleado")
     public ApiResponse<VacationBalanceResponse> adjust(
             Authentication authentication,
@@ -232,14 +236,14 @@ public class VacationApiController {
     }
 
     @GetMapping("/policies")
-    @PreAuthorize("@accessGuard.hasAny('VACATION_POLICY_MANAGE', 'VACATION_VIEW')")
+    @PreAuthorize("@accessGuard.hasAny('VACATION_POLICY_MANAGE', 'VACATION_VIEW', 'VACATION_VIEW_SELF', 'VACATION_VIEW_TEAM')")
     @Operation(summary = "Lista las políticas de vacaciones")
     public ApiResponse<List<VacationPolicyResponse>> policies() {
         return ApiResponse.ok("Políticas obtenidas", policyService.listPolicies());
     }
 
     @GetMapping("/policies/{uuid}")
-    @PreAuthorize("@accessGuard.hasAny('VACATION_POLICY_MANAGE', 'VACATION_VIEW')")
+    @PreAuthorize("@accessGuard.hasAny('VACATION_POLICY_MANAGE', 'VACATION_VIEW', 'VACATION_VIEW_SELF', 'VACATION_VIEW_TEAM')")
     @Operation(summary = "Obtiene una política de vacaciones")
     public ApiResponse<VacationPolicyResponse> policy(@PathVariable UUID uuid) {
         return ApiResponse.ok("Política obtenida", policyService.getPolicy(uuid));
@@ -255,14 +259,11 @@ public class VacationApiController {
             return queryService.requireEmployee(actor.getUsername());
         }
 
-        if (!accessGuard.has("VACATION_VIEW")) {
-            throw new BusinessException(ErrorCode.FORBIDDEN,
-                    "No puedes crear solicitudes para otros empleados");
-        }
-
-        return queryService.requireTargetEmployee(
+        Employee target = queryService.requireTargetEmployee(
                 employeeUuid,
                 actor.getUsername(),
-                accessGuard.has("VACATION_ADJUST"));
+                accessGuard.hasAny("VACATION_ADJUST", "VACATION_MANAGE_ALL"));
+        authorizationService.assertCanCreateVacationFor(actor, target);
+        return target;
     }
 }

@@ -12,6 +12,7 @@ Plataforma interna de administración de empleados. Evoluciona el sistema de vac
 > Estado del Bloque 7 (Tema claro/oscuro y UI): [`docs/BLOQUE-7-TEMA-Y-UI.md`](docs/BLOQUE-7-TEMA-Y-UI.md)
 > Estado del Bloque 8 (Roles, nómina y comunicados): [`docs/BLOQUE-8-ROLES-NOMINA-COMUNICADOS.md`](docs/BLOQUE-8-ROLES-NOMINA-COMUNICADOS.md)
 > Estado del Bloque 9 (Menú ejecutivo y perfil): [`docs/BLOQUE-9-MENU-PERFIL.md`](docs/BLOQUE-9-MENU-PERFIL.md)
+> Estado del Bloque 10 (Autorización RBAC y alcance): [`docs/BLOQUE-10-AUTORIZACION-RBAC.md`](docs/BLOQUE-10-AUTORIZACION-RBAC.md)
 > Guía para levantar en Eclipse: [`docs/GUIA-ECLIPSE.md`](docs/GUIA-ECLIPSE.md)
 
 ## Stack
@@ -226,6 +227,9 @@ V10__theme_preference.sql  # preferencia de tema claro/oscuro por usuario
 V11__payroll.sql           # periodos y recibos de nómina
 V12__leader_payroll_permission.sql  # permiso de autoservicio para líderes
 V13__communications.sql    # comunicados internos
+V14__authorization_scope_permissions.sql  # permisos self/team/all/manage
+V15__audit_result.sql      # resultado explícito de auditoría
+V16__leader_legacy_vacation_permissions.sql  # retiro de permisos amplios del líder
 ```
 
 > **Importante:** `V1` fue inferido del mapeo JPA. Antes de producción, ejecutar `docs/sql/00_introspection_sqlserver.sql` sobre una copia y reemplazar `V1` por el DDL real (o confirmar que coincide). En bases existentes Flyway hace baseline en V1 y aplica V2–V13.
@@ -238,7 +242,7 @@ V13__communications.sql    # comunicados internos
 mvn clean verify
 ```
 
-- 212 pruebas unitarias/de contrato.
+- 222 pruebas unitarias/de contrato.
 - Cobertura de código nuevo: **76.1%** (ver `target/site/jacoco/index.html`).
 - No requieren base de datos.
 
@@ -249,6 +253,10 @@ mvn clean verify
 - API: JWT stateless, CSRF no aplica.
 - Autorización backend con `@PreAuthorize` y `AccessGuard`.
 - RBAC efectivo desde base de datos (`sec_role_permission`); el mapa estático queda solo como respaldo pre-migración.
+- Autorización centralizada por recurso en `AuthorizationService`: self/team/all, jerarquía, propiedad, IDOR y segregación de funciones.
+- El líder no puede aprobar su propia solicitud ni una que él haya creado; tampoco puede ver datos sensibles o recursos de empleados fuera de su equipo.
+- Se impide desactivar o degradar al último administrador activo.
+- Auditoría con usuario, acción, entidad, valores anterior/nuevo, IP, user-agent, correlación, resultado y fecha.
 - Datos sensibles (CURP/RFC/NSS) enmascarados en detalle si el usuario no tiene `EMPLOYEE_VIEW_SENSITIVE`.
 - Vacaciones: ledger firmado, periodos por aniversario, retención/consumo/liberación y workflow con validación de etapa administrativa (`VACATION_ADJUST`).
 - Calendario: días hábiles por empresa, festivos oficiales/empresa, cierres y eventos; Vacations ya usa el calendario para calcular días hábiles.

@@ -107,8 +107,19 @@ public class UserService {
             boolean enabled) {
 
         User u = findById(id);
+        Role newRole = Role.valueOf(role);
+
+        boolean wasActiveAdmin = isAdminRole(u.getRole()) && Boolean.TRUE.equals(u.getEnabled());
+        boolean willBeActiveAdmin = isAdminRole(newRole) && enabled;
+        if (wasActiveAdmin && !willBeActiveAdmin
+                && userRepository.countByRoleInAndEnabledTrue(
+                        List.of(Role.ROLE_ADMIN)) <= 1) {
+            throw new BusinessException(ErrorCode.BUSINESS_RULE_VIOLATION,
+                    "Debe existir al menos un administrador activo en el sistema");
+        }
+
         u.setName(name);
-        u.setRole(Role.valueOf(role));
+        u.setRole(newRole);
         u.setVacationDaysAvailable(vacationDaysAvailable);
         u.setEmail(email);
         u.setHireDate(hireDate);
@@ -164,6 +175,10 @@ public class UserService {
         u.setTemporaryPassword(false);
 
         return userRepository.save(u);
+    }
+
+    private boolean isAdminRole(Role role) {
+        return role == Role.ROLE_ADMIN;
     }
 
     private String generateTemporaryPassword() {

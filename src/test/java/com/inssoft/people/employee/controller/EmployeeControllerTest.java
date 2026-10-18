@@ -5,6 +5,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.inssoft.people.common.api.PageResponse;
 import com.inssoft.people.common.exception.GlobalExceptionHandler;
 import com.inssoft.people.common.security.AccessGuard;
+import com.inssoft.people.common.security.AuthorizationService;
+import com.inssoft.people.employee.entity.Employee;
+import com.inssoft.people.employee.repository.EmployeeRepository;
 import com.inssoft.people.employee.dto.EmployeeResponse;
 import com.inssoft.people.employee.dto.EmployeeSummaryResponse;
 import com.inssoft.people.employee.service.EmployeeService;
@@ -19,6 +22,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -33,17 +37,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class EmployeeControllerTest {
 
     private EmployeeService employeeService;
+    private EmployeeRepository employeeRepository;
     private AccessGuard accessGuard;
+    private AuthorizationService authorizationService;
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         employeeService = mock(EmployeeService.class);
+        employeeRepository = mock(EmployeeRepository.class);
         accessGuard = mock(AccessGuard.class);
+        authorizationService = mock(AuthorizationService.class);
         ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
         mockMvc = MockMvcBuilders
-                .standaloneSetup(new EmployeeController(employeeService, accessGuard))
+                .standaloneSetup(new EmployeeController(
+                        employeeService, employeeRepository, accessGuard, authorizationService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
                 .build();
@@ -57,6 +66,7 @@ class EmployeeControllerTest {
                 UUID.randomUUID(), "Tecnología", UUID.randomUUID(), "Desarrollador",
                 "ACTIVO", "Activo", true, Instant.now());
 
+        when(authorizationService.canListAllEmployees()).thenReturn(true);
         when(employeeService.list(null, null, null, null, null, null, null, null, 0, 20))
                 .thenReturn(new PageResponse<>(List.of(summary), 0, 20, 1, 1, true, true));
 
@@ -80,7 +90,15 @@ class EmployeeControllerTest {
     @Test
     void getMasksSensitiveDataWithoutPermission() throws Exception {
         UUID uuid = UUID.randomUUID();
-        when(accessGuard.has("EMPLOYEE_VIEW_SENSITIVE")).thenReturn(false);
+        com.mx.vacaciones.model.User actor = new com.mx.vacaciones.model.User();
+        actor.setId(1L);
+        actor.setUsername("omar");
+        Employee target = new Employee();
+        target.setId(1L);
+        target.setUuid(uuid);
+        when(authorizationService.requireCurrentUser()).thenReturn(actor);
+        when(employeeRepository.findByUuidAndDeletedAtIsNull(uuid)).thenReturn(Optional.of(target));
+        when(authorizationService.canViewSensitiveEmployee(actor, target)).thenReturn(false);
         when(employeeService.get(uuid, false)).thenReturn(employeeResponse());
 
         mockMvc.perform(get("/api/v1/employees/{uuid}", uuid))
@@ -102,6 +120,7 @@ class EmployeeControllerTest {
 
     @Test
     void createReturns201() throws Exception {
+        when(authorizationService.hasPermission("EMPLOYEE_VIEW_ALL")).thenReturn(true);
         when(employeeService.create(any())).thenReturn(employeeResponse());
 
         String company = UUID.randomUUID().toString();

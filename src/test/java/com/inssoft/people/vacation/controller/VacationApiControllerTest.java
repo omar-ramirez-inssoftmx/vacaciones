@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.inssoft.people.common.exception.GlobalExceptionHandler;
 import com.inssoft.people.common.security.AccessGuard;
+import com.inssoft.people.common.security.AuthorizationService;
 import com.inssoft.people.employee.entity.Employee;
 import com.inssoft.people.vacation.dto.VacationBalanceResponse;
 import com.inssoft.people.vacation.dto.VacationRequestResponse;
@@ -47,6 +48,7 @@ class VacationApiControllerTest {
     private VacationPolicyService policyService;
     private UserRepository userRepository;
     private AccessGuard accessGuard;
+    private AuthorizationService authorizationService;
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -57,13 +59,14 @@ class VacationApiControllerTest {
         policyService = mock(VacationPolicyService.class);
         userRepository = mock(UserRepository.class);
         accessGuard = mock(AccessGuard.class);
+        authorizationService = mock(AuthorizationService.class);
 
         ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new VacationApiController(
                         queryService, workflowService, adminService, policyService,
-                        userRepository, accessGuard))
+                        userRepository, accessGuard, authorizationService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
                 .build();
@@ -89,7 +92,8 @@ class VacationApiControllerTest {
         request.setUuid(UUID.randomUUID());
         request.setId(1L);
         when(workflowService.submit(any(), any(), any(), any(), any(), any())).thenReturn(request);
-        when(queryService.get(request.getUuid(), "omar", true)).thenReturn(response(request.getUuid()));
+        when(queryService.getScoped(eq(request.getUuid()), any(User.class)))
+                .thenReturn(response(request.getUuid()));
 
         mockMvc.perform(post("/api/v1/vacations")
                         .principal(principal())
@@ -118,7 +122,8 @@ class VacationApiControllerTest {
     @Test
     void getsRequestForOwner() throws Exception {
         UUID uuid = UUID.randomUUID();
-        when(queryService.get(uuid, "omar", false)).thenReturn(response(uuid));
+        when(userRepository.findByUsername("omar")).thenReturn(Optional.of(user()));
+        when(queryService.getScoped(eq(uuid), any(User.class))).thenReturn(response(uuid));
 
         mockMvc.perform(get("/api/v1/vacations/{uuid}", uuid)
                         .principal(principal()))
@@ -136,7 +141,7 @@ class VacationApiControllerTest {
 
         when(userRepository.findByUsername("omar")).thenReturn(Optional.of(user));
         when(workflowService.approve(uuid, user, false)).thenReturn(request);
-        when(queryService.get(uuid, "omar", true)).thenReturn(response(uuid));
+        when(queryService.getScoped(eq(uuid), any(User.class))).thenReturn(response(uuid));
 
         mockMvc.perform(post("/api/v1/vacations/{uuid}/approve", uuid)
                         .principal(principal()))

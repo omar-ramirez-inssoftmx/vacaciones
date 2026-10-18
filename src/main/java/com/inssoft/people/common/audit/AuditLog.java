@@ -58,6 +58,9 @@ public class AuditLog {
     @Column(name = "correlation_id", length = 64)
     private String correlationId;
 
+    @Column(name = "result", nullable = false, length = 20)
+    private String result = "SUCCESS";
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

@@ -60,12 +60,13 @@ class VacationAdminServiceTest {
         VacationBalanceResponse balance = balance();
         when(employeeRepository.findByUuidAndDeletedAtIsNull(employee.getUuid()))
                 .thenReturn(Optional.of(employee));
+        when(balanceService.balanceResponse(employee)).thenReturn(balance);
         when(balanceService.adjust(eq(employee), any(), any(), any())).thenReturn(balance);
 
         assertThat(service.adjust(employee.getUuid(), BigDecimal.TEN, "Ajuste", null))
                 .isSameAs(balance);
         verify(auditService).record(eq("VACATION_ADJUST"), eq("Employee"),
-                eq(employee.getUuid().toString()), any());
+                eq(employee.getUuid().toString()), any(), any());
     }
 
     @Test

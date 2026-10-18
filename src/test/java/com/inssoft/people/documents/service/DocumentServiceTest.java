@@ -2,6 +2,7 @@ package com.inssoft.people.documents.service;
 
 import com.inssoft.people.common.audit.AuditService;
 import com.inssoft.people.common.exception.BusinessException;
+import com.inssoft.people.common.security.AuthorizationService;
 import com.inssoft.people.documents.dto.DocumentResponse;
 import com.inssoft.people.documents.entity.DocumentType;
 import com.inssoft.people.documents.entity.DocumentVisibility;
@@ -55,6 +56,9 @@ class DocumentServiceTest {
 
     @Mock
     private EmployeeRepository employeeRepository;
+
+    @Mock
+    private AuthorizationService authorizationService;
 
     @InjectMocks
     private DocumentService service;
@@ -152,6 +156,8 @@ class DocumentServiceTest {
 
         when(documentRepository.findByUuidAndDeletedAtIsNull(document.getUuid()))
                 .thenReturn(Optional.of(document));
+        when(authorizationService.canViewDocument(owner, employee)).thenReturn(true);
+        when(authorizationService.hasPermission("DOCUMENT_MANAGE")).thenReturn(false);
         when(storageService.open(document.getStorageKey()))
                 .thenReturn(new ByteArrayInputStream("data".getBytes(StandardCharsets.UTF_8)));
 

@@ -6,6 +6,7 @@ import com.inssoft.people.common.api.PageResponse;
 import com.inssoft.people.common.audit.AuditService;
 import com.inssoft.people.common.exception.BusinessException;
 import com.inssoft.people.common.exception.ResourceNotFoundException;
+import com.inssoft.people.common.security.AuthorizationService;
 import com.inssoft.people.common.util.CodeNormalizer;
 import com.inssoft.people.documents.dto.DocumentResponse;
 import com.inssoft.people.documents.dto.DocumentTypeResponse;
@@ -44,18 +45,21 @@ public class DocumentService {
     private final FileStorageService storageService;
     private final AuditService auditService;
     private final EmployeeRepository employeeRepository;
+    private final AuthorizationService authorizationService;
 
     public DocumentService(
             EmployeeDocumentRepository documentRepository,
             DocumentTypeRepository typeRepository,
             FileStorageService storageService,
             AuditService auditService,
-            EmployeeRepository employeeRepository) {
+            EmployeeRepository employeeRepository,
+            AuthorizationService authorizationService) {
         this.documentRepository = documentRepository;
         this.typeRepository = typeRepository;
         this.storageService = storageService;
         this.auditService = auditService;
         this.employeeRepository = employeeRepository;
+        this.authorizationService = authorizationService;
     }
 
     @Transactional(readOnly = true)
@@ -232,24 +236,24 @@ public class DocumentService {
             Company company,
             boolean canViewAll) {
 
-        if (canViewAll) {
-            if (company != null && !document.getCompany().getId().equals(company.getId())) {
-                throw new BusinessException(ErrorCode.FORBIDDEN,
-                        "No puedes consultar documentos de otra empresa");
-            }
-            return;
+        if (company != null && !document.getCompany().getId().equals(company.getId())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN,
+                    "No puedes consultar documentos de otra empresa");
         }
 
-        boolean owner = document.getEmployee() != null
-                && document.getEmployee().getUser() != null
-                && actor != null
-                && document.getEmployee().getUser().getId().equals(actor.getId());
-        if (!owner
-                || document.getVisibility() != DocumentVisibility.EMPLOYEE
-                || !document.getType().isEmployeeVisible()) {
-            throw new BusinessException(ErrorCode.FORBIDDEN,
-                    "No puedes consultar este documento");
+        if (document.getEmployee() != null
+                && authorizationService.canViewDocument(actor, document.getEmployee())) {
+            if (canViewAll || authorizationService.hasPermission("DOCUMENT_MANAGE")) {
+                return;
+            }
+            if (document.getVisibility() == DocumentVisibility.EMPLOYEE
+                    && document.getType().isEmployeeVisible()) {
+                return;
+            }
         }
+
+        throw new BusinessException(ErrorCode.FORBIDDEN,
+                "No puedes consultar este documento");
     }
 
     private EmployeeDocument findDocument(UUID uuid) {

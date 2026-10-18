@@ -6,6 +6,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
+import com.inssoft.people.common.audit.AuditService;
 import com.mx.vacaciones.model.User;
 import com.mx.vacaciones.repository.UserRepository;
 
@@ -35,6 +36,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
      * Repositorio para consultar al usuario autenticado.
      */
     private final UserRepository userRepository;
+    private final AuditService auditService;
 
     /**
      * Se ejecuta cuando el login fue exitoso.
@@ -53,6 +55,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
             throws IOException, ServletException {
 
         String username = authentication.getName();
+        auditService.record("LOGIN_SUCCESS", "User", username, null, null, "SUCCESS");
 
         User user = userRepository.findByUsername(username).orElse(null);
 

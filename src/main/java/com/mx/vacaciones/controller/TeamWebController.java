@@ -13,7 +13,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/leader/team")
-@PreAuthorize("@accessGuard.has('EMPLOYEE_VIEW')")
+@PreAuthorize("@accessGuard.has('EMPLOYEE_VIEW_TEAM')")
 public class TeamWebController {
 
     private final EmployeeService employeeService;

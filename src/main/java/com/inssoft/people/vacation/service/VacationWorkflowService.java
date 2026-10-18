@@ -3,6 +3,7 @@ package com.inssoft.people.vacation.service;
 import com.inssoft.people.common.audit.AuditService;
 import com.inssoft.people.common.exception.BusinessException;
 import com.inssoft.people.common.exception.ResourceNotFoundException;
+import com.inssoft.people.common.security.AuthorizationService;
 import com.inssoft.people.employee.entity.Employee;
 import com.inssoft.people.employee.repository.EmployeeRepository;
 import com.inssoft.people.vacation.dto.VacationRequestEventResponse;
@@ -35,6 +36,7 @@ public class VacationWorkflowService {
     private final VacationValidator validator;
     private final AuditService auditService;
     private final EmployeeRepository employeeRepository;
+    private final AuthorizationService authorizationService;
 
     public VacationWorkflowService(
             VacationRepository vacationRepository,
@@ -42,13 +44,15 @@ public class VacationWorkflowService {
             VacationRequestEventRepository eventRepository,
             VacationValidator validator,
             AuditService auditService,
-            EmployeeRepository employeeRepository) {
+            EmployeeRepository employeeRepository,
+            AuthorizationService authorizationService) {
         this.vacationRepository = vacationRepository;
         this.balanceService = balanceService;
         this.eventRepository = eventRepository;
         this.validator = validator;
         this.auditService = auditService;
         this.employeeRepository = employeeRepository;
+        this.authorizationService = authorizationService;
     }
 
     @Transactional
@@ -144,6 +148,7 @@ public class VacationWorkflowService {
     @Transactional
     public VacationRequest approveByLeader(Long requestId, User leader) {
         VacationRequest request = findForUpdate(requestId);
+        authorizationService.assertCanApproveVacation(leader, request);
         validator.validateLeaderDecision(request, leader);
 
         String previous = request.getStatus();
@@ -160,6 +165,7 @@ public class VacationWorkflowService {
     @Transactional
     public VacationRequest rejectByLeader(Long requestId, User leader, String comment) {
         VacationRequest request = findForUpdate(requestId);
+        authorizationService.assertCanApproveVacation(leader, request);
         validator.validateLeaderDecision(request, leader);
 
         String previous = request.getStatus();
@@ -179,6 +185,7 @@ public class VacationWorkflowService {
     @Transactional
     public VacationRequest approveByAdmin(Long requestId, User admin) {
         VacationRequest request = findForUpdate(requestId);
+        authorizationService.assertCanApproveVacation(admin, request);
         validator.validateAdminDecision(request);
         validateNotSelfDecision(request, admin);
 
@@ -198,6 +205,7 @@ public class VacationWorkflowService {
     @Transactional
     public VacationRequest rejectByAdmin(Long requestId, User admin, String comment) {
         VacationRequest request = findForUpdate(requestId);
+        authorizationService.assertCanApproveVacation(admin, request);
         validator.validateAdminDecision(request);
         validateNotSelfDecision(request, admin);
 
@@ -219,6 +227,7 @@ public class VacationWorkflowService {
     public VacationRequest cancel(Long requestId, User actor, String reason, boolean canManage) {
         VacationRequest request = findForUpdate(requestId);
         validator.validateCancelable(request);
+        authorizationService.assertCanCancelVacation(actor, request);
 
         boolean owner = request.getUser() != null
                 && actor != null
@@ -417,11 +426,16 @@ public class VacationWorkflowService {
     }
 
     private void validateNotSelfDecision(VacationRequest request, User actor) {
-        if (request.getUser() != null
-                && actor != null
-                && request.getUser().getId().equals(actor.getId())) {
+        if (actor == null) {
+            return;
+        }
+        boolean owner = request.getUser() != null
+                && request.getUser().getId().equals(actor.getId());
+        boolean creator = request.getRequestedBy() != null
+                && request.getRequestedBy().getId().equals(actor.getId());
+        if (owner || creator) {
             throw new BusinessException(com.inssoft.people.common.api.ErrorCode.FORBIDDEN,
-                    "No puedes decidir tu propia solicitud de vacaciones");
+                    "No puedes decidir tu propia solicitud de vacaciones o una que tú creaste");
         }
     }
 

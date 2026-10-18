@@ -3,6 +3,7 @@ package com.inssoft.people.vacation.service;
 import com.inssoft.people.common.api.PageResponse;
 import com.inssoft.people.common.exception.BusinessException;
 import com.inssoft.people.common.exception.ResourceNotFoundException;
+import com.inssoft.people.common.security.AuthorizationService;
 import com.inssoft.people.employee.entity.Employee;
 import com.inssoft.people.employee.repository.EmployeeRepository;
 import com.inssoft.people.vacation.dto.VacationBalanceResponse;
@@ -44,6 +45,9 @@ class VacationQueryServiceTest {
 
     @Mock
     private VacationBalanceService balanceService;
+
+    @Mock
+    private AuthorizationService authorizationService;
 
     @InjectMocks
     private VacationQueryService service;

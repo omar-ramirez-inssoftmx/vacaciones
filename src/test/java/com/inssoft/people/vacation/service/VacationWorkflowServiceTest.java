@@ -1,6 +1,7 @@
 package com.inssoft.people.vacation.service;
 
 import com.inssoft.people.common.audit.AuditService;
+import com.inssoft.people.common.security.AuthorizationService;
 import com.inssoft.people.employee.entity.Employee;
 import com.inssoft.people.employee.repository.EmployeeRepository;
 import com.inssoft.people.organization.entity.Company;
@@ -56,6 +57,9 @@ class VacationWorkflowServiceTest {
 
     @Mock
     private EmployeeRepository employeeRepository;
+
+    @Mock
+    private AuthorizationService authorizationService;
 
     @InjectMocks
     private VacationWorkflowService service;
