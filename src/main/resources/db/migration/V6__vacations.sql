@@ -191,30 +191,32 @@ IF COL_LENGTH('dbo.vacation_requests', 'legacy_balance') IS NULL
         CONSTRAINT DF_vacation_requests_legacy_balance DEFAULT 0;
 
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UX_vacation_requests_uuid' AND object_id = OBJECT_ID('dbo.vacation_requests'))
-    CREATE UNIQUE INDEX UX_vacation_requests_uuid ON dbo.vacation_requests(uuid);
+    EXEC(N'CREATE UNIQUE INDEX UX_vacation_requests_uuid ON dbo.vacation_requests(uuid);');
 
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_vacation_requests_employee_status' AND object_id = OBJECT_ID('dbo.vacation_requests'))
-    CREATE INDEX IX_vacation_requests_employee_status ON dbo.vacation_requests(employee_id, status, start_date);
+    EXEC(N'CREATE INDEX IX_vacation_requests_employee_status ON dbo.vacation_requests(employee_id, status, start_date);');
 
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_vacation_requests_period' AND object_id = OBJECT_ID('dbo.vacation_requests'))
-    CREATE INDEX IX_vacation_requests_period ON dbo.vacation_requests(period_id);
+    EXEC(N'CREATE INDEX IX_vacation_requests_period ON dbo.vacation_requests(period_id);');
 
--- Backfill de empleado y usuario solicitante
-UPDATE vr
+-- Backfill de empleado y usuario solicitante (SQL dinámico: las columnas
+-- se agregaron en este mismo script y SQL Server compila el batch antes
+-- de ejecutar los ALTER TABLE).
+EXEC(N'UPDATE vr
 SET employee_id = e.id
 FROM dbo.vacation_requests vr
 JOIN dbo.emp_employee e ON e.user_id = vr.user_id AND e.deleted_at IS NULL
-WHERE vr.employee_id IS NULL;
+WHERE vr.employee_id IS NULL;');
 
-UPDATE vr
+EXEC(N'UPDATE vr
 SET requested_by = u.id
 FROM dbo.vacation_requests vr
 JOIN dbo.users u ON u.username = vr.requested_by_username
-WHERE vr.requested_by IS NULL AND vr.requested_by_username IS NOT NULL;
+WHERE vr.requested_by IS NULL AND vr.requested_by_username IS NOT NULL;');
 
-UPDATE dbo.vacation_requests
+EXEC(N'UPDATE dbo.vacation_requests
 SET updated_at = created_at
-WHERE updated_at IS NULL;
+WHERE updated_at IS NULL;');
 
 -- ---------------------------------------------------------------------
 -- 6. Política default y reglas
@@ -338,36 +340,36 @@ WHERE p.opening_balance > 0
   );
 
 -- Asignar periodo a solicitudes históricas cuando la fecha cae en el periodo vigente.
-UPDATE vr
+EXEC(N'UPDATE vr
 SET period_id = p.id
 FROM dbo.vacation_requests vr
 JOIN dbo.vac_period p
   ON p.employee_id = vr.employee_id
  AND vr.start_date BETWEEN p.period_start AND p.period_end
-WHERE vr.period_id IS NULL;
+WHERE vr.period_id IS NULL;');
 
 -- Las solicitudes históricas ya descontaron el saldo legado: no generan ledger.
-UPDATE dbo.vacation_requests
+EXEC(N'UPDATE dbo.vacation_requests
 SET legacy_balance = 1
-WHERE legacy_balance = 0;
+WHERE legacy_balance = 0;');
 
 -- ---------------------------------------------------------------------
 -- 8. Foreign keys de vacation_requests
 -- ---------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_vacation_requests_employee')
-    ALTER TABLE dbo.vacation_requests
+    EXEC(N'ALTER TABLE dbo.vacation_requests
         ADD CONSTRAINT FK_vacation_requests_employee
-        FOREIGN KEY (employee_id) REFERENCES dbo.emp_employee(id);
+        FOREIGN KEY (employee_id) REFERENCES dbo.emp_employee(id);');
 
 IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_vacation_requests_period')
-    ALTER TABLE dbo.vacation_requests
+    EXEC(N'ALTER TABLE dbo.vacation_requests
         ADD CONSTRAINT FK_vacation_requests_period
-        FOREIGN KEY (period_id) REFERENCES dbo.vac_period(id);
+        FOREIGN KEY (period_id) REFERENCES dbo.vac_period(id);');
 
 IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_vacation_requests_requested_by')
-    ALTER TABLE dbo.vacation_requests
+    EXEC(N'ALTER TABLE dbo.vacation_requests
         ADD CONSTRAINT FK_vacation_requests_requested_by
-        FOREIGN KEY (requested_by) REFERENCES dbo.users(id);
+        FOREIGN KEY (requested_by) REFERENCES dbo.users(id);');
 
 -- ---------------------------------------------------------------------
 -- 9. Permiso de administración de políticas
