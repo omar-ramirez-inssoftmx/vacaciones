@@ -4,6 +4,7 @@ Plataforma interna de administración de empleados. Evoluciona el sistema de vac
 
 > Documentación de la evolución: [`docs/AUDITORIA-TECNICA-INSSOFT-PEOPLE.md`](docs/AUDITORIA-TECNICA-INSSOFT-PEOPLE.md)
 > Estado del Bloque 1: [`docs/BLOQUE-1-IMPLEMENTACION.md`](docs/BLOQUE-1-IMPLEMENTACION.md)
+> Estado del Bloque 2 (Employees + RBAC): [`docs/BLOQUE-2-EMPLEADOS.md`](docs/BLOQUE-2-EMPLEADOS.md)
 
 ## Stack
 
@@ -25,6 +26,7 @@ com.inssoft.people       # nuevos módulos API-first
   auth/                  # login JWT y /me
   masterdata/            # catálogos reutilizables
   organization/          # Company → Branch → Department → Position
+  employee/              # empleados, /me, contactos de emergencia
   ...
 src/main/resources/db/migration   # Flyway (SQL Server)
 ```
@@ -109,7 +111,7 @@ curl http://localhost:8443/api/v1/auth/me \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-Endpoints del Bloque 1:
+Endpoints de los Bloques 1 y 2:
 
 | Método | Ruta | Permiso |
 |---|---|---|
@@ -126,6 +128,16 @@ Endpoints del Bloque 1:
 | GET/POST | `/api/v1/branches?companyUuid=...` | `ORG_VIEW` / `ORG_MANAGE` |
 | GET/POST | `/api/v1/departments?branchUuid=...` | `ORG_VIEW` / `ORG_MANAGE` |
 | GET/POST | `/api/v1/positions?departmentUuid=...` | `ORG_VIEW` / `ORG_MANAGE` |
+| GET | `/api/v1/employees` | `EMPLOYEE_VIEW` |
+| GET | `/api/v1/employees/me` | `EMPLOYEE_VIEW_SELF` |
+| GET | `/api/v1/employees/me/emergency-contacts` | `EMPLOYEE_VIEW_SELF` |
+| GET | `/api/v1/employees/{uuid}` | `EMPLOYEE_VIEW` |
+| POST | `/api/v1/employees` | `EMPLOYEE_CREATE` |
+| PUT | `/api/v1/employees/{uuid}` | `EMPLOYEE_UPDATE` |
+| POST | `/api/v1/employees/{uuid}/terminate` | `EMPLOYEE_TERMINATE` |
+| DELETE | `/api/v1/employees/{uuid}` | `EMPLOYEE_TERMINATE` |
+| GET/POST | `/api/v1/employees/{uuid}/emergency-contacts` | `EMPLOYEE_VIEW` / `EMPLOYEE_UPDATE` |
+| PUT/DELETE | `/api/v1/employees/{uuid}/emergency-contacts/{contactUuid}` | `EMPLOYEE_UPDATE` |
 
 Convenciones:
 
@@ -144,9 +156,12 @@ V1__baseline_legacy.sql      # esquema legado inferido (reemplazar por DDL real 
 V2__common_security_audit.sql
 V3__organization.sql
 V4__masterdata.sql
+V5__employees.sql          # empleados, contactos, migración users → employees
 ```
 
-> **Importante:** `V1` fue inferido del mapeo JPA. Antes de producción, ejecutar `docs/sql/00_introspection_sqlserver.sql` sobre una copia y reemplazar `V1` por el DDL real (o confirmar que coincide). En bases existentes Flyway hace baseline en V1 y solo aplica V2–V4.
+> **Importante:** `V1` fue inferido del mapeo JPA. Antes de producción, ejecutar `docs/sql/00_introspection_sqlserver.sql` sobre una copia y reemplazar `V1` por el DDL real (o confirmar que coincide). En bases existentes Flyway hace baseline en V1 y aplica V2–V5.
+>
+> `V5` crea una organización mínima (`INSSOFT / MATRIZ / GENERAL / GENERAL`) y migra los usuarios existentes a empleados con número `LEG-<id>` y nombre dividido de forma aproximada. RRHH debe revisar/corregir esos datos.
 
 ## Pruebas
 
@@ -154,8 +169,8 @@ V4__masterdata.sql
 mvn clean verify
 ```
 
-- 66 pruebas unitarias/de contrato.
-- Cobertura de código nuevo: **79.0%** (ver `target/site/jacoco/index.html`).
+- 100 pruebas unitarias/de contrato.
+- Cobertura de código nuevo: **80.2%** (ver `target/site/jacoco/index.html`).
 - No requieren base de datos.
 
 ## Seguridad
@@ -164,6 +179,8 @@ mvn clean verify
 - Web: sesión + CSRF (cookie `XSRF-TOKEN`; el JS agrega `X-XSRF-TOKEN`).
 - API: JWT stateless, CSRF no aplica.
 - Autorización backend con `@PreAuthorize` y `AccessGuard`.
+- RBAC efectivo desde base de datos (`sec_role_permission`); el mapa estático queda solo como respaldo pre-migración.
+- Datos sensibles (CURP/RFC/NSS) enmascarados en detalle si el usuario no tiene `EMPLOYEE_VIEW_SENSITIVE`.
 - Correcciones aplicadas: IDOR líder/admin, rechazo de líder, saldo liberado al rechazar, `GET` sin efectos secundarios, cambio de contraseña con contraseña actual.
 - **Rotar** cualquier credencial que haya estado en el historial de git (ver auditoría).
 

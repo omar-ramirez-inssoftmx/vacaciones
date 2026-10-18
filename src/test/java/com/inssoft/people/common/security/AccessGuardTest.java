@@ -60,9 +60,21 @@ class AccessGuardTest {
         assertThat(accessGuard.has("MASTERDATA_VIEW")).isFalse();
     }
 
-    private void authenticate(String authority) {
+    @Test
+    void databasePermissionsAreAuthoritativeWhenPresent() {
+        authenticate("ROLE_ADMIN", "PERM_EMPLOYEE_VIEW");
+
+        assertThat(accessGuard.has("EMPLOYEE_VIEW")).isTrue();
+        // Aunque ROLE_ADMIN tenga '*' en el mapa estático, la BD manda.
+        assertThat(accessGuard.has("USER_MANAGE")).isFalse();
+    }
+
+    private void authenticate(String... authorities) {
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(
-                        "tester", null, List.of(new SimpleGrantedAuthority(authority))));
+                        "tester", null,
+                        java.util.Arrays.stream(authorities)
+                                .map(SimpleGrantedAuthority::new)
+                                .toList()));
     }
 }
