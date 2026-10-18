@@ -1,17 +1,33 @@
 # =====================================================================
-# Copiar a application-local.properties (NO se versiona) y completar.
-# Ejecutar con: mvn spring-boot:run -Dspring-boot.run.profiles=local
+# PLANTILLA — NO poner credenciales reales en este archivo.
+# Copiar a application-local.properties (ignorado por Git) y completar.
+#
+# Ejecutar con:
+#   mvn spring-boot:run -Dspring-boot.run.profiles=local
+#
+# La aplicación también acepta las variables de entorno:
+#   BD_HOST / BD_USER / BD_PASS
+#   o DB_URL / DB_USERNAME / DB_PASSWORD
 # =====================================================================
+
+# Base de datos SQL Server.
+# Para pruebas locales:
 DB_URL=jdbc:sqlserver://localhost:1433;databaseName=VACACIONES_DEV;encrypt=true;trustServerCertificate=true
 DB_USERNAME=your_db_user
 DB_PASSWORD=your_db_password
 
-# Mínimo 32 caracteres. Generar con: openssl rand -base64 48
+# Secreto JWT: mínimo 32 caracteres.
+# Generar uno con: openssl rand -base64 48
 JWT_SECRET=change-me-to-a-random-secret-of-at-least-32-chars
 
+# Correo (opcional para desarrollo; si queda vacío, el login funciona).
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
 MAIL_USERNAME=
 MAIL_PASSWORD=
 
+# URL usada en correos.
 APP_SYSTEM_URL=http://localhost:8443/login
+
+# Puerto HTTP (opcional).
+# SERVER_PORT=8443
