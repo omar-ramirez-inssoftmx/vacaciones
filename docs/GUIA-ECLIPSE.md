@@ -114,13 +114,17 @@ Notas:
 
 En Eclipse puedes definirlas en la configuración de ejecución (`Environment`), sin tocar archivos:
 
-- `DB_URL`
-- `DB_USERNAME`
-- `DB_PASSWORD`
+- `DB_URL` (o el alias `BD_HOST`)
+- `DB_USERNAME` (o el alias `BD_USER`)
+- `DB_PASSWORD` (o el alias `BD_PASS`)
 - `JWT_SECRET`
 - `MAIL_*`
 - `APP_SYSTEM_URL`
 - `SERVER_PORT` (opcional)
+
+La aplicación acepta ambos juegos de nombres. Si `DB_URL` no está definido, usa `BD_HOST`; lo mismo para usuario y contraseña.
+
+> No agregues credenciales reales a `application-local.properties.example`; ese archivo sí está versionado. Usa variables de entorno o `application-local.properties`, que está ignorado por Git.
 
 ---
 
