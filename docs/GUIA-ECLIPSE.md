@@ -213,7 +213,15 @@ El colaborador tiene como jefe directo al líder; el líder tiene como jefe al a
 
 El seed deja `onboarding_completed = 0` en los tres usuarios, por lo que al entrar verán el banner de bienvenida con la opción **Ver recorrido**.
 
-> Este script es **solo para desarrollo**. No lo ejecutes en producción.
+Si los usuarios ya existían con otra contraseña, ejecuta además:
+
+```text
+docs/sql/02_fix_demo_users.sql
+```
+
+Ese script fija las contraseñas `Admin1234`, `Lider1234` y `Colaborador1234`, los roles y el estatus de prueba.
+
+> Estos scripts son **solo para desarrollo/pruebas**. No los ejecutes en producción real.
 
 Si no ejecutas el seed y tu base ya tenía usuarios, usa esas credenciales existentes.
 
