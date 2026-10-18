@@ -1,0 +1,57 @@
+package com.inssoft.people.employee.dto;
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+public record EmployeeResponse(
+        UUID uuid,
+        UUID userUuid,
+        String userEmail,
+        String employeeNumber,
+        String firstName,
+        String middleName,
+        String lastName,
+        String secondLastName,
+        String fullName,
+        LocalDate birthDate,
+        String genderCode,
+        String genderName,
+        String maritalStatusCode,
+        String maritalStatusName,
+        String curp,
+        String rfc,
+        String nss,
+        String corporateEmail,
+        String personalEmail,
+        String phone,
+        String addressLine1,
+        String addressLine2,
+        String city,
+        String state,
+        String postalCode,
+        String country,
+        UUID companyUuid,
+        String companyName,
+        UUID branchUuid,
+        String branchName,
+        UUID departmentUuid,
+        String departmentName,
+        UUID positionUuid,
+        String positionName,
+        UUID managerUuid,
+        String managerName,
+        LocalDate hireDate,
+        LocalDate terminationDate,
+        String terminationReason,
+        String statusCode,
+        String statusName,
+        String workModalityCode,
+        String workModalityName,
+        boolean enabled,
+        Instant createdAt,
+        Instant updatedAt,
+        List<EmergencyContactResponse> emergencyContacts
+) {
+}
