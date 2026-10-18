@@ -6,16 +6,18 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Autorización por permisos de negocio.
  *
- * <p>Fase 1: el mapa rol→permisos vive en código para no acoplar la fundación
- * a un esquema de RBAC que aún no está migrado. En la Fase 4 se reemplaza por
- * consultas a {@code sec_role_permission} sin cambiar las anotaciones
- * {@code @PreAuthorize("@accessGuard.has('...')")} de los controladores.</p>
+ * <p>Fuente autoritativa: permisos {@code PERM_*} cargados desde la base de
+ * datos ({@code sec_role_permission}) al autenticar. Si el usuario no tiene
+ * permisos de BD (por ejemplo, antes de aplicar la migración V2), se usa un
+ * mapa estático de respaldo por rol para no romper el sistema legado.</p>
  */
 @Component("accessGuard")
 public class AccessGuard {
@@ -39,6 +41,9 @@ public class AccessGuard {
             "DASHBOARD_VIEW_SELF"
     );
 
+    private static final Set<String> EMPLOYEE_SELF_PERMISSIONS = union(
+            EMPLOYEE_PERMISSIONS, Set.of("EMPLOYEE_VIEW_SENSITIVE"));
+
     private static final Set<String> LEADER_PERMISSIONS = union(EMPLOYEE_PERMISSIONS, Set.of(
             "EMPLOYEE_VIEW",
             "VACATION_VIEW",
@@ -54,6 +59,7 @@ public class AccessGuard {
     private static final Set<String> HR_PERMISSIONS = union(LEADER_PERMISSIONS, Set.of(
             "MASTERDATA_MANAGE",
             "ORG_MANAGE",
+            "EMPLOYEE_VIEW_SENSITIVE",
             "EMPLOYEE_CREATE",
             "EMPLOYEE_UPDATE",
             "EMPLOYEE_TERMINATE",
@@ -79,11 +85,15 @@ public class AccessGuard {
             "ROLE_HR", HR_PERMISSIONS,
             "ROLE_LIDER", LEADER_PERMISSIONS,
             "ROLE_LEADER", LEADER_PERMISSIONS,
-            "ROLE_COLABORADOR", EMPLOYEE_PERMISSIONS,
-            "ROLE_EMPLOYEE", EMPLOYEE_PERMISSIONS
+            "ROLE_COLABORADOR", EMPLOYEE_SELF_PERMISSIONS,
+            "ROLE_EMPLOYEE", EMPLOYEE_SELF_PERMISSIONS
     );
 
     public boolean has(String permission) {
+        if (permission == null || permission.isBlank()) {
+            return false;
+        }
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null
                 || !authentication.isAuthenticated()
@@ -91,8 +101,19 @@ public class AccessGuard {
             return false;
         }
 
-        for (GrantedAuthority authority : authentication.getAuthorities()) {
-            Set<String> permissions = ROLE_PERMISSIONS.get(authority.getAuthority());
+        Set<String> authorities = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toSet());
+
+        boolean hasDatabasePermissions = authorities.stream()
+                .anyMatch(authority -> authority.startsWith("PERM_"));
+
+        if (hasDatabasePermissions) {
+            return authorities.contains("PERM_" + permission);
+        }
+
+        for (String authority : authorities) {
+            Set<String> permissions = ROLE_PERMISSIONS.get(authority);
             if (permissions == null) {
                 continue;
             }
@@ -113,7 +134,7 @@ public class AccessGuard {
     }
 
     private static Set<String> union(Set<String> base, Set<String> extra) {
-        Set<String> result = new java.util.HashSet<>(base);
+        Set<String> result = new HashSet<>(base);
         result.addAll(extra);
         return Set.copyOf(result);
     }

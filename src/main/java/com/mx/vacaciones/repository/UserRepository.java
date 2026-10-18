@@ -2,6 +2,7 @@ package com.mx.vacaciones.repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -74,4 +75,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return usuario encontrado
      */
     User findByEmail(String name);
+
+    /**
+     * Busca un usuario por su identificador público.
+     *
+     * @param uuid identificador público
+     * @return usuario encontrado
+     */
+    Optional<User> findByUuid(UUID uuid);
 }

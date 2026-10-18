@@ -1,6 +1,7 @@
 package com.mx.vacaciones.model;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,6 +10,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,6 +39,18 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /**
+     * Identificador público del usuario.
+     */
+    @Column(name = "uuid", nullable = false, unique = true, updatable = false)
+    private UUID uuid;
+
+    /**
+     * Empleado vinculado a este usuario, si existe.
+     */
+    @Column(name = "employee_id")
+    private Long employeeId;
 
     /**
      * Nombre completo del usuario.
@@ -102,6 +116,13 @@ public class User {
      */
     @Column(name = "temporary_password", nullable = false)
     private Boolean temporaryPassword = false;
+
+    @PrePersist
+    protected void ensureUuid() {
+        if (uuid == null) {
+            uuid = UUID.randomUUID();
+        }
+    }
 
     /**
      * Descuenta días de vacaciones del saldo disponible.
