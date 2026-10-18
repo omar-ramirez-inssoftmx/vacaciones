@@ -11,10 +11,10 @@ IF COL_LENGTH('dbo.users', 'uuid') IS NULL
 BEGIN
     -- Se agrega nullable, se llena fila por fila y luego se hace NOT NULL
     -- para garantizar un UUID único en tablas con datos existentes.
-    ALTER TABLE dbo.users ADD uuid UNIQUEIDENTIFIER NULL;
-    UPDATE dbo.users SET uuid = NEWID() WHERE uuid IS NULL;
-    ALTER TABLE dbo.users ALTER COLUMN uuid UNIQUEIDENTIFIER NOT NULL;
-    ALTER TABLE dbo.users ADD CONSTRAINT DF_users_uuid DEFAULT NEWID() FOR uuid;
+    EXEC(N'ALTER TABLE dbo.users ADD uuid UNIQUEIDENTIFIER NULL;');
+    EXEC(N'UPDATE dbo.users SET uuid = NEWID() WHERE uuid IS NULL;');
+    EXEC(N'ALTER TABLE dbo.users ALTER COLUMN uuid UNIQUEIDENTIFIER NOT NULL;');
+    EXEC(N'ALTER TABLE dbo.users ADD CONSTRAINT DF_users_uuid DEFAULT NEWID() FOR uuid;');
 END;
 
 IF COL_LENGTH('dbo.users', 'employee_id') IS NULL

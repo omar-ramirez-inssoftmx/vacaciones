@@ -155,10 +155,10 @@ IF EXISTS (
 
 IF COL_LENGTH('dbo.vacation_requests', 'uuid') IS NULL
 BEGIN
-    ALTER TABLE dbo.vacation_requests ADD uuid UNIQUEIDENTIFIER NULL;
-    UPDATE dbo.vacation_requests SET uuid = NEWID() WHERE uuid IS NULL;
-    ALTER TABLE dbo.vacation_requests ALTER COLUMN uuid UNIQUEIDENTIFIER NOT NULL;
-    ALTER TABLE dbo.vacation_requests ADD CONSTRAINT DF_vacation_requests_uuid DEFAULT NEWID() FOR uuid;
+    EXEC(N'ALTER TABLE dbo.vacation_requests ADD uuid UNIQUEIDENTIFIER NULL;');
+    EXEC(N'UPDATE dbo.vacation_requests SET uuid = NEWID() WHERE uuid IS NULL;');
+    EXEC(N'ALTER TABLE dbo.vacation_requests ALTER COLUMN uuid UNIQUEIDENTIFIER NOT NULL;');
+    EXEC(N'ALTER TABLE dbo.vacation_requests ADD CONSTRAINT DF_vacation_requests_uuid DEFAULT NEWID() FOR uuid;');
 END;
 
 IF COL_LENGTH('dbo.vacation_requests', 'employee_id') IS NULL
