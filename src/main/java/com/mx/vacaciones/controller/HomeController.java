@@ -82,6 +82,9 @@ public class HomeController {
         model.addAttribute("pendingRequestsCount", pendingRequestsCount);
         model.addAttribute("onboardingCompleted", onboardingCompleted);
         model.addAttribute("tourStepsJson", tourStepsJson);
+        model.addAttribute("themePreference", user != null && "LIGHT".equalsIgnoreCase(user.getThemePreference())
+                ? "LIGHT"
+                : "DARK");
 
         return "home";
     }

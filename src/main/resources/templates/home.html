@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:attr="data-theme=${themePreference}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -38,6 +39,8 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
   </style>
+  <script src="/js/theme-init.js"></script>
+  <link rel="stylesheet" href="/css/theme-light.css" data-theme-styles="true">
 </head>
 <body>
 
@@ -73,7 +76,9 @@
                     (rol == 'ROLE_ADMIN' ? '⚡ Administrador' : rol)}">
       </div>
 
-      <button type="button" id="startTourButton" data-start-tour class="btn btn-light btn-sm mt-3">
+      <button type="button" id="startTourButton" data-start-tour
+              th:if="${onboardingCompleted}"
+              class="btn btn-light btn-sm mt-3">
         🎯 Ver recorrido
       </button>
     </div>

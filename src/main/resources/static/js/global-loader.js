@@ -33,6 +33,107 @@
 })();
 
 /*
+ * Tema claro/oscuro persistido por usuario y por navegador.
+ */
+(function () {
+  if (window.__themeInstalled) {
+    return;
+  }
+  window.__themeInstalled = true;
+
+  const STORAGE_KEY = "inssoft-theme";
+  const DEFAULT_THEME = "DARK";
+
+  if (!document.querySelector('link[data-theme-styles]')) {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "/css/theme-light.css";
+    link.dataset.themeStyles = "true";
+    document.head.appendChild(link);
+  }
+
+  function normalize(theme) {
+    return theme === "LIGHT" ? "LIGHT" : "DARK";
+  }
+
+  function currentTheme() {
+    return normalize(document.documentElement.getAttribute("data-theme"));
+  }
+
+  function updateButton() {
+    const button = document.getElementById("themeToggleButton");
+    if (!button) {
+      return;
+    }
+    const isDark = currentTheme() === "DARK";
+    button.innerHTML = isDark
+      ? '<span class="theme-toggle__icon">☀️</span><span class="theme-toggle__label">Modo claro</span>'
+      : '<span class="theme-toggle__icon">🌙</span><span class="theme-toggle__label">Modo oscuro</span>';
+    button.setAttribute("aria-label", isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro");
+    button.setAttribute("title", isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro");
+  }
+
+  function applyTheme(theme, persist) {
+    const value = normalize(theme);
+    document.documentElement.setAttribute("data-theme", value);
+    if (persist) {
+      localStorage.setItem(STORAGE_KEY, value);
+    }
+    updateButton();
+  }
+
+  function createButton() {
+    if (document.getElementById("themeToggleButton")) {
+      return;
+    }
+    const button = document.createElement("button");
+    button.type = "button";
+    button.id = "themeToggleButton";
+    button.className = "theme-toggle";
+    button.addEventListener("click", function () {
+      const next = currentTheme() === "DARK" ? "LIGHT" : "DARK";
+      applyTheme(next, true);
+
+      if (!/^\/(login|change-password)/.test(window.location.pathname)) {
+        fetch("/profile/theme", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ theme: next })
+        }).catch(function () {
+          // La preferencia local sigue funcionando aunque falle el guardado.
+        });
+      }
+    });
+    document.body.appendChild(button);
+    updateButton();
+  }
+
+  const serverTheme = document.documentElement.getAttribute("data-theme");
+  const storedTheme = localStorage.getItem(STORAGE_KEY);
+  applyTheme(serverTheme || storedTheme || DEFAULT_THEME, Boolean(serverTheme));
+
+  if (document.body) {
+    createButton();
+  } else {
+    document.addEventListener("DOMContentLoaded", createButton);
+  }
+
+  // Si el usuario aún no tiene preferencia local, recupera la de su cuenta.
+  if (!storedTheme && !/^\/(login|change-password)/.test(window.location.pathname)) {
+    fetch("/profile/theme", { headers: { "Accept": "application/json" } })
+      .then(function (response) { return response.ok ? response.json() : null; })
+      .then(function (payload) {
+        if (!localStorage.getItem(STORAGE_KEY) && payload && payload.data && payload.data.theme) {
+          applyTheme(payload.data.theme, true);
+        }
+      })
+      .catch(function () {
+        // Sin sesión o sin preferencia: se conserva el tema local/por defecto.
+      });
+  }
+})();
+
+/*
  * Loader global del sistema.
  *
  * Mejora aplicada:

@@ -1,0 +1,309 @@
+/* =====================================================================
+   Tema claro + botón global de cambio de tema
+   El diseño base de la aplicación es oscuro; este archivo agrega el
+   conjunto de overrides para el modo claro y estilos del toggle.
+   ===================================================================== */
+
+.theme-toggle {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 1500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(22, 27, 34, 0.94);
+  color: #e6edf3;
+  font-family: "Plus Jakarta Sans", Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(10px);
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.theme-toggle:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.theme-toggle__icon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+html[data-theme="LIGHT"],
+html[data-theme="LIGHT"] body {
+  background-color: #f3f6fb !important;
+  color: #0f172a !important;
+}
+
+html[data-theme="LIGHT"] .navbar {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 8px rgba(15, 23, 42, 0.05);
+}
+
+html[data-theme="LIGHT"] .navbar-brand,
+html[data-theme="LIGHT"] .navbar-dark .navbar-brand {
+  color: #0f172a !important;
+}
+
+html[data-theme="LIGHT"] .navbar .btn-outline-light,
+html[data-theme="LIGHT"] .btn-outline-light {
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html[data-theme="LIGHT"] .theme-toggle {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
+}
+
+html[data-theme="LIGHT"] .home-hero,
+html[data-theme="LIGHT"] .admin-hero,
+html[data-theme="LIGHT"] .status-hero {
+  background: linear-gradient(135deg, #ffffff 0%, #eef5ff 100%) !important;
+  border: 1px solid #dbeafe !important;
+  color: #0f172a !important;
+}
+
+html[data-theme="LIGHT"] .home-card,
+html[data-theme="LIGHT"] .section-card,
+html[data-theme="LIGHT"] .form-card,
+html[data-theme="LIGHT"] .filter-card,
+html[data-theme="LIGHT"] .results-card,
+html[data-theme="LIGHT"] .requests-card,
+html[data-theme="LIGHT"] .table-card,
+html[data-theme="LIGHT"] .pol-card,
+html[data-theme="LIGHT"] .kpi-card,
+html[data-theme="LIGHT"] .calendar-card,
+html[data-theme="LIGHT"] .panel,
+html[data-theme="LIGHT"] .card,
+html[data-theme="LIGHT"] .modal-content,
+html[data-theme="LIGHT"] .info-box,
+html[data-theme="LIGHT"] .summary-box,
+html[data-theme="LIGHT"] .reset-user-box,
+html[data-theme="LIGHT"] .action-info-box {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+html[data-theme="LIGHT"] .home-item,
+html[data-theme="LIGHT"] .list-group-item {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #eef2f7 !important;
+}
+
+html[data-theme="LIGHT"] .home-item:hover,
+html[data-theme="LIGHT"] .list-group-item-action:hover {
+  background: #f8fafc !important;
+}
+
+html[data-theme="LIGHT"] .home-item__title,
+html[data-theme="LIGHT"] h1,
+html[data-theme="LIGHT"] h2,
+html[data-theme="LIGHT"] h3,
+html[data-theme="LIGHT"] h4,
+html[data-theme="LIGHT"] h5,
+html[data-theme="LIGHT"] h6,
+html[data-theme="LIGHT"] .modal-title,
+html[data-theme="LIGHT"] .section-title,
+html[data-theme="LIGHT"] .panel-header-label,
+html[data-theme="LIGHT"] .results-title,
+html[data-theme="LIGHT"] .toolbar-title {
+  color: #0f172a !important;
+}
+
+html[data-theme="LIGHT"] .home-hero__text p,
+html[data-theme="LIGHT"] .home-item p,
+html[data-theme="LIGHT"] .home-item small,
+html[data-theme="LIGHT"] .hero-sub,
+html[data-theme="LIGHT"] .section-sub,
+html[data-theme="LIGHT"] .text-muted,
+html[data-theme="LIGHT"] .muted,
+html[data-theme="LIGHT"] .user-email,
+html[data-theme="LIGHT"] .pol-meta-text,
+html[data-theme="LIGHT"] .empty-sub,
+html[data-theme="LIGHT"] .reset-helper,
+html[data-theme="LIGHT"] .modal-helper-text,
+html[data-theme="LIGHT"] small {
+  color: #64748b !important;
+}
+
+html[data-theme="LIGHT"] .home-card__header,
+html[data-theme="LIGHT"] .section-header,
+html[data-theme="LIGHT"] .form-card-header,
+html[data-theme="LIGHT"] .panel-header,
+html[data-theme="LIGHT"] .modal-header,
+html[data-theme="LIGHT"] .modal-footer,
+html[data-theme="LIGHT"] .table-card-header,
+html[data-theme="LIGHT"] .results-header {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html[data-theme="LIGHT"] .home-card__header h5,
+html[data-theme="LIGHT"] .section-label,
+html[data-theme="LIGHT"] .hero-label,
+html[data-theme="LIGHT"] .home-hero__greeting {
+  color: #2563eb !important;
+}
+
+html[data-theme="LIGHT"] .form-control,
+html[data-theme="LIGHT"] .form-select,
+html[data-theme="LIGHT"] .form-control-custom,
+html[data-theme="LIGHT"] textarea.form-control,
+html[data-theme="LIGHT"] input.form-control,
+html[data-theme="LIGHT"] select.form-select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html[data-theme="LIGHT"] .form-control::placeholder {
+  color: #94a3b8 !important;
+}
+
+html[data-theme="LIGHT"] .input-group-text {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  border-color: #cbd5e1 !important;
+}
+
+html[data-theme="LIGHT"] .table,
+html[data-theme="LIGHT"] .users-table,
+html[data-theme="LIGHT"] .history-table,
+html[data-theme="LIGHT"] .req-table,
+html[data-theme="LIGHT"] .status-table,
+html[data-theme="LIGHT"] .data-table {
+  color: #0f172a !important;
+}
+
+html[data-theme="LIGHT"] .table thead th,
+html[data-theme="LIGHT"] thead th {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #e2e8f0 !important;
+}
+
+html[data-theme="LIGHT"] .table tbody td,
+html[data-theme="LIGHT"] tbody td {
+  border-color: #e2e8f0 !important;
+}
+
+html[data-theme="LIGHT"] .table-striped tbody tr:nth-of-type(odd) > * {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html[data-theme="LIGHT"] .modal-header,
+html[data-theme="LIGHT"] .modal-body,
+html[data-theme="LIGHT"] .modal-footer {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+html[data-theme="LIGHT"] .modal-content {
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2) !important;
+}
+
+html[data-theme="LIGHT"] .btn-light {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html[data-theme="LIGHT"] .btn-back,
+html[data-theme="LIGHT"] .btn-clear,
+html[data-theme="LIGHT"] .btn-outline-secondary {
+  color: #475569 !important;
+  border-color: #cbd5e1 !important;
+  background: transparent !important;
+}
+
+html[data-theme="LIGHT"] .btn-close-white {
+  filter: invert(1) grayscale(100%) brightness(0);
+}
+
+html[data-theme="LIGHT"] .alert-success-custom {
+  background: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #047857 !important;
+}
+
+html[data-theme="LIGHT"] .alert-danger-custom {
+  background: #fef2f2 !important;
+  border-color: #fecaca !important;
+  color: #b91c1c !important;
+}
+
+html[data-theme="LIGHT"] .alert-success {
+  background: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #047857 !important;
+}
+
+html[data-theme="LIGHT"] .alert-danger {
+  background: #fef2f2 !important;
+  border-color: #fecaca !important;
+  color: #b91c1c !important;
+}
+
+html[data-theme="LIGHT"] .login-page,
+html[data-theme="LIGHT"] .change-password-page {
+  background: #f3f6fb !important;
+}
+
+html[data-theme="LIGHT"] .login-card,
+html[data-theme="LIGHT"] .change-password-card {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12) !important;
+}
+
+html[data-theme="LIGHT"] .login-title,
+html[data-theme="LIGHT"] .change-password-title {
+  color: #0f172a !important;
+}
+
+html[data-theme="LIGHT"] .login-subtitle,
+html[data-theme="LIGHT"] .change-password-subtitle,
+html[data-theme="LIGHT"] .login-divider,
+html[data-theme="LIGHT"] .change-password-divider {
+  color: #64748b !important;
+  border-color: #e2e8f0 !important;
+}
+
+html[data-theme="LIGHT"] .global-loader {
+  background: rgba(243, 246, 251, 0.9) !important;
+}
+
+html[data-theme="LIGHT"] .global-loader__box {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+@media (max-width: 576px) {
+  .theme-toggle {
+    left: 10px;
+    bottom: 10px;
+    padding: 10px;
+  }
+
+  .theme-toggle__label {
+    display: none;
+  }
+}

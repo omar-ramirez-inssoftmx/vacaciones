@@ -123,6 +123,12 @@ public class User {
     @Column(name = "onboarding_completed", nullable = false)
     private Boolean onboardingCompleted = false;
 
+    /**
+     * Preferencia visual del usuario: LIGHT u DARK.
+     */
+    @Column(name = "theme_preference", nullable = false, length = 10)
+    private String themePreference = "DARK";
+
     @PrePersist
     protected void ensureUuid() {
         if (uuid == null) {

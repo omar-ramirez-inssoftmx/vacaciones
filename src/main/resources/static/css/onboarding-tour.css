@@ -158,3 +158,82 @@
     font-size: 18px;
   }
 }
+
+/* El diseño base de la app es oscuro: integramos bienvenida y tour. */
+html[data-theme="DARK"] .onboarding-welcome {
+  background: linear-gradient(135deg, #161b22 0%, #1a2332 100%);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #e6edf3;
+}
+
+html[data-theme="DARK"] .onboarding-welcome__text p {
+  color: #8b949e;
+}
+
+html[data-theme="DARK"] .onboarding-welcome .btn-primary {
+  background: #1f6feb;
+  border-color: #1f6feb;
+}
+
+html[data-theme="DARK"] .onboarding-welcome .btn-outline-secondary {
+  color: #c9d1d9;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+html[data-theme="DARK"] .onboarding-welcome .btn-outline-secondary:hover {
+  background: #21262d;
+  color: #ffffff;
+}
+
+html[data-theme="DARK"] .tour-card {
+  background: #161b22;
+  color: #e6edf3;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+}
+
+html[data-theme="DARK"] .tour-card__step {
+  color: #58a6ff;
+}
+
+html[data-theme="DARK"] .tour-card h5 {
+  color: #e6edf3;
+}
+
+html[data-theme="DARK"] .tour-card p {
+  color: #8b949e;
+}
+
+html[data-theme="DARK"] .tour-btn--ghost {
+  background: #21262d;
+  color: #c9d1d9;
+}
+
+html[data-theme="DARK"] .tour-btn--ghost:hover {
+  background: #30363d;
+}
+
+html[data-theme="DARK"] .tour-btn--primary {
+  background: #1f6feb;
+}
+
+html[data-theme="DARK"] .tour-btn--primary:hover {
+  background: #388bfd;
+}
+
+html[data-theme="DARK"] .tour-btn--link,
+html[data-theme="DARK"] .tour-card__hint {
+  color: #8b949e;
+}
+
+html[data-theme="LIGHT"] .onboarding-welcome {
+  background: linear-gradient(135deg, #eff6ff, #ffffff);
+  border-color: #bfdbfe;
+  color: #0f172a;
+}
+
+html[data-theme="LIGHT"] .tour-card {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+}
