@@ -117,6 +117,12 @@ public class User {
     @Column(name = "temporary_password", nullable = false)
     private Boolean temporaryPassword = false;
 
+    /**
+     * Indica si el usuario ya completó el recorrido inicial de la aplicación.
+     */
+    @Column(name = "onboarding_completed", nullable = false)
+    private Boolean onboardingCompleted = false;
+
     @PrePersist
     protected void ensureUuid() {
         if (uuid == null) {

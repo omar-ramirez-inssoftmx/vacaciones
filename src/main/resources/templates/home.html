@@ -7,6 +7,7 @@
 
   <link rel="stylesheet" href="/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/home.css">
+  <link rel="stylesheet" href="/css/onboarding-tour.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
@@ -55,7 +56,7 @@
 <div class="container mt-4">
 
   <!-- HERO -->
-  <div class="home-hero shadow-soft">
+  <div class="home-hero shadow-soft" data-tour="home-hero">
     <div class="home-hero__text">
       <div class="home-hero__greeting">Portal de Vacaciones</div>
 
@@ -71,6 +72,10 @@
            th:text="${rol == 'ROLE_COLABORADOR' ? '👤 Colaborador' :
                     (rol == 'ROLE_ADMIN' ? '⚡ Administrador' : rol)}">
       </div>
+
+      <button type="button" id="startTourButton" class="btn btn-light btn-sm mt-3">
+        🎯 Ver recorrido
+      </button>
     </div>
 
     <div class="home-hero__img">
@@ -190,7 +195,7 @@
 	<!-- OPCIONES PARA ADMIN -->
 	<!-- ========================= -->
 	<div th:if="${rol == 'ROLE_ADMIN'}">
-	  <		<div class="list-group list-group-flush">
+	  <div class="list-group list-group-flush">
 
 		    <!-- Solicitar vacaciones -->
 		    <a href="/vacations/request" class="list-group-item list-group-item-action home-item">
@@ -298,5 +303,10 @@
 
 <link rel="stylesheet" href="/css/global-loader.css">
 <script src="/js/global-loader.js"></script>
+
+<!-- Configuración y recorrido inicial -->
+<div id="tourConfig"
+     th:attr="data-steps=${tourStepsJson},data-completed=${onboardingCompleted}"></div>
+<script src="/js/onboarding-tour.js"></script>
 </body>
 </html>

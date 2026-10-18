@@ -114,6 +114,10 @@ public class SecurityConfig {
                         .requestMatchers("/leader/**")
                         .hasAnyAuthority("ROLE_LIDER", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
 
+                        // El líder puede consultar su historial, pero no la bandeja admin.
+                        .requestMatchers("/admin/requests/history", "/admin/requests/history/**")
+                        .hasAnyAuthority("ROLE_LIDER", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
+
                         .requestMatchers("/admin/**")
                         .hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
 

@@ -72,6 +72,7 @@ public class UserService {
         u.setHireDate(hireDate);
         u.setVacationDaysEntitled(vacationDaysAvailable);
         u.setTemporaryPassword(true);
+        u.setOnboardingCompleted(false);
 
         User savedUser = userRepository.save(u);
 
