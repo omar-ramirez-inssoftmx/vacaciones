@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,6 +16,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     Optional<Employee> findByUuidAndDeletedAtIsNull(UUID uuid);
 
     Optional<Employee> findByUser_UsernameAndDeletedAtIsNull(String username);
+
+    Optional<Employee> findByUser_IdAndDeletedAtIsNull(Long userId);
+
+    List<Employee> findByDeletedAtIsNullAndEnabledTrue();
 
     boolean existsByUser_IdAndDeletedAtIsNull(Long userId);
 

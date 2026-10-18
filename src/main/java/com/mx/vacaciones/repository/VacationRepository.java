@@ -2,10 +2,17 @@ package com.mx.vacaciones.repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import jakarta.persistence.LockModeType;
 
 import com.mx.vacaciones.model.User;
 import com.mx.vacaciones.model.VacationRequest;
@@ -300,4 +307,53 @@ public interface VacationRepository extends JpaRepository<VacationRequest, Long>
     );
     
     List<VacationRequest> findByLeaderAndStatus(User leader, String status);
+
+    List<VacationRequest> findByLeader_UsernameAndStatusOrderByStartDateAsc(
+            String username, String status);
+
+    Optional<VacationRequest> findByUuidAndDeletedAtIsNull(UUID uuid);
+
+    Optional<VacationRequest> findByIdAndDeletedAtIsNull(Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT r FROM VacationRequest r WHERE r.id = :id")
+    Optional<VacationRequest> findByIdForUpdate(@Param("id") Long id);
+
+    Page<VacationRequest> findByEmployee_IdAndDeletedAtIsNullOrderByStartDateDesc(
+            Long employeeId, Pageable pageable);
+
+    @Query("""
+            SELECT r FROM VacationRequest r
+            LEFT JOIN r.employee e
+            WHERE r.deletedAt IS NULL
+              AND (:employeeUuid IS NULL OR e.uuid = :employeeUuid)
+              AND (:status IS NULL OR r.status = :status)
+              AND (:from IS NULL OR r.startDate >= :from)
+              AND (:to IS NULL OR r.endDate <= :to)
+              AND (:q IS NULL
+                   OR LOWER(r.username) LIKE LOWER(CONCAT('%', :q, '%'))
+                   OR LOWER(COALESCE(e.firstName, '')) LIKE LOWER(CONCAT('%', :q, '%'))
+                   OR LOWER(COALESCE(e.lastName, '')) LIKE LOWER(CONCAT('%', :q, '%')))
+            """)
+    Page<VacationRequest> searchRequests(
+            @Param("employeeUuid") UUID employeeUuid,
+            @Param("status") String status,
+            @Param("from") LocalDate from,
+            @Param("to") LocalDate to,
+            @Param("q") String q,
+            Pageable pageable);
+
+    @Query("""
+            SELECT COUNT(r) > 0 FROM VacationRequest r
+            WHERE r.employee.id = :employeeId
+              AND r.deletedAt IS NULL
+              AND r.status IN :statuses
+              AND r.startDate <= :endDate
+              AND r.endDate >= :startDate
+            """)
+    boolean existsOverlappingByEmployee(
+            @Param("employeeId") Long employeeId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("statuses") List<String> statuses);
 }

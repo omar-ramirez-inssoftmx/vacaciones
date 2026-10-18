@@ -64,6 +64,7 @@ public class AccessGuard {
             "EMPLOYEE_UPDATE",
             "EMPLOYEE_TERMINATE",
             "VACATION_ADJUST",
+            "VACATION_POLICY_MANAGE",
             "CALENDAR_MANAGE",
             "DOCUMENT_UPLOAD",
             "DOCUMENT_DELETE",
