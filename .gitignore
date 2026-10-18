@@ -1,2 +1,10 @@
 /target/
-api\node_modules
+/logs/
+*.log
+.env
+application-local.properties
+src/main/resources/application-local.properties
+.idea/
+*.iml
+.DS_Store
+node_modules/

@@ -1,0 +1,17 @@
+# =====================================================================
+# Copiar a application-local.properties (NO se versiona) y completar.
+# Ejecutar con: mvn spring-boot:run -Dspring-boot.run.profiles=local
+# =====================================================================
+DB_URL=jdbc:sqlserver://localhost:1433;databaseName=VACACIONES_DEV;encrypt=true;trustServerCertificate=true
+DB_USERNAME=your_db_user
+DB_PASSWORD=your_db_password
+
+# Mínimo 32 caracteres. Generar con: openssl rand -base64 48
+JWT_SECRET=change-me-to-a-random-secret-of-at-least-32-chars
+
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=
+MAIL_PASSWORD=
+
+APP_SYSTEM_URL=http://localhost:8443/login
