@@ -3,6 +3,7 @@ package com.mx.vacaciones.controller;
 import com.inssoft.people.common.exception.BusinessException;
 import com.inssoft.people.employee.dto.EmergencyContactRequest;
 import com.inssoft.people.employee.dto.EmployeeResponse;
+import com.inssoft.people.employee.dto.ProfileUpdateRequest;
 import com.inssoft.people.employee.service.EmployeeService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -33,6 +34,29 @@ public class ProfileWebController {
         EmployeeResponse employee = employeeService.getMe(authentication.getName());
         model.addAttribute("empleado", employee);
         return "profile";
+    }
+
+    @PostMapping("/update")
+    public String updateProfile(
+            Authentication authentication,
+            @RequestParam(required = false) String personalEmail,
+            @RequestParam(required = false) String phone,
+            @RequestParam(required = false) String addressLine1,
+            @RequestParam(required = false) String addressLine2,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String state,
+            @RequestParam(required = false) String postalCode,
+            @RequestParam(required = false) String country,
+            RedirectAttributes redirect) {
+        try {
+            employeeService.updateMyProfile(authentication.getName(), new ProfileUpdateRequest(
+                    personalEmail, phone, addressLine1, addressLine2,
+                    city, state, postalCode, country));
+            redirect.addFlashAttribute("ok", "Datos de contacto actualizados");
+        } catch (BusinessException ex) {
+            redirect.addFlashAttribute("err", ex.getMessage());
+        }
+        return "redirect:/profile";
     }
 
     @PostMapping("/contacts")

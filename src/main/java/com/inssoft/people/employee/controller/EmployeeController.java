@@ -8,6 +8,7 @@ import com.inssoft.people.employee.dto.EmergencyContactResponse;
 import com.inssoft.people.employee.dto.EmployeeRequest;
 import com.inssoft.people.employee.dto.EmployeeResponse;
 import com.inssoft.people.employee.dto.EmployeeSummaryResponse;
+import com.inssoft.people.employee.dto.ProfileUpdateRequest;
 import com.inssoft.people.employee.dto.TerminationRequest;
 import com.inssoft.people.employee.service.EmployeeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -71,6 +72,16 @@ public class EmployeeController {
     @Operation(summary = "Obtiene el empleado vinculado al usuario autenticado")
     public ApiResponse<EmployeeResponse> me(Authentication authentication) {
         return ApiResponse.ok("Empleado obtenido", employeeService.getMe(authentication.getName()));
+    }
+
+    @PutMapping("/me/profile")
+    @PreAuthorize("@accessGuard.has('EMPLOYEE_VIEW_SELF')")
+    @Operation(summary = "Actualiza los datos de contacto del propio empleado")
+    public ApiResponse<EmployeeResponse> updateMyProfile(
+            Authentication authentication,
+            @Valid @RequestBody ProfileUpdateRequest request) {
+        return ApiResponse.ok("Perfil actualizado",
+                employeeService.updateMyProfile(authentication.getName(), request));
     }
 
     @GetMapping("/me/emergency-contacts")

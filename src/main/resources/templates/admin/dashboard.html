@@ -240,20 +240,14 @@
     .section-card          { animation: fadeUp 0.35s 0.22s ease both; }
   </style>
   <script src="/js/theme-init.js"></script>
+  <link rel="stylesheet" href="/css/people.css">
   <link rel="stylesheet" href="/css/theme-light.css" data-theme-styles="true">
   <link rel="stylesheet" href="/css/responsive.css">
 </head>
 
 <body>
 
-<nav class="navbar navbar-dark">
-  <div class="container-fluid d-flex align-items-center justify-content-between">
-    <a class="navbar-brand" href="/home">Sistema de Vacaciones</a>
-    <form method="post" th:action="@{/logout}">
-      <button class="btn btn-outline-light btn-sm">Salir</button>
-    </form>
-  </div>
-</nav>
+<nav th:replace="~{fragments/people-nav :: nav('admin-dashboard')}"></nav>
 
 <div class="container mt-4">
 
@@ -267,7 +261,7 @@
         <b th:text="${#temporals.format(today,'dd/MM/yyyy')}">07/02/2026</b>
       </div>
     </div>
-    <a class="btn-back no-loader" th:href="@{/home}">← Volver</a>
+    <a class="btn-back no-loader" th:href="@{/home}" data-back>← Volver</a>
   </div>
 
   <!-- KPI CARDS -->

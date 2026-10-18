@@ -12,7 +12,7 @@
       <p th:text="${editing ? 'Actualiza los datos del expediente.' : 'Captura los datos base del expediente laboral.'}"></p>
     </div>
     <div class="people-hero__actions">
-      <a class="btn btn-outline-secondary btn-sm no-loader" th:href="${backUrl}">← Volver</a>
+      <a class="btn btn-outline-secondary btn-sm no-loader" th:href="${backUrl}" data-back>← Volver</a>
     </div>
   </section>
 
@@ -191,7 +191,7 @@
     <div class="people-form__actions mt-3">
       <button type="submit" class="btn btn-primary"
               th:text="${editing ? 'Guardar cambios' : 'Crear empleado'}">Guardar</button>
-      <a class="btn btn-outline-secondary no-loader" th:href="${backUrl}">Cancelar</a>
+      <a class="btn btn-outline-secondary no-loader" th:href="${backUrl}" data-back>Cancelar</a>
     </div>
   </form>
 </main>

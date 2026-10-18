@@ -19,6 +19,11 @@
       </div>
     </div>
     <div class="people-hero__actions">
+      <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="collapse"
+              data-bs-target="#editProfileForm" aria-expanded="false" aria-controls="editProfileForm">
+        Editar contacto
+      </button>
+      <a href="/change-password" class="btn btn-outline-secondary btn-sm no-loader">Cambiar contraseña</a>
       <span class="people-badge" th:text="${empleado.employeeNumber}">EMP-001</span>
       <span class="people-badge people-badge--success" th:if="${empleado.enabled}">Activo</span>
     </div>
@@ -27,7 +32,90 @@
   <div th:if="${ok}" class="people-message people-message--ok" th:text="${ok}"></div>
   <div th:if="${err}" class="people-message people-message--error" th:text="${err}"></div>
 
-  <div class="people-grid people-grid--wide">
+  <section class="people-card mt-4">
+    <div class="people-card__header">
+      <h2>Mi cuenta</h2>
+      <span class="people-badge"
+            th:text="${rol == 'ROLE_ADMIN' ? 'Administrador' : (rol == 'ROLE_LIDER' ? 'Líder' : 'Colaborador')}"></span>
+    </div>
+    <div class="people-card__body">
+      <div class="people-data">
+        <div>
+          <div class="people-data__label">Usuario</div>
+          <div class="people-data__value" th:text="${usuario}"></div>
+        </div>
+        <div>
+          <div class="people-data__label">Correo corporativo</div>
+          <div class="people-data__value" th:text="${empleado.corporateEmail ?: 'No registrado'}"></div>
+        </div>
+        <div>
+          <div class="people-data__label">Número de empleado</div>
+          <div class="people-data__value" th:text="${empleado.employeeNumber}"></div>
+        </div>
+        <div>
+          <div class="people-data__label">Tema visual</div>
+          <div class="people-data__value">Configurable desde el botón «Modo claro / Modo oscuro»</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="people-card mt-4 collapse" id="editProfileForm">
+    <div class="people-card__header">
+      <h2>Actualizar datos de contacto</h2>
+    </div>
+    <div class="people-card__body">
+      <form method="post" th:action="@{/profile/update}" class="people-form">
+        <div>
+          <label for="personalEmail">Correo personal</label>
+          <input id="personalEmail" name="personalEmail" type="email" class="form-control"
+                 maxlength="150" th:value="${empleado.personalEmail}">
+        </div>
+        <div>
+          <label for="phone">Teléfono</label>
+          <input id="phone" name="phone" class="form-control" maxlength="20"
+                 pattern="[0-9+()\-\s]{7,20}" th:value="${empleado.phone}">
+        </div>
+        <div class="people-form__full">
+          <label for="addressLine1">Calle y número</label>
+          <input id="addressLine1" name="addressLine1" class="form-control" maxlength="200"
+                 th:value="${empleado.addressLine1}">
+        </div>
+        <div class="people-form__full">
+          <label for="addressLine2">Colonia / interior</label>
+          <input id="addressLine2" name="addressLine2" class="form-control" maxlength="200"
+                 th:value="${empleado.addressLine2}">
+        </div>
+        <div>
+          <label for="city">Ciudad</label>
+          <input id="city" name="city" class="form-control" maxlength="100"
+                 th:value="${empleado.city}">
+        </div>
+        <div>
+          <label for="state">Estado</label>
+          <input id="state" name="state" class="form-control" maxlength="100"
+                 th:value="${empleado.state}">
+        </div>
+        <div>
+          <label for="postalCode">Código postal</label>
+          <input id="postalCode" name="postalCode" class="form-control" maxlength="10"
+                 pattern="[0-9]{4,10}" th:value="${empleado.postalCode}">
+        </div>
+        <div>
+          <label for="country">País</label>
+          <input id="country" name="country" class="form-control" maxlength="100"
+                 th:value="${empleado.country}">
+        </div>
+        <div class="people-form__actions people-form__full">
+          <button type="submit" class="btn btn-primary">Guardar cambios</button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse"
+                  data-bs-target="#editProfileForm">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <div class="people-grid people-grid--wide mt-4">
     <section class="people-card">
       <div class="people-card__header">
         <h2>Datos personales</h2>

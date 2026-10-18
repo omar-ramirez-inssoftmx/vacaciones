@@ -302,22 +302,14 @@
     .results-card { animation: fadeUp 0.3s 0.1s ease both; }
   </style>
   <script src="/js/theme-init.js"></script>
+  <link rel="stylesheet" href="/css/people.css">
   <link rel="stylesheet" href="/css/theme-light.css" data-theme-styles="true">
   <link rel="stylesheet" href="/css/responsive.css">
 </head>
 
 <body>
 
-<nav class="navbar navbar-dark">
-  <div class="container-fluid d-flex align-items-center justify-content-between">
-    <a class="navbar-brand d-flex align-items-center gap-2" href="/home">
-      <span>Sistema de Vacaciones</span>
-    </a>
-    <form method="post" th:action="@{/logout}">
-      <button class="btn btn-outline-light btn-sm">Salir</button>
-    </form>
-  </div>
-</nav>
+<nav th:replace="~{fragments/people-nav :: nav('admin-history')}"></nav>
 
 <div class="container mt-4">
 
@@ -328,7 +320,7 @@
       <h4 class="mb-1">Historial de Solicitudes</h4>
       <div class="muted">Solicitudes ya resueltas (Aprobadas / Rechazadas).</div>
     </div>
-    <a class="btn-back no-loader" th:href="@{/home}">← Volver</a>
+    <a class="btn-back no-loader" th:href="@{/home}" data-back>← Volver</a>
   </div>
 
   <!-- FILTROS -->

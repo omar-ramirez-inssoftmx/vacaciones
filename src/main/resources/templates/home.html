@@ -40,22 +40,14 @@
     }
   </style>
   <script src="/js/theme-init.js"></script>
+  <link rel="stylesheet" href="/css/people.css">
   <link rel="stylesheet" href="/css/theme-light.css" data-theme-styles="true">
   <link rel="stylesheet" href="/css/responsive.css">
 </head>
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar navbar-dark">
-  <div class="container-fluid">
-    <span class="navbar-brand">Sistema de Vacaciones</span>
-
-    <!-- Botón logout -->
-    <form method="post" th:action="@{/logout}">
-      <button class="btn btn-outline-light btn-sm">Salir</button>
-    </form>
-  </div>
-</nav>
+<!-- MENÚ EJECUTIVO -->
+<nav th:replace="~{fragments/people-nav :: nav('home')}"></nav>
 
 <div class="container mt-4">
 
@@ -212,7 +204,7 @@
 	    </a>
 
 	    <!-- Historial -->
-	    <a href="/admin/requests/history" class="list-group-item list-group-item-action home-item">
+	    <a href="/admin/requests/history" class="list-group-item list-group-item-action home-item" data-tour="admin-history">
 	      <div class="home-item__icon icon-purple">📂</div>
 	      <div class="home-item__body">
 	        <div class="home-item__title">Historial</div>
@@ -251,7 +243,7 @@
 
 
 	    <!-- Revisar solicitudes -->
-	    <a href="/admin/requests" class="list-group-item list-group-item-action home-item">
+	    <a href="/admin/requests" class="list-group-item list-group-item-action home-item" data-tour="admin-requests">
 	      <div class="home-item__icon icon-orange home-item__icon--badge">
 	        ⏳
 	        <span class="home-item__badge"
@@ -269,7 +261,7 @@
 	    </a>
 
 	    <!-- Usuarios -->
-	    <a href="/admin/users" class="list-group-item list-group-item-action home-item">
+	    <a href="/admin/users" class="list-group-item list-group-item-action home-item" data-tour="admin-users">
 	      <div class="home-item__icon icon-blue">👥</div>
 	      <div class="home-item__body">
 	        <div class="home-item__title">Administración de Usuarios</div>
@@ -279,7 +271,7 @@
 	    </a>
 
 	    <!-- Historial -->
-	    <a href="/admin/requests/history" class="list-group-item list-group-item-action home-item">
+	    <a href="/admin/requests/history" class="list-group-item list-group-item-action home-item" data-tour="admin-history">
 	      <div class="home-item__icon icon-purple">📂</div>
 	      <div class="home-item__body">
 	        <div class="home-item__title">Historial</div>
@@ -289,7 +281,7 @@
 	    </a>
 
 	    <!-- Calendario -->
-	    <a href="/admin/calendar" class="list-group-item list-group-item-action home-item">
+	    <a href="/admin/calendar" class="list-group-item list-group-item-action home-item" data-tour="admin-calendar">
 	      <div class="home-item__icon icon-teal">📅</div>
 	      <div class="home-item__body">
 	        <div class="home-item__title">Calendario</div>
@@ -299,7 +291,7 @@
 	    </a>
 
 	    <!-- Políticas -->
-	    <a href="/admin/politicas" class="list-group-item list-group-item-action home-item">
+	    <a href="/admin/politicas" class="list-group-item list-group-item-action home-item" data-tour="admin-politicas">
 	      <div class="home-item__icon icon-blue">📄</div>
 	      <div class="home-item__body">
 	        <div class="home-item__title">Políticas de la Empresa</div>
@@ -310,7 +302,7 @@
 
         <th:block th:replace="~{fragments/self-service-links :: links}"></th:block>
 
-        <a href="/admin/employees" class="list-group-item list-group-item-action home-item">
+        <a href="/admin/employees" class="list-group-item list-group-item-action home-item" data-tour="admin-employees">
           <div class="home-item__icon icon-teal">👥</div>
           <div class="home-item__body">
             <div class="home-item__title">Empleados</div>
@@ -319,7 +311,7 @@
           <span class="home-item__arrow">›</span>
         </a>
 
-        <a href="/admin/documents" class="list-group-item list-group-item-action home-item">
+        <a href="/admin/documents" class="list-group-item list-group-item-action home-item" data-tour="admin-documents">
           <div class="home-item__icon icon-teal">🗂️</div>
           <div class="home-item__body">
             <div class="home-item__title">Administración de Documentos</div>
@@ -328,7 +320,7 @@
           <span class="home-item__arrow">›</span>
         </a>
 
-        <a href="/admin/payroll" class="list-group-item list-group-item-action home-item">
+        <a href="/admin/payroll" class="list-group-item list-group-item-action home-item" data-tour="admin-payroll">
           <div class="home-item__icon icon-green">🧾</div>
           <div class="home-item__body">
             <div class="home-item__title">Administración de Nómina</div>
@@ -337,7 +329,7 @@
           <span class="home-item__arrow">›</span>
         </a>
 
-        <a href="/admin/communications" class="list-group-item list-group-item-action home-item">
+        <a href="/admin/communications" class="list-group-item list-group-item-action home-item" data-tour="admin-communications">
           <div class="home-item__icon icon-orange">📣</div>
           <div class="home-item__body">
             <div class="home-item__title">Administración de Comunicados</div>
@@ -347,7 +339,7 @@
         </a>
 
 	    <!-- Dashboard -->
-	    <a href="/admin/dashboard" class="list-group-item list-group-item-action home-item">
+	    <a href="/admin/dashboard" class="list-group-item list-group-item-action home-item" data-tour="admin-dashboard">
 	      <div class="home-item__icon icon-green">📊</div>
 	      <div class="home-item__body">
 	        <div class="home-item__title">Dashboard KPI</div>

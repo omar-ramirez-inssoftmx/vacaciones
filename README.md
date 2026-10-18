@@ -11,6 +11,7 @@ Plataforma interna de administración de empleados. Evoluciona el sistema de vac
 > Estado del Bloque 6 (Onboarding): [`docs/BLOQUE-6-ONBOARDING.md`](docs/BLOQUE-6-ONBOARDING.md)
 > Estado del Bloque 7 (Tema claro/oscuro y UI): [`docs/BLOQUE-7-TEMA-Y-UI.md`](docs/BLOQUE-7-TEMA-Y-UI.md)
 > Estado del Bloque 8 (Roles, nómina y comunicados): [`docs/BLOQUE-8-ROLES-NOMINA-COMUNICADOS.md`](docs/BLOQUE-8-ROLES-NOMINA-COMUNICADOS.md)
+> Estado del Bloque 9 (Menú ejecutivo y perfil): [`docs/BLOQUE-9-MENU-PERFIL.md`](docs/BLOQUE-9-MENU-PERFIL.md)
 > Guía para levantar en Eclipse: [`docs/GUIA-ECLIPSE.md`](docs/GUIA-ECLIPSE.md)
 
 ## Stack
@@ -186,6 +187,7 @@ Endpoints de los Bloques 1–13:
 | GET | `/api/v1/profile/theme` | autenticado |
 | PUT | `/api/v1/profile/theme` | autenticado |
 | GET/POST | `/api/v1/employees/me/emergency-contacts` | `EMPLOYEE_VIEW_SELF` |
+| PUT | `/api/v1/employees/me/profile` | `EMPLOYEE_VIEW_SELF` |
 | PUT/DELETE | `/api/v1/employees/me/emergency-contacts/{uuid}` | `EMPLOYEE_VIEW_SELF` |
 | GET | `/api/v1/payroll/periods` | `PAYROLL_VIEW` / `PAYROLL_UPLOAD` |
 | POST | `/api/v1/payroll/periods` | `PAYROLL_UPLOAD` |

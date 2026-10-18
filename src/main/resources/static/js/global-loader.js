@@ -280,3 +280,133 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
+/*
+ * Menú ejecutivo: drawer móvil y dropdown de administración sin depender
+ * de Bootstrap JS. Funciona en todas las pantallas que usan people-nav.
+ */
+(function () {
+  if (window.__execMenuInstalled) {
+    return;
+  }
+  window.__execMenuInstalled = true;
+
+  const menu = document.getElementById("execMenu");
+  if (!menu) {
+    return;
+  }
+
+  const burger = document.querySelector("[data-exec-toggle]");
+  const scrim = document.querySelector(".exec-scrim");
+  const dropdowns = Array.prototype.slice.call(
+    document.querySelectorAll(".exec-dropdown")
+  );
+
+  function closeDropdowns() {
+    dropdowns.forEach(function (dropdown) {
+      dropdown.classList.remove("is-open");
+      const toggle = dropdown.querySelector("[data-exec-dropdown-toggle]");
+      if (toggle) {
+        toggle.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
+
+  function openMenu() {
+    menu.classList.add("is-open");
+    if (scrim) {
+      scrim.classList.add("is-open");
+    }
+    document.body.classList.add("exec-menu-open");
+    if (burger) {
+      burger.setAttribute("aria-expanded", "true");
+    }
+  }
+
+  function closeMenu() {
+    menu.classList.remove("is-open");
+    if (scrim) {
+      scrim.classList.remove("is-open");
+    }
+    document.body.classList.remove("exec-menu-open");
+    if (burger) {
+      burger.setAttribute("aria-expanded", "false");
+    }
+    closeDropdowns();
+  }
+
+  if (burger) {
+    burger.addEventListener("click", function () {
+      if (menu.classList.contains("is-open")) {
+        closeMenu();
+      } else {
+        openMenu();
+      }
+    });
+  }
+
+  if (scrim) {
+    scrim.addEventListener("click", closeMenu);
+  }
+
+  document.querySelectorAll("[data-exec-close]").forEach(function (element) {
+    element.addEventListener("click", closeMenu);
+  });
+
+  dropdowns.forEach(function (dropdown) {
+    const toggle = dropdown.querySelector("[data-exec-dropdown-toggle]");
+    if (!toggle) {
+      return;
+    }
+    toggle.addEventListener("click", function (event) {
+      event.stopPropagation();
+      const willOpen = !dropdown.classList.contains("is-open");
+      closeDropdowns();
+      if (willOpen) {
+        dropdown.classList.add("is-open");
+        toggle.setAttribute("aria-expanded", "true");
+      }
+    });
+  });
+
+  document.addEventListener("click", function (event) {
+    if (!event.target.closest(".exec-dropdown")) {
+      closeDropdowns();
+    }
+  });
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+      closeMenu();
+    }
+  });
+
+  window.addEventListener("resize", function () {
+    if (window.innerWidth > 1100) {
+      closeMenu();
+    }
+  });
+})();
+
+/*
+ * Botones "Volver": regresan a la pantalla anterior usando el historial.
+ * Si no hay historial (acceso directo), usan el href como respaldo.
+ */
+(function () {
+  if (window.__backNavigationInstalled) {
+    return;
+  }
+  window.__backNavigationInstalled = true;
+
+  document.addEventListener("click", function (event) {
+    const link = event.target.closest("[data-back]");
+    if (!link) {
+      return;
+    }
+    event.preventDefault();
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = link.getAttribute("href") || "/home";
+    }
+  });
+})();

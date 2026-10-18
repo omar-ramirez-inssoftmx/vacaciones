@@ -275,18 +275,18 @@
     #noResults { display: none; text-align: center; padding: 40px; color: #4b5563; font-size: 14px; }
   </style>
   <script src="/js/theme-init.js"></script>
+  <link rel="stylesheet" href="/css/people.css">
   <link rel="stylesheet" href="/css/theme-light.css" data-theme-styles="true">
   <link rel="stylesheet" href="/css/responsive.css">
 </head>
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar">
-  <span class="navbar-brand">Sistema de Vacaciones</span>
-  <a href="/home" class="btn-volver">← Volver</a>
-</nav>
+<!-- MENÚ EJECUTIVO -->
+<nav th:replace="~{fragments/people-nav :: nav('vacations')}"></nav>
 
 <div class="page-wrapper">
+
+  <a href="/home" class="btn-volver no-loader" data-back>← Volver</a>
 
   <!-- HERO -->
   <div class="hero">

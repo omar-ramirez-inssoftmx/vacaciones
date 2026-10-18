@@ -1,74 +1,73 @@
-<nav th:fragment="nav(active)" class="navbar navbar-expand-lg people-navbar"
-     xmlns:th="http://www.thymeleaf.org">
-  <div class="container-fluid people-navbar__inner">
-    <a class="navbar-brand people-navbar__brand" href="/home">
-      <span class="people-navbar__mark">IP</span>
-      <span>INSSOFT PEOPLE</span>
+<header th:fragment="nav(active)" class="exec-header" xmlns:th="http://www.thymeleaf.org">
+  <div class="exec-header__inner">
+    <a class="exec-brand" href="/home" data-exec-close>
+      <span class="exec-brand__mark">IP</span>
+      <span class="exec-brand__text">
+        <strong>INSSOFT</strong>
+        <small>PEOPLE</small>
+      </span>
     </a>
 
-    <button class="navbar-toggler people-navbar__toggler" type="button"
-            data-bs-toggle="collapse" data-bs-target="#peopleNav"
-            aria-controls="peopleNav" aria-expanded="false" aria-label="Abrir menú">
-      <span class="navbar-toggler-icon"></span>
+    <button type="button" class="exec-burger" data-exec-toggle
+            aria-controls="execMenu" aria-expanded="false" aria-label="Abrir menú ejecutivo">
+      <span></span><span></span><span></span>
     </button>
 
-    <div class="collapse navbar-collapse" id="peopleNav">
-      <ul class="navbar-nav me-auto people-navbar__links">
-        <li class="nav-item">
-          <a class="nav-link" th:classappend="${active == 'home'} ? ' active'" href="/home">Inicio</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" th:classappend="${active == 'profile'} ? ' active'" href="/profile">Mi perfil</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" th:classappend="${active == 'documents'} ? ' active'" href="/documents">Mis documentos</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" th:classappend="${active == 'payroll'} ? ' active'" href="/payroll">Mis recibos</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" th:classappend="${active == 'communications'} ? ' active'" href="/communications">Comunicados</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" th:classappend="${active == 'vacations'} ? ' active'" href="/vacations/status">Mis vacaciones</a>
-        </li>
+    <div class="exec-menu" id="execMenu">
+      <button type="button" class="exec-close" data-exec-close aria-label="Cerrar menú">✕</button>
+      <nav class="exec-primary" aria-label="Navegación principal">
+        <a class="exec-link" th:classappend="${active == 'home'} ? ' active'" href="/home" data-exec-close>Inicio</a>
+        <a class="exec-link" th:classappend="${active == 'profile'} ? ' active'" href="/profile" data-exec-close>Mi perfil</a>
+        <a class="exec-link" th:classappend="${active == 'vacations'} ? ' active'" href="/vacations/status" data-exec-close>Vacaciones</a>
+        <a class="exec-link" th:classappend="${active == 'documents'} ? ' active'" href="/documents" data-exec-close>Documentos</a>
+        <a class="exec-link" th:classappend="${active == 'payroll'} ? ' active'" href="/payroll" data-exec-close>Recibos</a>
+        <a class="exec-link" th:classappend="${active == 'communications'} ? ' active'" href="/communications" data-exec-close>Comunicados</a>
 
-        <li class="nav-item" th:if="${rol == 'ROLE_LIDER'}">
-          <a class="nav-link" th:classappend="${active == 'leader-requests'} ? ' active'" href="/leader/requests">Bandeja</a>
-        </li>
-        <li class="nav-item" th:if="${rol == 'ROLE_LIDER'}">
-          <a class="nav-link" th:classappend="${active == 'team'} ? ' active'" href="/leader/team">Mi equipo</a>
-        </li>
+        <a th:if="${rol == 'ROLE_LIDER'}" class="exec-link"
+           th:classappend="${active == 'team'} ? ' active'" href="/leader/team" data-exec-close>Mi equipo</a>
+        <a th:if="${rol == 'ROLE_LIDER'}" class="exec-link"
+           th:classappend="${active == 'leader-requests'} ? ' active'" href="/leader/requests" data-exec-close>Bandeja</a>
+      </nav>
 
-        <li class="nav-item" th:if="${rol == 'ROLE_ADMIN'}">
-          <a class="nav-link" th:classappend="${active == 'admin-employees'} ? ' active'" href="/admin/employees">Empleados</a>
-        </li>
-        <li class="nav-item" th:if="${rol == 'ROLE_ADMIN'}">
-          <a class="nav-link" th:classappend="${active == 'admin-documents'} ? ' active'" href="/admin/documents">Documentos</a>
-        </li>
-        <li class="nav-item" th:if="${rol == 'ROLE_ADMIN'}">
-          <a class="nav-link" th:classappend="${active == 'admin-payroll'} ? ' active'" href="/admin/payroll">Nómina</a>
-        </li>
-        <li class="nav-item" th:if="${rol == 'ROLE_ADMIN'}">
-          <a class="nav-link" th:classappend="${active == 'admin-communications'} ? ' active'" href="/admin/communications">Comunicados</a>
-        </li>
-        <li class="nav-item" th:if="${rol == 'ROLE_ADMIN'}">
-          <a class="nav-link" th:classappend="${active == 'admin-requests'} ? ' active'" href="/admin/requests">Solicitudes</a>
-        </li>
-        <li class="nav-item" th:if="${rol == 'ROLE_ADMIN'}">
-          <a class="nav-link" th:classappend="${active == 'admin-users'} ? ' active'" href="/admin/users">Usuarios</a>
-        </li>
-        <li class="nav-item" th:if="${rol == 'ROLE_ADMIN'}">
-          <a class="nav-link" th:classappend="${active == 'admin-calendar'} ? ' active'" href="/admin/calendar">Calendario</a>
-        </li>
-      </ul>
+      <div class="exec-actions">
+        <div th:if="${rol == 'ROLE_ADMIN'}" class="exec-dropdown">
+          <button type="button" class="exec-dropdown__toggle"
+                  th:classappend="${#strings.startsWith(active, 'admin-')} ? ' active'"
+                  data-exec-dropdown-toggle aria-expanded="false">
+            Administración <span class="exec-caret">▾</span>
+          </button>
+          <div class="exec-dropdown__menu">
+            <a href="/admin/employees" data-exec-close>Empleados</a>
+            <a href="/admin/documents" data-exec-close>Documentos</a>
+            <a href="/admin/payroll" data-exec-close>Nómina</a>
+            <a href="/admin/communications" data-exec-close>Comunicados</a>
+            <a href="/admin/requests" data-exec-close>Solicitudes</a>
+            <a href="/admin/requests/history" data-exec-close>Historial</a>
+            <a href="/admin/users" data-exec-close>Usuarios</a>
+            <a href="/admin/calendar" data-exec-close>Calendario</a>
+            <a href="/admin/politicas" data-exec-close>Políticas</a>
+            <a href="/admin/dashboard" data-exec-close>Dashboard</a>
+          </div>
+        </div>
 
-      <div class="people-navbar__user">
-        <span class="people-navbar__username" th:text="${usuario}">usuario</span>
-        <form method="post" th:action="@{/logout}" class="d-inline">
-          <button type="submit" class="btn btn-outline-light btn-sm">Salir</button>
+        <a class="exec-user" href="/profile" data-exec-close title="Ver mi perfil">
+          <span class="exec-avatar" th:text="${#strings.substring(usuario, 0, 1).toUpperCase()}">A</span>
+          <span class="exec-user__text">
+            <strong th:text="${usuario}">usuario</strong>
+            <small th:text="${rol == 'ROLE_ADMIN' ? 'Administrador' : (rol == 'ROLE_LIDER' ? 'Líder' : 'Colaborador')}">Colaborador</small>
+          </span>
+        </a>
+
+        <a class="exec-icon-link" href="/change-password" data-exec-close title="Cambiar contraseña" aria-label="Cambiar contraseña">
+          🔐
+        </a>
+
+        <form method="post" th:action="@{/logout}" class="exec-logout">
+          <button type="submit">Salir</button>
         </form>
       </div>
     </div>
   </div>
-</nav>
+
+  <button type="button" class="exec-scrim" data-exec-close aria-label="Cerrar menú"></button>
+</header>

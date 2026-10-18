@@ -273,20 +273,19 @@
     .form-group { margin-bottom: 16px; }
   </style>
   <script src="/js/theme-init.js"></script>
+  <link rel="stylesheet" href="/css/people.css">
   <link rel="stylesheet" href="/css/theme-light.css" data-theme-styles="true">
   <link rel="stylesheet" href="/css/responsive.css">
 </head>
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar">
-  <span class="navbar-brand">Sistema de Vacaciones</span>
-  <a href="/home">
-    <button class="btn-salir">← Volver</button>
-  </a>
-</nav>
+<!-- MENÚ EJECUTIVO -->
+<nav th:replace="~{fragments/people-nav :: nav('admin-politicas')}"></nav>
 
 <div class="page-wrapper">
+
+  <a href="/home" class="btn-salir no-loader" data-back
+     style="display:inline-block;text-decoration:none;margin-bottom:1rem;">← Volver</a>
 
   <!-- HEADER -->
   <div class="section-label">Panel Admin</div>

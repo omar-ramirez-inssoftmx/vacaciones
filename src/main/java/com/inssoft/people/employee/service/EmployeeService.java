@@ -12,6 +12,7 @@ import com.inssoft.people.employee.dto.EmergencyContactResponse;
 import com.inssoft.people.employee.dto.EmployeeRequest;
 import com.inssoft.people.employee.dto.EmployeeResponse;
 import com.inssoft.people.employee.dto.EmployeeSummaryResponse;
+import com.inssoft.people.employee.dto.ProfileUpdateRequest;
 import com.inssoft.people.employee.dto.TerminationRequest;
 import com.inssoft.people.employee.entity.EmergencyContact;
 import com.inssoft.people.employee.entity.Employee;
@@ -135,10 +136,30 @@ public class EmployeeService {
 
     @Transactional(readOnly = true)
     public EmployeeResponse getMe(String username) {
-        Employee employee = employeeRepository.findByUser_UsernameAndDeletedAtIsNull(username)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "No existe un empleado vinculado al usuario " + username));
+        Employee employee = findMyEmployee(username);
         return toResponse(employee, true);
+    }
+
+    @Transactional
+    public EmployeeResponse updateMyProfile(String username, ProfileUpdateRequest request) {
+        Employee employee = findMyEmployee(username);
+        EmployeeResponse previous = toResponse(employee, true);
+
+        employee.setPersonalEmail(lowerOrNull(request.personalEmail()));
+        employee.setPhone(CodeNormalizer.trimToNull(request.phone()));
+        employee.setAddressLine1(CodeNormalizer.trimToNull(request.addressLine1()));
+        employee.setAddressLine2(CodeNormalizer.trimToNull(request.addressLine2()));
+        employee.setCity(CodeNormalizer.trimToNull(request.city()));
+        employee.setState(CodeNormalizer.trimToNull(request.state()));
+        employee.setPostalCode(CodeNormalizer.trimToNull(request.postalCode()));
+        employee.setCountry(CodeNormalizer.trimToNull(request.country()) == null
+                ? "México"
+                : request.country().trim());
+
+        Employee saved = employeeRepository.save(employee);
+        EmployeeResponse response = toResponse(saved, true);
+        auditService.record("EMPLOYEE_SELF_UPDATE", "Employee", saved.getUuid().toString(), previous, response);
+        return response;
     }
 
     @Transactional
@@ -448,6 +469,11 @@ public class EmployeeService {
         return employeeRepository.findByUser_UsernameAndDeletedAtIsNull(username)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "No existe un empleado vinculado al usuario " + username));
+    }
+
+    private String lowerOrNull(String value) {
+        String normalized = CodeNormalizer.trimToNull(value);
+        return normalized == null ? null : normalized.toLowerCase(Locale.ROOT);
     }
 
     private Employee resolveManager(UUID managerUuid) {

@@ -27,7 +27,7 @@
       <a class="btn btn-primary btn-sm no-loader"
          th:if="${empleado.enabled}"
          th:href="@{/admin/employees/{uuid}/edit(uuid=${empleado.uuid})}">Editar</a>
-      <a class="btn btn-outline-secondary btn-sm no-loader" th:href="@{/admin/employees}">← Volver</a>
+      <a class="btn btn-outline-secondary btn-sm no-loader" th:href="@{/admin/employees}" data-back>← Volver</a>
     </div>
   </section>
 

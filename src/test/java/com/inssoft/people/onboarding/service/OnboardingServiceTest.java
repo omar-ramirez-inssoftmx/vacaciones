@@ -46,8 +46,9 @@ class OnboardingServiceTest {
 
         assertThat(steps)
                 .extracting(TourStep::target)
-                .contains("a[href=\"/leader/requests\"]",
-                        "a[href=\"/admin/requests/history\"]");
+                .contains("a[href=\"/leader/team\"]",
+                        "a[href=\"/leader/requests\"]",
+                        "[data-tour=\"admin-history\"]");
     }
 
     @Test
@@ -56,10 +57,12 @@ class OnboardingServiceTest {
 
         assertThat(steps)
                 .extracting(TourStep::target)
-                .contains("a[href=\"/admin/requests\"]",
-                        "a[href=\"/admin/users\"]",
-                        "a[href=\"/admin/calendar\"]",
-                        "a[href=\"/admin/dashboard\"]");
+                .contains("[data-tour=\"admin-requests\"]",
+                        "[data-tour=\"admin-users\"]",
+                        "[data-tour=\"admin-calendar\"]",
+                        "[data-tour=\"admin-dashboard\"]",
+                        "[data-tour=\"admin-employees\"]",
+                        "[data-tour=\"admin-payroll\"]");
     }
 
     @Test

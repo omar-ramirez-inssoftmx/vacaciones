@@ -109,20 +109,14 @@
     }
   </style>
   <script src="/js/theme-init.js"></script>
+  <link rel="stylesheet" href="/css/people.css">
   <link rel="stylesheet" href="/css/theme-light.css" data-theme-styles="true">
   <link rel="stylesheet" href="/css/responsive.css">
 </head>
 
 <body>
 
-<nav class="navbar navbar-dark">
-  <div class="container-fluid d-flex align-items-center justify-content-between">
-    <a class="navbar-brand" href="/home">Sistema de Vacaciones</a>
-    <form method="post" th:action="@{/logout}">
-      <button class="btn btn-outline-light btn-sm">Salir</button>
-    </form>
-  </div>
-</nav>
+<nav th:replace="~{fragments/people-nav :: nav('leader-requests')}"></nav>
 
 <div class="container mt-4">
 
@@ -132,7 +126,7 @@
       <h4 class="mb-1">Revisar Solicitudes</h4>
       <div class="muted">Solo se muestran solicitudes <b>PENDIENTES</b>.</div>
     </div>
-    <a class="btn-back no-loader" th:href="@{/home}">← Volver</a>
+    <a class="btn-back no-loader" th:href="@{/home}" data-back>← Volver</a>
   </div>
 
   <div id="emptyState" th:if="${#lists.isEmpty(requests)}" class="empty-state">

@@ -74,43 +74,43 @@ public class OnboardingService {
 
         if (role == Role.ROLE_ADMIN) {
             steps.add(new TourStep(
-                    "a[href=\"/admin/requests\"]",
+                    "[data-tour=\"admin-requests\"]",
                     "Revisar solicitudes",
                     "Aprueba o rechaza solicitudes pendientes de administración."));
             steps.add(new TourStep(
-                    "a[href=\"/admin/employees\"]",
+                    "[data-tour=\"admin-employees\"]",
                     "Empleados",
                     "Consulta el directorio, los expedientes laborales y registra bajas."));
             steps.add(new TourStep(
-                    "a[href=\"/admin/documents\"]",
+                    "[data-tour=\"admin-documents\"]",
                     "Documentos de empleados",
                     "Carga y descarga documentos del expediente de cada colaborador."));
             steps.add(new TourStep(
-                    "a[href=\"/admin/payroll\"]",
+                    "[data-tour=\"admin-payroll\"]",
                     "Nómina",
                     "Crea periodos y publica los recibos PDF de los empleados."));
             steps.add(new TourStep(
-                    "a[href=\"/admin/communications\"]",
+                    "[data-tour=\"admin-communications\"]",
                     "Comunicados",
                     "Publica avisos internos para todo el equipo."));
             steps.add(new TourStep(
-                    "a[href=\"/admin/users\"]",
+                    "[data-tour=\"admin-users\"]",
                     "Administración de usuarios",
                     "Crea usuarios, actualiza sus datos, cambia roles y restablece contraseñas."));
             steps.add(new TourStep(
-                    "a[href=\"/admin/requests/history\"]",
+                    "[data-tour=\"admin-history\"]",
                     "Historial",
                     "Consulta solicitudes aprobadas y rechazadas con filtros."));
             steps.add(new TourStep(
-                    "a[href=\"/admin/calendar\"]",
+                    "[data-tour=\"admin-calendar\"]",
                     "Calendario",
                     "Visualiza las ausencias del equipo y exporta el calendario."));
             steps.add(new TourStep(
-                    "a[href=\"/admin/politicas\"]",
+                    "[data-tour=\"admin-politicas\"]",
                     "Políticas de la empresa",
                     "Administra los documentos y reglamentos internos."));
             steps.add(new TourStep(
-                    "a[href=\"/admin/dashboard\"]",
+                    "[data-tour=\"admin-dashboard\"]",
                     "Dashboard KPI",
                     "Consulta métricas de vacaciones, solicitudes pendientes y ausencias del día."));
         } else {
@@ -129,7 +129,7 @@ public class OnboardingService {
                         "Revisar solicitudes de tu equipo",
                         "Aprueba o rechaza las solicitudes que te fueron asignadas como líder."));
                 steps.add(new TourStep(
-                        "a[href=\"/admin/requests/history\"]",
+                        "[data-tour=\"admin-history\"]",
                         "Historial",
                         "Consulta el historial de solicitudes aprobadas y rechazadas."));
             }
