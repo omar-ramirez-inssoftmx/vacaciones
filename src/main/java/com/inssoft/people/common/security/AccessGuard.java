@@ -52,7 +52,6 @@ public class AccessGuard {
             "INCIDENT_APPROVE",
             "WORKPLAN_VIEW",
             "TELEWORK_VIEW",
-            "DOCUMENT_VIEW",
             "DASHBOARD_VIEW"
     ));
 
@@ -66,6 +65,7 @@ public class AccessGuard {
             "VACATION_ADJUST",
             "VACATION_POLICY_MANAGE",
             "CALENDAR_MANAGE",
+            "DOCUMENT_VIEW",
             "DOCUMENT_UPLOAD",
             "DOCUMENT_DELETE",
             "PAYROLL_VIEW",
